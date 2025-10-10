@@ -1,7 +1,7 @@
 // RSVP Handler con EmailJS e Firebase
 // Inizializza EmailJS
 (function() {
-    emailjs.init("YOUR_EMAILJS_USER_ID"); // Sostituire con il tuo User ID di EmailJS
+    emailjs.init("cVcAe6MvmwdmXfCXo"); // Sostituire con il tuo User ID di EmailJS
 })();
 
 // RSVP Form Handler
@@ -111,7 +111,7 @@ const rsvpHandler = {
         
         try {
             // Sostituire con il tuo Service ID e Template ID di EmailJS
-            await emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams);
+            await emailjs.send('service_yp2w08r', 'template_6sj1bah', templateParams);
             console.log('Email di conferma inviata con successo');
         } catch (error) {
             console.error('Errore nell\'invio dell\'email:', error);
