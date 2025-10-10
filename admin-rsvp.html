@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin RSVP - Matrimonio Andrea & Giulia</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="data:,">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-header">
+                <i class="fas fa-lock"></i>
+                <h1>Admin Panel RSVP</h1>
+                <p>Gestione Prenotazioni Matrimonio</p>
+            </div>
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Inserisci la password" required>
+                </div>
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Accedi
+                </button>
+                <div id="loginError" class="login-error"></div>
+            </form>
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> Torna alla Homepage
+            </a>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="admin-panel" style="display: none;">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="admin-header-content">
+                <div class="admin-logo">
+                    <i class="fas fa-users"></i>
+                    <span>Admin RSVP</span>
+                </div>
+                <div class="admin-actions">
+                    <a href="admin.html" class="btn-secondary">
+                        <i class="fas fa-images"></i> Galleria Admin
+                    </a>
+                    <a href="index.html" class="btn-secondary">
+                        <i class="fas fa-home"></i> Homepage
+                    </a>
+                    <button id="logoutBtn" class="btn-danger">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <i class="fas fa-check-circle"></i>
+                <div class="stat-content">
+                    <span class="stat-label">Confermati</span>
+                    <span class="stat-value" id="totalConfirmed">0</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-times-circle"></i>
+                <div class="stat-content">
+                    <span class="stat-label">Non Confermati</span>
+                    <span class="stat-value" id="totalDeclined">0</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-users"></i>
+                <div class="stat-content">
+                    <span class="stat-label">Totale Ospiti</span>
+                    <span class="stat-value" id="totalGuests">0</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-utensils"></i>
+                <div class="stat-content">
+                    <span class="stat-label">Con Intolleranze</span>
+                    <span class="stat-value" id="totalIntolerances">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Cerca per nome o email...">
+                </div>
+            </div>
+            <div class="toolbar-right">
+                <button id="exportCSVBtn" class="btn-success">
+                    <i class="fas fa-file-csv"></i> Esporta CSV
+                </button>
+                <button id="exportExcelBtn" class="btn-success">
+                    <i class="fas fa-file-excel"></i> Esporta Excel
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filter-group">
+                <label>Filtra per:</label>
+                <select id="filterStatus">
+                    <option value="all">Tutti</option>
+                    <option value="yes">Solo Confermati</option>
+                    <option value="no">Solo Non Confermati</option>
+                    <option value="intolerances">Con Intolleranze</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Ordina per:</label>
+                <select id="filterSort">
+                    <option value="newest">Più Recenti</option>
+                    <option value="oldest">Più Vecchie</option>
+                    <option value="name">Nome A-Z</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- RSVP Table -->
+        <div class="rsvp-table-container">
+            <table class="rsvp-table" id="rsvpTable">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Telefono</th>
+                        <th>Partecipazione</th>
+                        <th>N. Ospiti</th>
+                        <th>Intolleranze</th>
+                        <th>Messaggio</th>
+                        <th>Data Conferma</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody id="rsvpTableBody">
+                    <!-- Rows will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Loading -->
+        <div id="adminLoading" class="admin-loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Caricamento...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="adminEmpty" class="admin-empty" style="display: none;">
+            <i class="fas fa-users"></i>
+            <h3>Nessuna Prenotazione</h3>
+            <p>Non ci sono ancora conferme di partecipazione.</p>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="detailsModal" class="preview-modal">
+        <div class="preview-content">
+            <button class="preview-close" id="detailsClose">&times;</button>
+            <div class="rsvp-details">
+                <h3 id="detailsName">Nome</h3>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <strong>Email:</strong>
+                        <span id="detailsEmail"></span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Telefono:</strong>
+                        <span id="detailsPhone"></span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Partecipazione:</strong>
+                        <span id="detailsAttendance"></span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Numero Ospiti:</strong>
+                        <span id="detailsGuests"></span>
+                    </div>
+                    <div class="detail-item full-width">
+                        <strong>Intolleranze Alimentari:</strong>
+                        <p id="detailsIntolerances"></p>
+                    </div>
+                    <div class="detail-item full-width">
+                        <strong>Messaggio:</strong>
+                        <p id="detailsMessage"></p>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Data Conferma:</strong>
+                        <span id="detailsDate"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    
+    <script src="firebase-config.js"></script>
+    <script src="admin-rsvp-script.js"></script>
+</body>
+</html>
+

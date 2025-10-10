@@ -84,6 +84,18 @@ class UploadModal {
         
         if (validFiles.length === 0) return;
         
+        // Count photos and videos separately
+        const photoCount = this.selectedFiles.filter(f => f.type.startsWith('image/')).length +
+                          validFiles.filter(f => f.type.startsWith('image/')).length;
+        const videoCount = this.selectedFiles.filter(f => f.type.startsWith('video/')).length +
+                          validFiles.filter(f => f.type.startsWith('video/')).length;
+        
+        // Check limits: max 10 photos + 3 videos
+        if (photoCount > 10 || videoCount > 3) {
+            alert(`Limite caricamento:\n- Massimo 10 foto per upload\n- Massimo 3 video per upload\n\nAttualmente:\n- ${photoCount} foto\n- ${videoCount} video`);
+            return;
+        }
+        
         this.selectedFiles = [...this.selectedFiles, ...validFiles];
         this.updatePreview();
         this.uploadButton.disabled = false;
@@ -160,17 +172,29 @@ class UploadModal {
                 
                 this.updateProgress(progress, 'Caricamento ' + (i + 1) + ' di ' + totalFiles + ': ' + file.name);
                 
+                // Compress image if needed
+                let fileToUpload = file;
+                if (file.type.startsWith('image/')) {
+                    try {
+                        fileToUpload = await this.compressImage(file);
+                        console.log(`Immagine compressa: ${file.size} → ${fileToUpload.size} bytes`);
+                    } catch (error) {
+                        console.warn('Compressione fallita, uso file originale:', error);
+                    }
+                }
+                
                 const storageRef = storage.ref('wedding-media/' + Date.now() + '-' + file.name);
-                const snapshot = await storageRef.put(file);
+                const snapshot = await storageRef.put(fileToUpload);
                 const downloadURL = await snapshot.ref.getDownloadURL();
                 
                 await db.collection('wedding-media').add({
                     fileName: file.name,
                     fileType: file.type,
-                    fileSize: file.size,
+                    fileSize: fileToUpload.size,
                     downloadURL: downloadURL,
                     uploadDate: firebase.firestore.FieldValue.serverTimestamp(),
-                    storagePath: snapshot.ref.fullPath
+                    storagePath: snapshot.ref.fullPath,
+                    hashtag: '#AndreaGiulia2026'
                 });
                 
                 uploadedCount++;
@@ -179,16 +203,71 @@ class UploadModal {
             this.updateProgress(100, 'Caricamento completato!');
             
             setTimeout(() => {
-                alert('Perfetto! ' + uploadedCount + ' file caricati con successo. Saranno visibili nella galleria tra pochi minuti.');
+                alert(`Perfetto! ${uploadedCount} file caricati con successo.\n\nRicorda di usare l'hashtag #AndreaGiulia2026 se condividi su Instagram! 📸`);
                 this.closeModal();
             }, 1000);
             
         } catch (error) {
             console.error('Errore durante il caricamento:', error);
-            alert('Si e verificato un errore durante il caricamento. Riprova piu tardi.');
+            alert('Si è verificato un errore durante il caricamento. Riprova più tardi.');
             this.uploading = false;
             this.uploadButton.disabled = false;
         }
+    }
+    
+    async compressImage(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                const img = new Image();
+                
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Max dimensions (maintain aspect ratio)
+                    const MAX_WIDTH = 1920;
+                    const MAX_HEIGHT = 1920;
+                    
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    // Resize if needed
+                    if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                        const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+                        width = width * ratio;
+                        height = height * ratio;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Convert to blob with quality 0.8 (JPEG)
+                    canvas.toBlob(
+                        (blob) => {
+                            if (blob && blob.size < file.size) {
+                                // Use compressed version only if smaller
+                                resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+                            } else {
+                                // Use original if compression doesn't help
+                                resolve(file);
+                            }
+                        },
+                        'image/jpeg',
+                        0.8
+                    );
+                };
+                
+                img.onerror = () => reject(new Error('Failed to load image'));
+                img.src = e.target.result;
+            };
+            
+            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.readAsDataURL(file);
+        });
     }
     
     updateProgress(percentage, text) {

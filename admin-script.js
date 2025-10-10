@@ -231,9 +231,6 @@ class AdminPanel {
                     <button class="action-btn whatsapp-btn" data-id="${item.id}" title="Condividi su WhatsApp">
                         <i class="fab fa-whatsapp"></i>
                     </button>
-                    <button class="action-btn telegram-btn" data-id="${item.id}" title="Condividi su Telegram">
-                        <i class="fab fa-telegram"></i>
-                    </button>
                     <button class="action-btn download-btn" data-id="${item.id}" title="Scarica">
                         <i class="fas fa-download"></i>
                     </button>
@@ -262,9 +259,6 @@ class AdminPanel {
             
             const whatsappBtn = mediaItem.querySelector('.whatsapp-btn');
             whatsappBtn.addEventListener('click', () => this.shareWhatsApp(item));
-            
-            const telegramBtn = mediaItem.querySelector('.telegram-btn');
-            telegramBtn.addEventListener('click', () => this.shareTelegram(item));
             
             const downloadBtn = mediaItem.querySelector('.download-btn');
             downloadBtn.addEventListener('click', () => this.downloadSingle(item));
@@ -412,75 +406,119 @@ class AdminPanel {
     
     async downloadSingle(item) {
         try {
-            const response = await fetch(item.downloadURL);
+            // Fetch with CORS mode
+            const response = await fetch(item.downloadURL, {
+                mode: 'cors',
+                credentials: 'omit'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             
             const a = document.createElement('a');
+            a.style.display = 'none';
             a.href = url;
-            a.download = item.fileName || 'media';
+            a.download = item.fileName || `media_${Date.now()}`;
             document.body.appendChild(a);
             a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
+            
+            // Cleanup
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+            
+            console.log('Download completato:', item.fileName);
         } catch (error) {
             console.error('Errore nel download:', error);
-            alert('Errore nel download del file.');
+            
+            // Fallback: open in new tab
+            try {
+                window.open(item.downloadURL, '_blank');
+                console.log('Download alternativo: aperto in nuova tab');
+            } catch (fallbackError) {
+                alert('Errore nel download del file. Riprova più tardi.');
+            }
         }
     }
     
     async downloadSelected() {
         if (this.selectedItems.size === 0) return;
         
-        alert(`Download di ${this.selectedItems.size} file in corso... Potrebbero volerci alcuni minuti.`);
+        const count = this.selectedItems.size;
+        if (!confirm(`Vuoi scaricare ${count} file? Potrebbero volerci alcuni minuti.`)) return;
+        
+        let successCount = 0;
+        let errorCount = 0;
         
         try {
             for (const id of this.selectedItems) {
                 const item = this.mediaItems.find(i => i.id === id);
                 if (item) {
-                    await this.downloadSingle(item);
-                    // Small delay to avoid overwhelming the browser
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    try {
+                        await this.downloadSingle(item);
+                        successCount++;
+                        // Small delay to avoid overwhelming the browser
+                        await new Promise(resolve => setTimeout(resolve, 800));
+                    } catch (error) {
+                        console.error(`Errore nel download di ${item.fileName}:`, error);
+                        errorCount++;
+                    }
                 }
             }
             
-            alert('Download completato!');
+            if (errorCount === 0) {
+                alert(`✓ Download completato! ${successCount} file scaricati.`);
+            } else {
+                alert(`Download completato con errori:\n${successCount} file scaricati\n${errorCount} errori`);
+            }
         } catch (error) {
-            console.error('Errore nel download:', error);
-            alert('Errore nel download dei file.');
+            console.error('Errore nel download multiplo:', error);
+            alert(`Errore durante il download. ${successCount} file scaricati prima dell'errore.`);
         }
     }
     
     async downloadAll() {
         if (this.mediaItems.length === 0) return;
         
-        if (!confirm(`Vuoi scaricare tutti i ${this.mediaItems.length} file? Potrebbero volerci diversi minuti.`)) return;
+        const count = this.mediaItems.length;
+        if (!confirm(`Vuoi scaricare TUTTI i ${count} file? Questa operazione potrebbe richiedere molto tempo.`)) return;
         
-        alert('Download in corso... Attendi.');
+        let successCount = 0;
+        let errorCount = 0;
         
         try {
             for (const item of this.mediaItems) {
-                await this.downloadSingle(item);
-                // Small delay to avoid overwhelming the browser
-                await new Promise(resolve => setTimeout(resolve, 500));
+                try {
+                    await this.downloadSingle(item);
+                    successCount++;
+                    console.log(`Download ${successCount}/${count}: ${item.fileName}`);
+                    // Small delay to avoid overwhelming the browser
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                } catch (error) {
+                    console.error(`Errore nel download di ${item.fileName}:`, error);
+                    errorCount++;
+                }
             }
             
-            alert('Download completato!');
+            if (errorCount === 0) {
+                alert(`✓ Download di tutti i file completato! ${successCount} file scaricati con successo.`);
+            } else {
+                alert(`Download completato con errori:\n${successCount} file scaricati con successo\n${errorCount} file con errori`);
+            }
         } catch (error) {
-            console.error('Errore nel download:', error);
-            alert('Errore nel download dei file.');
+            console.error('Errore nel download completo:', error);
+            alert(`Errore durante il download. ${successCount} file scaricati prima dell'errore.`);
         }
     }
     
     shareWhatsApp(item) {
-        const text = 'Guarda questa foto/video del matrimonio!';
-        const url = `https://wa.me/?text=${encodeURIComponent(text + ' ' + item.downloadURL)}`;
-        window.open(url, '_blank');
-    }
-    
-    shareTelegram(item) {
-        const text = 'Guarda questa foto/video del matrimonio!';
-        const url = `https://t.me/share/url?url=${encodeURIComponent(item.downloadURL)}&text=${encodeURIComponent(text)}`;
+        const text = 'Guarda questa foto/video del matrimonio di Andrea & Giulia! 💍';
+        const url = `https://wa.me/?text=${encodeURIComponent(text + '\n' + item.downloadURL)}`;
         window.open(url, '_blank');
     }
     
