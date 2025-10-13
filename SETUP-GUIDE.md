@@ -87,13 +87,13 @@
 1. Dashboard → Email Services → Add New Service
 2. Scegli Gmail (o altro provider)
 3. Connetti il tuo account email
-4. Copia il **Service ID** (es: `service_abc123`)
+4. Copia il **Service ID** (es: `service_abc123`) (Francesco / service_yp2w08r)
 
 #### Step 3: Crea Template Email
 1. Dashboard → Email Templates → Create New Template
 2. Usa questo template:
 
-**Template Name**: `rsvp_confirmation`
+**Template Name**: `rsvp_confirmation`  (template_6sj1bah)
 
 **Template Content**:
 ```
@@ -124,11 +124,11 @@ Andrea & Giulia
 Per emergenze il giorno del matrimonio: +39 339 898 5125
 ```
 
-3. Salva e copia il **Template ID** (es: `template_xyz789`)
+3. Salva e copia il **Template ID** (es: `template_xyz789`)  (template_6sj1bah)
 
 #### Step 4: Ottieni Public Key
 1. Dashboard → Account → API Keys
-2. Copia la **Public Key** (es: `user_ABC123xyz`)
+2. Copia la **Public Key** (es: `user_ABC123xyz`)  (cVcAe6MvmwdmXfCXo)
 
 #### Step 5: Aggiorna il Codice
 Apri `rsvp-handler.js` e sostituisci:

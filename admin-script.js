@@ -161,6 +161,11 @@ class AdminPanel {
         this.isLoggedIn = true;
         this.loadMedia();
     }
+
+    onAuthSuccess() {
+        this.isLoggedIn = true;
+        this.loadMedia();
+    }
     
     async loadMedia() {
         try {
@@ -624,6 +629,9 @@ class AdminPanel {
 
 // Initialize Admin Panel
 document.addEventListener('DOMContentLoaded', () => {
-    new AdminPanel();
+    adminPanel = new AdminPanel();
+    // Rendi AdminPanel disponibile globalmente per AuthManagerSecure
+    window.adminPanelInstance = adminPanel;
+    window.adminPanelMedia = adminPanel;
 });
 

@@ -150,6 +150,11 @@ class AdminRSVPPanel {
         this.isLoggedIn = true;
         this.loadRSVP();
     }
+
+    onAuthSuccess() {
+        this.isLoggedIn = true;
+        this.loadRSVP();
+    }
     
     async loadRSVP() {
         try {
@@ -404,6 +409,9 @@ class AdminRSVPPanel {
 
 // Initialize Admin RSVP Panel
 document.addEventListener('DOMContentLoaded', () => {
-    new AdminRSVPPanel();
+    adminRSVPPanel = new AdminRSVPPanel();
+    // Rendi AdminRSVPPanel disponibile globalmente per AuthManagerSecure
+    window.adminPanelInstance = adminRSVPPanel;
+    window.adminPanelRSVP = adminRSVPPanel;
 });
 
