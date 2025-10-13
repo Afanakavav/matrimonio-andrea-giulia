@@ -135,4 +135,4 @@ class AuthManagerSecure {
 }
 
 // Export global per uso in altri file
-window.AuthManager = AuthManagerSecure;
+window.AuthManagerSecure = AuthManagerSecure;
