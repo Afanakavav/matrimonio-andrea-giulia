@@ -158,6 +158,43 @@
     z-index: 100;
 }
 
+/* Nascondi pulsanti specifici per sicurezza */
+.whatsapp-btn,
+#downloadSelectedBtn,
+#downloadAllBtn {
+    display: none !important;
+}
+
+/* Migliora layout pulsanti rimanenti */
+.admin-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.admin-actions .btn {
+    min-width: 120px;
+    text-align: center;
+}
+
+/* Migliora layout azioni media */
+.media-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-actions .action-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* Admin Header */
 .admin-header {
     background: var(--white);
