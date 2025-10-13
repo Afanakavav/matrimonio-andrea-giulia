@@ -127,8 +127,20 @@ class AuthManagerSecure {
         const loginScreen = document.getElementById('loginScreen');
         const adminPanel = document.getElementById('adminPanel');
         
-        if (loginScreen) loginScreen.style.display = 'none';
-        if (adminPanel) adminPanel.style.display = 'block';
+        console.log('🔧 showAdminPanel chiamata');
+        console.log('🔧 loginScreen trovato:', !!loginScreen);
+        console.log('🔧 adminPanel trovato:', !!adminPanel);
+        
+        if (loginScreen) {
+            loginScreen.style.display = 'none';
+            console.log('🔧 loginScreen nascosto');
+        }
+        if (adminPanel) {
+            adminPanel.style.display = 'block';
+            console.log('🔧 adminPanel mostrato');
+        } else {
+            console.error('❌ adminPanel non trovato!');
+        }
     }
 
     isAdmin() {
