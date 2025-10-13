@@ -12,7 +12,7 @@ async function sha256(message) {
     return hashHex;
 }
 
-class AuthManager {
+class AuthManagerSecure {
     constructor() {
         this.isAuthenticated = false;
         this.adminUID = 'secure-admin';
@@ -128,4 +128,4 @@ class AuthManager {
 }
 
 // Export global per uso in altri file
-window.AuthManager = AuthManager;
+window.AuthManager = AuthManagerSecure;

@@ -132,7 +132,7 @@ class AdminPanel {
         }
         
         // Usa AuthManager per il login
-        const result = await authManager.login('admin@matrimonio-andrea-giulia.com', password);
+        const result = await authManager.login(password);
         
         if (result.success) {
             // Login successful, AuthManager gestisce il resto
