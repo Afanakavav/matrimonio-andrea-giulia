@@ -41,6 +41,9 @@ class AuthManagerSecure {
     async verifyPassword(inputPassword) {
         try {
             const inputHash = await sha256(inputPassword);
+            console.log('🔍 Hash generato per password:', inputHash);
+            console.log('🔍 Hash memorizzato:', this.PASSWORD_HASH);
+            console.log('🔍 Confronto hash:', inputHash === this.PASSWORD_HASH);
             return inputHash === this.PASSWORD_HASH;
         } catch (error) {
             console.error('Errore verifica password:', error);
@@ -51,9 +54,12 @@ class AuthManagerSecure {
     async login(password) {
         try {
             console.log('🔐 Tentativo login sicuro');
+            console.log('🔍 Password ricevuta:', password);
+            console.log('🔍 Hash memorizzato:', this.PASSWORD_HASH);
             
             // Verifica password con hash
             const isValidPassword = await this.verifyPassword(password);
+            console.log('🔍 Password valida:', isValidPassword);
             
             if (isValidPassword) {
                 this.isAuthenticated = true;
@@ -65,6 +71,7 @@ class AuthManagerSecure {
                 console.log('✅ Login successful (secure mode)');
                 return { success: true };
             } else {
+                console.log('❌ Password non valida');
                 return { 
                     success: false, 
                     message: 'Password errata' 

@@ -48,8 +48,8 @@ class AdminRSVPPanel {
     }
 
     initializeAuth() {
-        // Inizializza AuthManager
-        authManager = new AuthManager();
+        // Inizializza AuthManagerSecure
+        authManager = new AuthManagerSecure();
         
         // Setup event listeners per auth
         this.setupAuthEventListeners();
