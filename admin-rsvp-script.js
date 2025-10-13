@@ -44,6 +44,7 @@ class AdminRSVPPanel {
     init() {
         this.initializeAuth();
         this.setupEventListeners();
+        this.setupPasswordToggle();
     }
 
     initializeAuth() {
@@ -88,6 +89,25 @@ class AdminRSVPPanel {
         this.detailsModal.addEventListener('click', (e) => {
             if (e.target === this.detailsModal) this.closeDetails();
         });
+    }
+
+    setupPasswordToggle() {
+        const passwordToggle = document.getElementById('passwordToggle');
+        const passwordInput = document.getElementById('password');
+        
+        if (passwordToggle && passwordInput) {
+            passwordToggle.addEventListener('click', () => {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    passwordToggle.classList.remove('fa-eye');
+                    passwordToggle.classList.add('fa-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    passwordToggle.classList.remove('fa-eye-slash');
+                    passwordToggle.classList.add('fa-eye');
+                }
+            });
+        }
     }
     
     async handleLogin(e) {
