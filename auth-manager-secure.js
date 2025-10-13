@@ -3,6 +3,8 @@
  * Password non visibile nel codice sorgente
  */
 
+console.log('🔧 Caricamento auth-manager-secure.js iniziato...');
+
 // Libreria SHA256 leggera
 async function sha256(message) {
     const msgBuffer = new TextEncoder().encode(message);
@@ -135,4 +137,9 @@ class AuthManagerSecure {
 }
 
 // Export global per uso in altri file
-window.AuthManagerSecure = AuthManagerSecure;
+try {
+    window.AuthManagerSecure = AuthManagerSecure;
+    console.log('✅ AuthManagerSecure esportato correttamente');
+} catch (error) {
+    console.error('❌ Errore nell\'export di AuthManagerSecure:', error);
+}
