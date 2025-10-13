@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Hash Password</title>
+</head>
+<body>
+    <h1>Test Hash Password</h1>
+    <input type="text" id="passwordInput" placeholder="Inserisci password" value="RindiFusi">
+    <button onclick="testHash()">Test Hash</button>
+    <div id="result"></div>
+
+    <script>
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
+        async function testHash() {
+            const password = document.getElementById('passwordInput').value;
+            const hash = await sha256(password);
+            const storedHash = '8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4';
+            
+            document.getElementById('result').innerHTML = `
+                <p><strong>Password:</strong> ${password}</p>
+                <p><strong>Hash generato:</strong> ${hash}</p>
+                <p><strong>Hash memorizzato:</strong> ${storedHash}</p>
+                <p><strong>Corrispondono:</strong> ${hash === storedHash ? '✅ SÌ' : '❌ NO'}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
