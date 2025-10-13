@@ -5,13 +5,20 @@
 
 console.log('🔧 Caricamento auth-manager-secure.js iniziato...');
 
-// Libreria SHA256 leggera
+// Libreria SHA256 robusta
 async function sha256(message) {
-    const msgBuffer = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return hashHex;
+    try {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        console.log('🔧 SHA256 generato per:', message, '→', hashHex);
+        return hashHex;
+    } catch (error) {
+        console.error('❌ Errore SHA256:', error);
+        // Fallback: hash semplice (non sicuro, solo per test)
+        return 'fallback-hash-' + message.length;
+    }
 }
 
 class AuthManagerSecure {
@@ -21,7 +28,8 @@ class AuthManagerSecure {
         this.user = { email: 'admin' }; // Email semplificata, non utilizzata per auth
         
         // Hash della password "RindiFusi" (non visibile in chiaro)
-        this.PASSWORD_HASH = 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3';
+        // Hash corretto: d0756e88eb8a22da09cb0f2ea520ea976e4010a46b6e2dd84cbb91e036e138f7
+        this.PASSWORD_HASH = 'd0756e88eb8a22da09cb0f2ea520ea976e4010a46b6e2dd84cbb91e036e138f7';
         
         this.init();
     }
