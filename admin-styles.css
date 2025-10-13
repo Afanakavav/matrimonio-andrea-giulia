@@ -3,11 +3,17 @@
 /* Login Screen */
 .login-screen {
     min-height: 100vh;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, var(--accent-color) 0%, #f8f8f8 100%);
     padding: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
 }
 
 .login-container {
