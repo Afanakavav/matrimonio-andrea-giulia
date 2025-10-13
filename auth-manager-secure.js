@@ -16,7 +16,7 @@ class AuthManagerSecure {
     constructor() {
         this.isAuthenticated = false;
         this.adminUID = 'secure-admin';
-        this.user = { email: 'admin@matrimonio-andrea-giulia.com' };
+        this.user = { email: 'admin' }; // Email semplificata, non utilizzata per auth
         
         // Hash della password "RindiFusi" (non visibile in chiaro)
         this.PASSWORD_HASH = '8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4';
@@ -58,7 +58,7 @@ class AuthManagerSecure {
             if (isValidPassword) {
                 this.isAuthenticated = true;
                 this.adminUID = 'secure-admin';
-                this.user = { email: 'admin@matrimonio-andrea-giulia.com' };
+                this.user = { email: 'admin' }; // Email semplificata, non utilizzata per auth
                 sessionStorage.setItem('adminLoggedIn', 'true');
                 this.showAdminPanel();
                 
