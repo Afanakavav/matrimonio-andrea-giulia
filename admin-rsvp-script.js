@@ -93,21 +93,19 @@ class AdminRSVPPanel {
     async handleLogin(e) {
         e.preventDefault();
         
-        const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         
-        if (!email || !password) {
-            this.loginError.textContent = '❌ Inserisci email e password.';
+        if (!password) {
+            this.loginError.textContent = '❌ Inserisci la password.';
             return;
         }
         
         // Usa AuthManager per il login
-        const result = await authManager.login(email, password);
+        const result = await authManager.login('admin@matrimonio-andrea-giulia.com', password);
         
         if (result.success) {
             // Login successful, AuthManager gestisce il resto
             this.loginError.textContent = '';
-            document.getElementById('email').value = '';
             document.getElementById('password').value = '';
         } else {
             this.loginError.textContent = `❌ ${result.message}`;
