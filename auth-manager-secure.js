@@ -48,9 +48,9 @@ class AuthManager {
         }
     }
 
-    async login(email, password) {
+    async login(password) {
         try {
-            console.log('🔐 Tentativo login sicuro per:', email);
+            console.log('🔐 Tentativo login sicuro');
             
             // Verifica password con hash
             const isValidPassword = await this.verifyPassword(password);
@@ -58,11 +58,11 @@ class AuthManager {
             if (isValidPassword) {
                 this.isAuthenticated = true;
                 this.adminUID = 'secure-admin';
-                this.user = { email: email };
+                this.user = { email: 'admin@matrimonio-andrea-giulia.com' };
                 sessionStorage.setItem('adminLoggedIn', 'true');
                 this.showAdminPanel();
                 
-                console.log('✅ Login successful (secure mode):', email);
+                console.log('✅ Login successful (secure mode)');
                 return { success: true };
             } else {
                 return { 
