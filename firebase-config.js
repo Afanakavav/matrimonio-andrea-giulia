@@ -11,6 +11,12 @@ const firebaseConfig = {
 const app = firebase.initializeApp(firebaseConfig);
 const storage = firebase.storage();
 const db = firebase.firestore();
+const auth = firebase.auth(); // AGGIUNTO: Firebase Authentication
+
+// Export per uso in altri file
+window.db = db;
+window.storage = storage;
+window.auth = auth;
 
 const WEDDING_CONFIG = {
   weddingDate: '2026-07-05',

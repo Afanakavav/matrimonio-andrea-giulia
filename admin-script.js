@@ -1,10 +1,10 @@
-// Admin Panel Script
-const ADMIN_PASSWORD = 'RindiFusi';
+// Admin Panel Script - FASE 2: Firebase Authentication
+let authManager;
 
 class AdminPanel {
     constructor() {
-        // Password: RindiFusi
-        this.isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
+        // Firebase Auth gestisce l'autenticazione
+        this.isLoggedIn = false; // Sarà gestito da AuthManager
         this.mediaItems = [];
         this.selectedItems = new Set();
         
@@ -51,19 +51,37 @@ class AdminPanel {
     }
     
     init() {
-        if (this.isLoggedIn) {
-            this.showAdminPanel();
-        } else {
-            this.showLoginScreen();
-        }
-        
+        this.initializeAuth();
         this.setupEventListeners();
+    }
+
+    initializeAuth() {
+        // Inizializza AuthManager
+        authManager = new AuthManager();
+        
+        // Setup event listeners per auth
+        this.setupAuthEventListeners();
+    }
+
+    setupAuthEventListeners() {
+        // Login form
+        if (this.loginForm) {
+            this.loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await this.handleLogin(e);
+            });
+        }
+
+        // Logout button
+        if (this.logoutBtn) {
+            this.logoutBtn.addEventListener('click', async () => {
+                await this.handleLogout();
+            });
+        }
     }
     
     setupEventListeners() {
-        // Login
-        this.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
-        this.logoutBtn.addEventListener('click', () => this.handleLogout());
+        // Login/Logout gestiti da setupAuthEventListeners()
         
         // Toolbar
         this.selectAllBtn.addEventListener('click', () => this.selectAll());
@@ -83,34 +101,46 @@ class AdminPanel {
         });
     }
     
-    handleLogin(e) {
+    async handleLogin(e) {
         e.preventDefault();
+        
+        const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         
-        if (password === ADMIN_PASSWORD) {
-            sessionStorage.setItem('adminLoggedIn', 'true');
-            this.isLoggedIn = true;
-            this.showAdminPanel();
+        if (!email || !password) {
+            this.loginError.textContent = '❌ Inserisci email e password.';
+            return;
+        }
+        
+        // Usa AuthManager per il login
+        const result = await authManager.login(email, password);
+        
+        if (result.success) {
+            // Login successful, AuthManager gestisce il resto
+            this.loginError.textContent = '';
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
         } else {
-            this.loginError.textContent = '❌ Password errata. Riprova.';
+            this.loginError.textContent = `❌ ${result.message}`;
             document.getElementById('password').value = '';
         }
     }
     
-    handleLogout() {
-        sessionStorage.removeItem('adminLoggedIn');
-        this.isLoggedIn = false;
-        this.showLoginScreen();
+    async handleLogout() {
+        // Usa AuthManager per il logout
+        await authManager.logout();
     }
     
     showLoginScreen() {
         this.loginScreen.style.display = 'flex';
         this.adminPanel.style.display = 'none';
+        this.isLoggedIn = false;
     }
     
     showAdminPanel() {
         this.loginScreen.style.display = 'none';
         this.adminPanel.style.display = 'block';
+        this.isLoggedIn = true;
         this.loadMedia();
     }
     
@@ -369,6 +399,11 @@ class AdminPanel {
     }
     
     async deleteSelected() {
+        if (!this.isLoggedIn || !authManager.isAdmin()) {
+            alert('❌ Non autorizzato');
+            return;
+        }
+        
         if (this.selectedItems.size === 0) return;
         
         if (!confirm(`Sei sicuro di voler eliminare ${this.selectedItems.size} file?`)) return;
