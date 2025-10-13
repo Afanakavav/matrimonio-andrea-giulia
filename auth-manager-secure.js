@@ -19,7 +19,7 @@ class AuthManagerSecure {
         this.user = { email: 'admin' }; // Email semplificata, non utilizzata per auth
         
         // Hash della password "RindiFusi" (non visibile in chiaro)
-        this.PASSWORD_HASH = '8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4';
+        this.PASSWORD_HASH = 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3';
         
         this.init();
     }
