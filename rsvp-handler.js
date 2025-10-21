@@ -54,6 +54,13 @@ const rsvpHandler = {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Invio in corso...';
         
         try {
+            // Get reCAPTCHA token
+            const recaptchaResponse = grecaptcha.getResponse();
+            
+            if (!recaptchaResponse) {
+                throw new Error('Per favore completa la verifica reCAPTCHA');
+            }
+            
             // Get form data
             const formData = {
                 name: document.getElementById('name').value,
@@ -62,17 +69,17 @@ const rsvpHandler = {
                 attendance: document.getElementById('attendance').value,
                 guests: document.getElementById('guests').value || '0',
                 intolerances: document.getElementById('intolerances').value || 'Nessuna',
-                message: document.getElementById('message').value || 'Nessun messaggio',
-                submittedAt: new Date().toISOString()
+                message: document.getElementById('message').value || 'Nessun messaggio'
             };
             
-            // Save to Firebase Firestore
-            await db.collection('rsvp-confirmations').add({
-                ...formData,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                canModify: true,
-                modificationToken: this.generateToken()
+            // Call Cloud Function to submit RSVP (includes reCAPTCHA verification)
+            const submitRSVP = firebase.functions().httpsCallable('submitRSVP');
+            const result = await submitRSVP({
+                token: recaptchaResponse,
+                rsvpData: formData
             });
+            
+            console.log('RSVP salvato con successo:', result.data.rsvpId);
             
             // Send confirmation email via EmailJS
             await this.sendConfirmationEmail(formData);
@@ -81,8 +88,9 @@ const rsvpHandler = {
             this.form.style.display = 'none';
             this.successMessage.style.display = 'block';
             
-            // Reset form
+            // Reset form and reCAPTCHA
             this.form.reset();
+            grecaptcha.reset();
             this.guestsGroup.style.display = 'none';
             this.intolerancesGroup.style.display = 'none';
             
@@ -91,7 +99,23 @@ const rsvpHandler = {
             
         } catch (error) {
             console.error('Errore nell\'invio:', error);
-            alert('Si è verificato un errore nell\'invio della conferma. Riprova per favore.');
+            
+            let errorMessage = 'Si è verificato un errore nell\'invio della conferma. Riprova per favore.';
+            
+            // Handle specific error messages
+            if (error.message && error.message.includes('reCAPTCHA')) {
+                errorMessage = error.message;
+            } else if (error.code === 'permission-denied') {
+                errorMessage = 'Verifica reCAPTCHA fallita. Riprova per favore.';
+            } else if (error.code === 'invalid-argument') {
+                errorMessage = 'Dati del modulo non validi. Controlla i campi e riprova.';
+            }
+            
+            alert(errorMessage);
+            
+            // Reset reCAPTCHA on error
+            grecaptcha.reset();
+            
         } finally {
             // Re-enable button
             submitBtn.disabled = false;
