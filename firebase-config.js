@@ -1,5 +1,11 @@
-const firebaseConfig = {
-    apiKey: "AIzaSyDp-va9ud9rDhNqqTD4Y0lMb-O-_Kg6YAQ",
+// Firebase Configuration
+// IMPORTANT: This file should use environment variables or be generated from a template
+// For production, replace these values with actual Firebase config from environment
+// NEVER commit real API keys to the repository!
+
+// Load config from window object (set by build process or config file)
+const firebaseConfig = window.FIREBASE_CONFIG || {
+    apiKey: "YOUR_API_KEY_HERE",
     authDomain: "matrimonio-andrea-giulia-2026.firebaseapp.com",
     projectId: "matrimonio-andrea-giulia-2026",
     storageBucket: "matrimonio-andrea-giulia-2026.firebasestorage.app",

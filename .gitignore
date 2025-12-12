@@ -16,3 +16,10 @@ npm-debug.log*
 *.temp
 ~*
 
+# Environment variables and config files with API keys
+.env
+.env.local
+.env.*.local
+config.local.js
+**/config.local.js
+
