@@ -1,0 +1,17 @@
+// Configuration file for Matrimonio Andrea & Giulia
+// Copy this file to config.local.js and fill in your actual values
+// NEVER commit config.local.js to version control!
+
+// Firebase Configuration
+window.FIREBASE_CONFIG = {
+    apiKey: 'your-actual-firebase-api-key-here',
+    authDomain: 'matrimonio-andrea-giulia-2026.firebaseapp.com',
+    projectId: 'matrimonio-andrea-giulia-2026',
+    storageBucket: 'matrimonio-andrea-giulia-2026.firebasestorage.app',
+    messagingSenderId: '295197554541',
+    appId: '1:295197554541:web:d932fc9b2407d182e44c64',
+    measurementId: 'G-WTT3TQN19C'
+};
+
+// reCAPTCHA v3 Site Key (for Firebase App Check)
+window.RECAPTCHA_SITE_KEY = '6LcIrSksAAAAAMOGMT7_W16O84yTnb09RlGSCljJ';
