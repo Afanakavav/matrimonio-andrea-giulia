@@ -8,7 +8,7 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    background: linear-gradient(135deg, var(--accent-color) 0%, #f8f8f8 100%) !important;
+    background: linear-gradient(135deg, var(--accent-color) 0%, #ffffff 100%) !important;
     padding: 20px !important;
     position: fixed !important;
     top: 0 !important;
@@ -364,7 +364,7 @@
     font-weight: 600;
     color: var(--primary-color);
     padding: 0.6rem 1rem;
-    background: rgba(212, 175, 55, 0.1);
+    background: rgba(109, 139, 126, 0.1);
     border-radius: 8px;
 }
 
@@ -689,7 +689,7 @@
 }
 
 .rsvp-table tbody tr:hover {
-    background: rgba(212, 175, 55, 0.05);
+    background: rgba(109, 139, 126, 0.05);
 }
 
 .badge {
@@ -753,7 +753,7 @@
 
 .detail-item {
     padding: 1rem;
-    background: rgba(212, 175, 55, 0.05);
+    background: rgba(109, 139, 126, 0.05);
     border-radius: 8px;
     border-left: 3px solid var(--primary-color);
 }
