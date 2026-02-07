@@ -1,38 +1,36 @@
-# 💍 Sito Matrimonio Andrea & Giulia
+# Matrimonio Andrea & Giulia
 
-**Data del Matrimonio:** 5 Luglio 2026
-
----
-
-## 🌟 Funzionalità
-
-- 📸 **Caricamento Foto & Video** - Gli invitati possono caricare i loro ricordi
-- 🖼️ **Galleria Interattiva** - Visualizzazione di tutte le foto e video
-- 🔐 **Panel Admin** - Gestione completa per gli sposi
-- 📱 **Responsive Design** - Funziona su tutti i dispositivi
+Sito per il matrimonio (5 luglio 2026). Pubblicato su **GitHub Pages**: [afanakavav.github.io/matrimonio-andrea-giulia](https://afanakavav.github.io/matrimonio-andrea-giulia).
 
 ---
 
-## 🚀 Tecnologie Utilizzate
+## Contenuto
 
-- **Frontend:** HTML5, CSS3, JavaScript
-- **Backend:** Firebase (Firestore + Storage)
-- **Hosting:** GitHub Pages
-
----
-
-## 🔒 Admin Panel
-
-Per accedere al panel admin:
-1. Vai alla Galleria
-2. Scorri in fondo alla pagina
-3. Clicca sul link "Admin" (nascosto nel footer)
-4. Inserisci la password
+- Home, La Nostra Storia, Cerimonia, Ricevimento, Dove Dormire
+- **RSVP** con conferma via email (EmailJS) e verifica reCAPTCHA (Cloud Function)
+- **Deadline RSVP:** 1° maggio 2026
+- Galleria foto/video, upload da invitati
+- Lista nozze / esperienze luna di miele
 
 ---
 
-## 📝 Note
+## Tecnologie
 
-Questo sito è stato creato con ❤️ per celebrare il matrimonio di Andrea e Giulia.
+- HTML, CSS, JavaScript
+- **Firebase:** Firestore, Storage, Cloud Functions (RSVP + reCAPTCHA)
+- **EmailJS** per email di conferma RSVP
+- **reCAPTCHA v2** sul form RSVP
 
-© 2026 - Tutti i diritti riservati
+---
+
+## Configurazione locale
+
+- **Firebase:** i dati sono in `firebase-config.js`. Per sovrascrivere in locale (senza committare), crea `config.local.js` con `window.FIREBASE_CONFIG = { ... }` (il file è in `.gitignore`).
+- **Cloud Functions:** in `functions/` serve un file `.env` con `RECAPTCHA_SECRET_KEY=...` (chiave segreta reCAPTCHA). Non committare `.env`.
+- **Admin:** pannello protetto da password (vedi `auth-manager-secure.js`). Accesso da `admin-hub.html` → Media o RSVP.
+
+---
+
+## Deploy
+
+Push su `main` → GitHub Pages aggiorna il sito in automatico.
