@@ -27,7 +27,7 @@
 
 ### ✅ 5. RSVP AVANZATO
 - **Campo Intolleranze**: Nuovo campo per intolleranze alimentari
-- **Deadline**: 5 aprile 2026 ben visibile
+- **Deadline**: 1° maggio 2026 ben visibile
 - **Campo Telefono**: Aggiunto per contatti
 - **Email Automatica**: Sistema EmailJS integrato
 - **Modifica Conferma**: Link per modificare la propria risposta

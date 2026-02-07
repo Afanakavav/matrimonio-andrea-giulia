@@ -65,7 +65,7 @@
 #### **RSVP Form**
 - ✅ Nuovo campo "Intolleranze Alimentari"
 - ✅ Campo "Telefono" aggiunto
-- ✅ Deadline visibile: 5 aprile 2026
+- ✅ Deadline visibile: 1° maggio 2026
 - ✅ Messaggio di successo migliorato
 - ✅ Link per modificare conferma
 - ✅ ReCAPTCHA anti-spam

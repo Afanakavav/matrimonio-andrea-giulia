@@ -12,7 +12,7 @@
 #### **2. Firestore Rules Aggiornate**
 - **Protezione:** RSVP non più leggibili pubblicamente
 - **Validazione:** Email format, campi obbligatori
-- **Deadline:** Automatica (5 aprile 2026 per RSVP, 12 agosto 2026 per media)
+- **Deadline:** Automatica (1° maggio 2026 per RSVP, 12 agosto 2026 per media)
 - **Status:** ✅ **ATTIVO**
 
 #### **3. EmailJS Domain Restriction**
