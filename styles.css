@@ -953,6 +953,10 @@ body {
         flex-direction: column;
         text-align: center;
     }
+    
+    .hashtag {
+        font-size: 1.6rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -962,6 +966,10 @@ body {
     
     .hero-title {
         font-size: 2rem;
+    }
+    
+    .hashtag {
+        font-size: 1.45rem;
     }
     
     .hero-subtitle {
@@ -1139,6 +1147,10 @@ body {
     font-weight: 700;
     color: var(--primary-color);
     margin: 1.5rem 0;
+    text-align: center;
+    display: block;
+    max-width: 100%;
+    overflow-wrap: break-word;
 }
 
 .social-icons {
