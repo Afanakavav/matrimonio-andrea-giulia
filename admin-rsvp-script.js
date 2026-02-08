@@ -276,7 +276,6 @@ class AdminRSVPPanel {
             row.innerHTML = `
                 <td>${item.name}</td>
                 <td><a href="mailto:${item.email}">${item.email}</a></td>
-                <td>${item.phone || '-'}</td>
                 <td>${attendanceBadge}</td>
                 <td>${item.attendance === 'yes' ? item.guests : '-'}</td>
                 <td>${intolerances}</td>
@@ -306,7 +305,6 @@ class AdminRSVPPanel {
     viewDetails(item) {
         document.getElementById('detailsName').textContent = item.name;
         document.getElementById('detailsEmail').textContent = item.email;
-        document.getElementById('detailsPhone').textContent = item.phone || 'Non fornito';
         document.getElementById('detailsAttendance').textContent = item.attendance === 'yes' ? 'Parteciperà' : 'Non parteciperà';
         document.getElementById('detailsGuests').textContent = item.attendance === 'yes' ? item.guests : '-';
         document.getElementById('detailsIntolerances').textContent = item.intolerances || 'Nessuna';
@@ -338,11 +336,10 @@ class AdminRSVPPanel {
     }
     
     exportCSV() {
-        const headers = ['Nome', 'Email', 'Telefono', 'Partecipazione', 'N. Ospiti', 'Intolleranze', 'Messaggio', 'Data Conferma'];
+        const headers = ['Nome', 'Email', 'Partecipazione', 'N. Ospiti', 'Intolleranze', 'Messaggio', 'Data Conferma'];
         const rows = this.rsvpItems.map(item => [
             item.name,
             item.email,
-            item.phone || '',
             item.attendance === 'yes' ? 'Sì' : 'No',
             item.attendance === 'yes' ? item.guests : '',
             item.intolerances || '',
@@ -361,13 +358,12 @@ class AdminRSVPPanel {
     exportExcel() {
         // Simple Excel-compatible HTML table export
         let html = '<html><head><meta charset="utf-8"></head><body><table border="1">';
-        html += '<tr><th>Nome</th><th>Email</th><th>Telefono</th><th>Partecipazione</th><th>N. Ospiti</th><th>Intolleranze</th><th>Messaggio</th><th>Data Conferma</th></tr>';
+        html += '<tr><th>Nome</th><th>Email</th><th>Partecipazione</th><th>N. Ospiti</th><th>Intolleranze</th><th>Messaggio</th><th>Data Conferma</th></tr>';
         
         this.rsvpItems.forEach(item => {
             html += '<tr>';
             html += `<td>${item.name}</td>`;
             html += `<td>${item.email}</td>`;
-            html += `<td>${item.phone || ''}</td>`;
             html += `<td>${item.attendance === 'yes' ? 'Sì' : 'No'}</td>`;
             html += `<td>${item.attendance === 'yes' ? item.guests : ''}</td>`;
             html += `<td>${item.intolerances || ''}</td>`;

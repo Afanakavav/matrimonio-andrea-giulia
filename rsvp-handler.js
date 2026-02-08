@@ -78,7 +78,6 @@ const rsvpHandler = {
             const formData = {
                 name: document.getElementById('name').value,
                 email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value || 'Non fornito',
                 attendance: document.getElementById('attendance').value,
                 guests: document.getElementById('guests').value || '0',
                 intolerances: document.getElementById('intolerances').value || 'Nessuna',

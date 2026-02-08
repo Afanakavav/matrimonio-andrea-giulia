@@ -1,6 +1,9 @@
 # Matrimonio Andrea & Giulia
 
-Sito per il matrimonio (5 luglio 2026). Pubblicato su **GitHub Pages**: [afanakavav.github.io/matrimonio-andrea-giulia](https://afanakavav.github.io/matrimonio-andrea-giulia).
+Sito per il matrimonio (5 luglio 2026).
+
+- **Sito online:** [andreagiulia5luglio26.it](https://andreagiulia5luglio26.it)
+- **Copia su GitHub Pages:** [afanakavav.github.io/matrimonio-andrea-giulia](https://afanakavav.github.io/matrimonio-andrea-giulia)
 
 ---
 
@@ -33,4 +36,4 @@ Sito per il matrimonio (5 luglio 2026). Pubblicato su **GitHub Pages**: [afanaka
 
 ## Deploy
 
-Push su `main` → GitHub Pages aggiorna il sito in automatico.
+Push su `main` → GitHub Pages aggiorna il sito in automatico. Il dominio personalizzato è configurato tramite il file `CNAME` (andreagiulia5luglio26.it) e i record DNS presso Register.it.
