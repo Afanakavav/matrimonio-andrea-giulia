@@ -1234,6 +1234,12 @@ body {
     margin: 0 auto;
 }
 
+/* Hashtag section: stessa larghezza della sezione RSVP */
+.hashtag-section-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
 /* Accommodation Section */
 .accommodation {
     padding: 5rem 0;
@@ -1330,16 +1336,34 @@ body {
     margin: 2rem 0 1rem;
 }
 
+/* Card contenitore per ogni destinazione (Tanzania / Seychelles) */
+.destination-card {
+    background: var(--white);
+    border: 1px solid var(--separator);
+    border-radius: 15px;
+    padding: 2.5rem;
+    margin-bottom: 2.5rem;
+    box-shadow: var(--shadow);
+}
+
+.destination-card:last-of-type {
+    margin-bottom: 2rem;
+}
+
 .experience-region {
     font-family: "Playfair Display", serif;
     font-size: 1.35rem;
     color: var(--primary-color);
-    margin: 2.5rem 0 1rem;
+    margin: 0 0 1.5rem;
     text-align: center;
 }
 
-.experience-region:first-of-type {
-    margin-top: 1.5rem;
+.destination-card .experiences-grid {
+    margin-bottom: 0;
+}
+
+.destination-card .experiences-grid:last-child {
+    margin-bottom: 0;
 }
 
 .gifts-description {
