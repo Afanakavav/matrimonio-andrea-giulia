@@ -1254,6 +1254,22 @@ body {
     font-size: 1rem;
 }
 
+.ceremony-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.ceremony-actions .maps-button {
+    margin-top: 0;
+}
+
+.ceremony-actions .parking-link {
+    margin-top: 0;
+}
+
 /* Single Card Layout */
 .single-card {
     max-width: 600px;
