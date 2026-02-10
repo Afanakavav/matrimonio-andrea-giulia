@@ -17,10 +17,16 @@
     --white: #ffffff;
     --shadow: 0 4px 6px rgba(79, 111, 100, 0.08);
     --transition: all 0.3s ease;
+    /* Font: script (nomi), serif titoli/dati, body elegante. Per Kuenstler Script: aggiungi @font-face e sostituisci sotto. */
+    --font-script: "Great Vibes", cursive;
+    --font-serif: "Libre Bodoni", serif;
+    --font-body: "Cormorant Garamond", Georgia, serif;
 }
 
 body {
-    font-family: "Open Sans", sans-serif;
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 1.05rem;
     line-height: 1.7;
     color: var(--text-dark);
     overflow-x: hidden;
@@ -58,9 +64,9 @@ body {
 .nav-logo {
     display: flex;
     align-items: center;
-    font-family: "Dancing Script", cursive;
+    font-family: var(--font-script);
     font-size: 1.8rem;
-    font-weight: 700;
+    font-weight: 400;
     color: var(--primary-color);
 }
 
@@ -132,30 +138,35 @@ body {
     text-align: center;
 }
 
+/* Andrea & Giulia: script elegante (Great Vibes; per Kuenstler Script aggiungi @font-face) */
 .hero-title {
-    font-family: "Dancing Script", cursive;
+    font-family: var(--font-script);
     font-size: 4rem;
-    font-weight: 700;
+    font-weight: 400;
     color: var(--primary-color);
     margin-bottom: 1rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.06);
 }
 
-.hero-subtitle {
-    font-family: "Playfair Display", serif;
-    font-size: 1.5rem;
-    color: var(--text-light);
-    margin-bottom: 2.5rem;
-    font-style: italic;
-}
-
+/* Domenica 5 luglio, orario: Bodoni */
 .hero-date, .hero-location {
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 1rem 0;
+    font-family: var(--font-serif);
     font-size: 1.2rem;
+    font-weight: 400;
     color: var(--text-dark);
+}
+
+.hero-subtitle {
+    font-family: var(--font-body);
+    font-size: 1.35rem;
+    font-weight: 300;
+    color: var(--text-light);
+    margin-bottom: 2.5rem;
+    font-style: italic;
 }
 
 .hero-date i, .hero-location i {
@@ -213,8 +224,9 @@ body {
 
 /* Section Titles */
 .section-title {
-    font-family: "Playfair Display", serif;
-    font-size: 3rem;
+    font-family: var(--font-serif);
+    font-size: 2.75rem;
+    font-weight: 500;
     text-align: center;
     margin-bottom: 3.5rem;
     color: var(--primary-color);
@@ -305,7 +317,7 @@ body {
 }
 
 .ceremony-card h3 {
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-serif);
     font-size: 1.5rem;
     margin-bottom: 1rem;
     color: var(--text-dark);
@@ -374,7 +386,7 @@ body {
 }
 
 .reception-card h3 {
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-serif);
     font-size: 1.5rem;
     margin-bottom: 1rem;
     color: var(--text-dark);
@@ -520,7 +532,7 @@ body {
 }
 
 .gift-option h3 {
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-serif);
     font-size: 1.3rem;
     margin-bottom: 1rem;
     color: var(--text-dark);
@@ -540,7 +552,7 @@ body {
 }
 
 .bank-details h3 {
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-serif);
     font-size: 1.5rem;
     margin-bottom: 1rem;
     color: var(--text-dark);
@@ -700,7 +712,7 @@ body {
 }
 
 .modal-header h2 {
-    font-family: "Dancing Script", cursive;
+    font-family: var(--font-script);
     font-size: 2rem;
     color: var(--primary-color);
     margin: 0;
@@ -744,7 +756,7 @@ body {
 }
 
 .upload-area h3 {
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-serif);
     font-size: 1.5rem;
     color: var(--text-dark);
     margin-bottom: 0.5rem;
@@ -802,7 +814,7 @@ body {
 }
 
 .upload-preview h4 {
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-serif);
     color: var(--text-dark);
     margin-bottom: 1rem;
 }
@@ -1000,7 +1012,7 @@ body {
 }
 
 .countdown-text {
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-serif);
     font-size: 1.5rem;
     color: var(--primary-color);
     margin-bottom: 1.5rem;
@@ -1020,7 +1032,7 @@ body {
 }
 
 .countdown-value {
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-serif);
     font-size: 3rem;
     font-weight: 700;
     color: var(--primary-color);
@@ -1100,7 +1112,7 @@ body {
 }
 
 .timeline-content h3 {
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-serif);
     font-size: 1.5rem;
     color: var(--primary-color);
     margin-bottom: 0.5rem;
@@ -1120,6 +1132,23 @@ body {
     box-shadow: var(--shadow);
 }
 
+.timeline-image-placeholder {
+    min-height: 250px;
+    background: var(--bg-warm);
+    border: 1px dashed var(--separator);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.timeline-image-placeholder span {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--text-light);
+    font-style: italic;
+}
+
 /* Social Section */
 .social-section {
     text-align: center;
@@ -1132,7 +1161,7 @@ body {
 }
 
 .social-section h3 {
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-serif);
     font-size: 1.8rem;
     color: var(--text-dark);
     margin-bottom: 1rem;
@@ -1144,7 +1173,7 @@ body {
 }
 
 .hashtag {
-    font-family: "Dancing Script", cursive;
+    font-family: var(--font-script);
     font-size: 2.5rem;
     font-weight: 700;
     color: var(--primary-color);
@@ -1333,7 +1362,7 @@ body {
 }
 
 .hotel-card h3 {
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-serif);
     font-size: 1.3rem;
     margin-bottom: 0.5rem;
     color: var(--text-dark);
@@ -1371,7 +1400,7 @@ body {
 
 /* Experiences Grid */
 .gifts-subtitle {
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-serif);
     font-size: 2rem;
     text-align: center;
     color: var(--primary-color);
@@ -1393,7 +1422,7 @@ body {
 }
 
 .experience-region {
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-serif);
     font-size: 1.35rem;
     color: var(--primary-color);
     margin: 0 0 1.5rem;
@@ -1457,7 +1486,7 @@ body {
 }
 
 .experience-content h4 {
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-serif);
     font-size: 1.2rem;
     color: var(--text-dark);
     margin-bottom: 0.5rem;
@@ -1532,7 +1561,7 @@ body {
 }
 
 .rsvp-success h3 {
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-serif);
     color: var(--primary-dark);
     margin-bottom: 1rem;
 }
