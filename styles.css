@@ -940,7 +940,13 @@ body {
     }
     
     .hero-title {
-        font-size: 2.5rem;
+        font-size: 2.85rem;
+        letter-spacing: 0.02em;
+    }
+    
+    .hero-date,
+    .hero-location {
+        font-size: 1rem;
     }
     
     .hero-image {
@@ -978,7 +984,13 @@ body {
     }
     
     .hero-title {
-        font-size: 2rem;
+        font-size: 2.5rem;
+        letter-spacing: 0.02em;
+    }
+    
+    .hero-date,
+    .hero-location {
+        font-size: 0.95rem;
     }
     
     .hashtag {
@@ -1058,8 +1070,7 @@ body {
     content: '';
     position: absolute;
     top: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 40px;
     width: 1px;
     height: 100%;
     background: var(--separator);
@@ -1067,24 +1078,16 @@ body {
 
 .timeline-item {
     display: grid;
-    grid-template-columns: 1fr 80px 1fr;
+    grid-template-columns: 80px 1fr 1fr;
     gap: 2rem;
     margin-bottom: 3rem;
     position: relative;
-}
-
-.timeline-item.reverse .timeline-content {
-    grid-column: 3;
-    grid-row: 1;
-}
-
-.timeline-item.reverse .timeline-image {
-    grid-column: 1;
-    grid-row: 1;
+    align-items: start;
 }
 
 .timeline-icon {
-    grid-column: 2;
+    grid-column: 1;
+    grid-row: 1;
     width: 80px;
     height: 80px;
     background: var(--white);
@@ -1104,6 +1107,8 @@ body {
 }
 
 .timeline-content {
+    grid-column: 2;
+    grid-row: 1;
     background: var(--white);
     padding: 2rem;
     border-radius: 15px;
@@ -1122,6 +1127,11 @@ body {
     font-weight: 600;
     color: var(--primary-dark);
     margin-bottom: 1rem;
+}
+
+.timeline-image {
+    grid-column: 3;
+    grid-row: 1;
 }
 
 .timeline-image img {
@@ -1638,19 +1648,27 @@ body {
     }
     
     .timeline-item {
-        grid-template-columns: 80px 1fr;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
         gap: 1rem;
+    }
+    
+    .timeline-item .timeline-icon {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: center;
     }
     
     .timeline-item .timeline-content,
     .timeline-item.reverse .timeline-content {
-        grid-column: 2;
+        grid-column: 1;
+        grid-row: 2;
     }
     
     .timeline-item .timeline-image,
     .timeline-item.reverse .timeline-image {
-        grid-column: 2;
-        grid-row: 2;
+        grid-column: 1;
+        grid-row: 3;
     }
     
     .countdown-timer {
