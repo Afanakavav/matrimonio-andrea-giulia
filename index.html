@@ -1,9 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
       default-src 'self';
       script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://www.google.com https://cdnjs.cloudflare.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
@@ -13,452 +15,529 @@
       frame-src https://www.google.com;
       object-src 'none';
       base-uri 'self';
-    ">
+    "
+    />
     <title>Matrimonio di Andrea & Giulia</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="icon" href="data:,">
-    
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="icon" href="data:," />
+
     <!-- reCAPTCHA v2 (checkbox) per form RSVP - solo questo, niente v3/App Check -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
-    
     <!-- EmailJS -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <i class="fas fa-heart"></i>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="#home" class="nav-link">Home</a></li>
-                <li><a href="#about" class="nav-link">La Nostra Storia</a></li>
-                <li><a href="#ceremony" class="nav-link">Cerimonia</a></li>
-                <li><a href="#reception" class="nav-link">Ricevimento</a></li>
-                <li><a href="#rsvp" class="nav-link">R.S.V.P.</a></li>
-                <li><a href="#gifts" class="nav-link">Regali</a></li>
-                <li><a href="#" class="nav-link" id="uploadBtn">Carica</a></li>
-                <li><a href="gallery.html" class="nav-link">Galleria</a></li>
-            </ul>
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
+      <div class="nav-container">
+        <div class="nav-logo">
+          <i class="fas fa-heart"></i>
         </div>
+        <ul class="nav-menu">
+          <li><a href="#home" class="nav-link">Home</a></li>
+          <li><a href="#about" class="nav-link">La Nostra Storia</a></li>
+          <li><a href="#ceremony" class="nav-link">Cerimonia</a></li>
+          <li><a href="#reception" class="nav-link">Ricevimento</a></li>
+          <li><a href="#rsvp" class="nav-link">R.S.V.P.</a></li>
+          <li><a href="#gifts" class="nav-link">Regali</a></li>
+          <li><a href="#" class="nav-link" id="uploadBtn">Carica</a></li>
+          <li><a href="gallery.html" class="nav-link">Galleria</a></li>
+        </ul>
+        <div class="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
     </nav>
 
     <!-- Hero Section -->
     <section id="home" class="hero">
-        <div class="hero-content">
-            <div class="hero-text">
-                <h1 class="hero-title">Andrea & Giulia</h1>
-                <div class="hero-date">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>Domenica 5 luglio 2026</span>
-                </div>
-            </div>
+      <div class="hero-content">
+        <div class="hero-text">
+          <h1 class="hero-title">Andrea & Giulia</h1>
+          <div class="hero-date">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Domenica 5 luglio 2026</span>
+          </div>
         </div>
-        <div class="hero-image">
-            <video class="hero-video" autoplay loop muted playsinline preload="auto">
-                <source src="wedding-video.mp4" type="video/mp4">
-                <!-- Fallback per browser vecchi -->
-                <img src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Andrea e Giulia">
-            </video>
-        </div>
+      </div>
+      <div class="hero-image">
+        <video class="hero-video" autoplay loop muted playsinline preload="auto">
+          <source src="wedding-video.mp4" type="video/mp4" />
+          <!-- Fallback per browser vecchi -->
+          <img
+            src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+            alt="Andrea e Giulia"
+          />
+        </video>
+      </div>
     </section>
 
     <!-- About Section -->
     <section id="about" class="about">
-        <div class="container">
-            <h2 class="section-title">La Nostra Storia</h2>
-            
-            <!-- Countdown Timer -->
-            <div class="countdown-container">
-                <div class="countdown-text">Mancano ancora...</div>
-                <div class="countdown-timer" id="countdownTimer">
-                    <div class="countdown-item">
-                        <span class="countdown-value" id="days">0</span>
-                        <span class="countdown-label">Giorni</span>
-                    </div>
-                    <div class="countdown-item">
-                        <span class="countdown-value" id="hours">0</span>
-                        <span class="countdown-label">Ore</span>
-                    </div>
-                    <div class="countdown-item">
-                        <span class="countdown-value" id="minutes">0</span>
-                        <span class="countdown-label">Minuti</span>
-                    </div>
-                    <div class="countdown-item">
-                        <span class="countdown-value" id="seconds">0</span>
-                        <span class="countdown-label">Secondi</span>
-                    </div>
-                </div>
+      <div class="container">
+        <h2 class="section-title">La Nostra Storia</h2>
+
+        <!-- Countdown Timer -->
+        <div class="countdown-container">
+          <div class="countdown-text">Mancano ancora...</div>
+          <div class="countdown-timer" id="countdownTimer">
+            <div class="countdown-item">
+              <span class="countdown-value" id="days">0</span>
+              <span class="countdown-label">Giorni</span>
             </div>
-            
-            <!-- Timeline -->
-            <div class="timeline">
-                <div class="timeline-item">
-                    <div class="timeline-icon">
-                        <i class="fas fa-child"></i>
-                    </div>
-                    <div class="timeline-content">
-                        <h3>Tutto &egrave; iniziato durante gli anni dell&rsquo;asilo...</h3>
-                    </div>
-                    <div class="timeline-image timeline-image-placeholder">
-                        <span>Foto da aggiungere</span>
-                    </div>
-                </div>
-                
-                <div class="timeline-item reverse">
-                    <div class="timeline-icon">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                    <div class="timeline-content">
-                        <h3>Ci siamo ritrovati nel periodo del liceo&hellip;</h3>
-                    </div>
-                    <div class="timeline-image timeline-image-placeholder">
-                        <span>Foto da aggiungere</span>
-                    </div>
-                </div>
-                
-                <div class="timeline-item">
-                    <div class="timeline-icon">
-                        <i class="fas fa-road"></i>
-                    </div>
-                    <div class="timeline-content">
-                        <h3>Molti anni insieme, tanti chilometri di distanza&hellip;</h3>
-                    </div>
-                    <div class="timeline-image timeline-image-placeholder">
-                        <span>Foto da aggiungere</span>
-                    </div>
-                </div>
-                
-                <div class="timeline-item reverse">
-                    <div class="timeline-icon">
-                        <i class="fas fa-ring"></i>
-                    </div>
-                    <div class="timeline-content">
-                        <h3>Per arrivare finalmente alla proposta&hellip;</h3>
-                    </div>
-                    <div class="timeline-image timeline-image-placeholder">
-                        <span>Foto da aggiungere</span>
-                    </div>
-                </div>
-                
-                <div class="timeline-item">
-                    <div class="timeline-icon">
-                        <i class="fas fa-heart"></i>
-                    </div>
-                    <div class="timeline-content">
-                        <h3>E al coronamento del nostro sogno!</h3>
-                    </div>
-                    <div class="timeline-image timeline-image-placeholder">
-                        <span>Foto da aggiungere</span>
-                    </div>
-                </div>
+            <div class="countdown-item">
+              <span class="countdown-value" id="hours">0</span>
+              <span class="countdown-label">Ore</span>
             </div>
-            
+            <div class="countdown-item">
+              <span class="countdown-value" id="minutes">0</span>
+              <span class="countdown-label">Minuti</span>
+            </div>
+            <div class="countdown-item">
+              <span class="countdown-value" id="seconds">0</span>
+              <span class="countdown-label">Secondi</span>
+            </div>
+          </div>
         </div>
+
+        <!-- Timeline -->
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-icon">
+              <i class="fas fa-child"></i>
+            </div>
+            <div class="timeline-content">
+              <h3>Tutto &egrave; iniziato durante gli anni dell&rsquo;asilo...</h3>
+            </div>
+            <div class="timeline-image timeline-image-placeholder">
+              <span>Foto da aggiungere</span>
+            </div>
+          </div>
+
+          <div class="timeline-item reverse">
+            <div class="timeline-icon">
+              <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="timeline-content">
+              <h3>Ci siamo ritrovati nel periodo del liceo&hellip;</h3>
+            </div>
+            <div class="timeline-image timeline-image-placeholder">
+              <span>Foto da aggiungere</span>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-icon">
+              <i class="fas fa-road"></i>
+            </div>
+            <div class="timeline-content">
+              <h3>Molti anni insieme, tanti chilometri di distanza&hellip;</h3>
+            </div>
+            <div class="timeline-image timeline-image-placeholder">
+              <span>Foto da aggiungere</span>
+            </div>
+          </div>
+
+          <div class="timeline-item reverse">
+            <div class="timeline-icon">
+              <i class="fas fa-ring"></i>
+            </div>
+            <div class="timeline-content">
+              <h3>Per arrivare finalmente alla proposta&hellip;</h3>
+            </div>
+            <div class="timeline-image timeline-image-placeholder">
+              <span>Foto da aggiungere</span>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-icon">
+              <i class="fas fa-heart"></i>
+            </div>
+            <div class="timeline-content">
+              <h3>E al coronamento del nostro sogno!</h3>
+            </div>
+            <div class="timeline-image timeline-image-placeholder">
+              <span>Foto da aggiungere</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Ceremony Section -->
     <section id="ceremony" class="ceremony">
-        <div class="container">
-            <h2 class="section-title">Cerimonia</h2>
-            <div class="ceremony-details">
-                <div class="ceremony-card single-card">
-                    <div class="ceremony-icon">
-                        <i class="fas fa-church"></i>
-                    </div>
-                    <p class="ceremony-time">ore 15.30</p>
-                    <p class="ceremony-location">Chiesa di San Niccol&ograve;</p>
-                    <p class="ceremony-address">Piazza Cardinale Niccol&ograve;, 6</p>
-                    <div class="ceremony-actions">
-                        <a href="https://www.google.com/maps/search/?api=1&query=Piazza+Cardinale+Niccol%C3%B2,+6,+59100+Prato+PO" target="_blank" class="maps-button">
-                            <i class="fas fa-map-marker-alt"></i> Apri in Google Maps
-                        </a>
-                        <a href="https://maps.app.goo.gl/7y3K4KHfDJrstknx7" target="_blank" rel="noopener noreferrer" class="parking-link">
-                            <i class="fas fa-parking"></i> Parcheggio Ebensee
-                        </a>
-                    </div>
-                </div>
+      <div class="container">
+        <h2 class="section-title">Cerimonia</h2>
+        <div class="ceremony-details">
+          <div class="ceremony-card single-card">
+            <div class="ceremony-icon">
+              <i class="fas fa-church"></i>
             </div>
+            <p class="ceremony-time">ore 15.30</p>
+            <p class="ceremony-location">Chiesa di San Niccol&ograve;</p>
+            <p class="ceremony-address">Piazza Cardinale Niccol&ograve;, 6</p>
+            <p class="ceremony-address">Prato</p>
+            <div class="ceremony-actions">
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=Piazza+Cardinale+Niccol%C3%B2,+6,+59100+Prato+PO"
+                target="_blank"
+                class="maps-button"
+              >
+                <i class="fas fa-map-marker-alt"></i> Apri in Google Maps
+              </a>
+              <div class="ceremony-parking-separator"></div>
+              <p class="ceremony-parking-label">Parcheggio più vicino:</p>
+              <a
+                href="https://maps.app.goo.gl/7y3K4KHfDJrstknx7"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="parking-link"
+              >
+                <i class="fas fa-parking"></i> Parcheggio Ebensee
+              </a>
+            </div>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- Reception Section -->
     <section id="reception" class="reception">
-        <div class="container">
-            <h2 class="section-title">Ricevimento</h2>
-            <div class="reception-details">
-                <div class="reception-card single-card">
-                    <div class="reception-icon">
-                        <i class="fas fa-glass-cheers"></i>
-                    </div>
-                    <p class="reception-time">ore 18.00</p>
-                    <p class="reception-location">Villa Corsini a Mezzomonte</p>
-                    <p class="reception-address">Impruneta - Firenze</p>
-                    <a href="https://www.google.com/maps/search/?api=1&query=Via+Imprunetana+per+Pozzolatico,+116,+50023+Impruneta+FI" target="_blank" class="maps-button">
-                        <i class="fas fa-map-marker-alt"></i> Apri in Google Maps
-                    </a>
-                </div>
+      <div class="container">
+        <h2 class="section-title">Ricevimento</h2>
+        <div class="reception-details">
+          <div class="reception-card single-card">
+            <div class="reception-icon">
+              <i class="fas fa-glass-cheers"></i>
             </div>
+            <p class="reception-time">ore 18.00</p>
+            <p class="reception-location">Villa Corsini a Mezzomonte</p>
+            <p class="reception-address">Via Imprunetana per Pozzolatico, 116</p>
+            <p class="reception-address">Impruneta - Firenze</p>
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=Via+Imprunetana+per+Pozzolatico,+116,+50023+Impruneta+FI"
+              target="_blank"
+              class="maps-button"
+            >
+              <i class="fas fa-map-marker-alt"></i> Apri in Google Maps
+            </a>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- RSVP Section -->
     <section id="rsvp" class="rsvp">
-        <div class="container">
-            <h2 class="section-title">Conferma la Tua Presenza</h2>
-            <div class="rsvp-content">
-                <p class="rsvp-text">Ti preghiamo di confermare la tua partecipazione <strong>entro il 1&deg; maggio 2026</strong>.</p>
-                
-                <!-- Form Success Message -->
-                <div id="rsvpSuccessMessage" class="rsvp-success" style="display: none;">
-                    <i class="fas fa-check-circle"></i>
-                    <h3>Grazie per la conferma!</h3>
-                    <p>Abbiamo ricevuto la tua risposta e ti abbiamo inviato una email di conferma.</p>
-                    <p class="edit-info">Se vuoi modificare la tua risposta, <a href="#" id="editRsvpLink">clicca qui</a>.</p>
-                </div>
-                
-                <form class="rsvp-form" id="rsvpForm">
-                    <div class="form-group">
-                        <label for="name">Nome e Cognome *</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email *</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="attendance">Partecipazione *</label>
-                        <select id="attendance" name="attendance" required>
-                            <option value="">Seleziona...</option>
-                            <option value="yes">S&igrave;, parteciper&ograve;</option>
-                            <option value="no">No, non potr&ograve; partecipare</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="guestsGroup" style="display: none;">
-                        <label for="guests">Numero di Ospiti *</label>
-                        <select id="guests" name="guests">
-                            <option value="1">1 persona</option>
-                            <option value="2">2 persone</option>
-                            <option value="3">3 persone</option>
-                            <option value="4">4 persone</option>
-                            <option value="5">5 persone</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="intolerancesGroup" style="display: none;">
-                        <label for="intolerances">Intolleranze Alimentari</label>
-                        <textarea id="intolerances" name="intolerances" rows="3" placeholder="Es: celiachia, lattosio, vegetariano, vegano..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="message">Messaggio</label>
-                        <textarea id="message" name="message" rows="4" placeholder="Lascia un messaggio per gli sposi..."></textarea>
-                    </div>
-                    
-                    <!-- ReCAPTCHA -->
-                    <div class="form-group recaptcha-container">
-                        <div class="g-recaptcha" data-sitekey="6Lc8hOUrAAAAAKNISo5RnygXf9JsnpJz-_9hRjuW"></div>
-                        <small class="recaptcha-note">Protetto da reCAPTCHA</small>
-                    </div>
-                    
-                    <button type="submit" class="rsvp-btn" id="rsvpSubmitBtn">
-                        <i class="fas fa-paper-plane"></i> Invia Conferma
-                    </button>
-                </form>
-                
-                </div>
+      <div class="container">
+        <h2 class="section-title">Conferma la Tua Presenza</h2>
+        <div class="rsvp-content">
+          <p class="rsvp-text">
+            Ti preghiamo di confermare la tua partecipazione
+            <strong>entro il 1&deg; maggio 2026</strong>.
+          </p>
+
+          <!-- Form Success Message -->
+          <div id="rsvpSuccessMessage" class="rsvp-success" style="display: none">
+            <i class="fas fa-check-circle"></i>
+            <h3>Grazie per la conferma!</h3>
+            <p>Abbiamo ricevuto la tua risposta e ti abbiamo inviato una email di conferma.</p>
+            <p class="edit-info">
+              Se vuoi modificare la tua risposta, <a href="#" id="editRsvpLink">clicca qui</a>.
+            </p>
+          </div>
+
+          <form class="rsvp-form" id="rsvpForm">
+            <div class="form-group">
+              <label for="name">Nome e Cognome *</label>
+              <input type="text" id="name" name="name" required />
+            </div>
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <input type="email" id="email" name="email" required />
+            </div>
+            <div class="form-group">
+              <label for="attendance">Partecipazione *</label>
+              <select id="attendance" name="attendance" required>
+                <option value="">Seleziona...</option>
+                <option value="yes">S&igrave;, parteciper&ograve;</option>
+                <option value="no">No, non potr&ograve; partecipare</option>
+              </select>
+            </div>
+            <div class="form-group" id="guestsGroup" style="display: none">
+              <label for="guests">Numero di Ospiti *</label>
+              <select id="guests" name="guests">
+                <option value="1">1 persona</option>
+                <option value="2">2 persone</option>
+                <option value="3">3 persone</option>
+                <option value="4">4 persone</option>
+                <option value="5">5 persone</option>
+              </select>
+            </div>
+            <div class="form-group" id="intolerancesGroup" style="display: none">
+              <label for="intolerances">Intolleranze Alimentari</label>
+              <textarea
+                id="intolerances"
+                name="intolerances"
+                rows="3"
+                placeholder="Es: celiachia, lattosio, vegetariano, vegano..."
+              ></textarea>
+            </div>
+            <div class="form-group">
+              <label for="message">Messaggio</label>
+              <textarea
+                id="message"
+                name="message"
+                rows="4"
+                placeholder="Lascia un messaggio per gli sposi..."
+              ></textarea>
+            </div>
+
+            <!-- ReCAPTCHA -->
+            <div class="form-group recaptcha-container">
+              <div
+                class="g-recaptcha"
+                data-sitekey="6Lc8hOUrAAAAAKNISo5RnygXf9JsnpJz-_9hRjuW"
+              ></div>
+              <small class="recaptcha-note">Protetto da reCAPTCHA</small>
+            </div>
+
+            <button type="submit" class="rsvp-btn" id="rsvpSubmitBtn">
+              <i class="fas fa-paper-plane"></i> Invia Conferma
+            </button>
+          </form>
         </div>
+      </div>
     </section>
 
     <!-- Instagram Hashtag -->
     <section class="social-section hashtag-section">
-        <div class="container">
-            <div class="hashtag-section-content">
-                <h3>Condividi i tuoi momenti con noi!</h3>
-                <p>Usa l'hashtag ufficiale del matrimonio su Instagram</p>
-                <div class="hashtag">#andreagiulia050726</div>
-                <div class="social-icons">
-                    <a href="https://www.instagram.com/explore/tags/andreagiulia050726/" target="_blank" class="social-link">
-                        <i class="fab fa-instagram"></i> Segui su Instagram
-                    </a>
-                </div>
-            </div>
+      <div class="container">
+        <div class="hashtag-section-content">
+          <h3>Condividi i tuoi momenti con noi!</h3>
+          <p>Utilizza questo hashtag</p>
+          <div class="hashtag">#andreagiulia050726</div>
+          <div class="social-icons">
+            <a
+              href="https://www.instagram.com/explore/tags/andreagiulia050726/"
+              target="_blank"
+              class="social-link"
+            >
+              <i class="fab fa-instagram"></i> Segui su Instagram
+            </a>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- Gifts Section -->
     <section id="gifts" class="gifts">
-        <div class="container">
-            <h2 class="section-title">Lista Nozze</h2>
-            <div class="gifts-content">
-                <p class="gifts-text">Festeggiare insieme a voi nel giorno del nostro matrimonio &egrave; il regalo pi&ugrave; grande che possiamo desiderare. Se gradite aiutarci potete contribuire a rendere unica la nostra luna di miele.</p>
-                
-                <!-- Esperienze Luna di Miele -->
-                <h3 class="gifts-subtitle">Esperienze Luna di Miele</h3>
-                
-                <div class="destination-card">
-                    <h4 class="experience-region">Tanzania</h4>
-                    <div class="experiences-grid">
-                        <div class="experience-card">
-                            <div class="experience-image">
-                                <img src="images/tanzania_pernottamento.png" alt="Trasferimenti e pernottamenti Tanzania">
-                            </div>
-                            <div class="experience-content">
-                                <h4>Trasferimenti e pernottamenti</h4>
-                            </div>
-                        </div>
-                        <div class="experience-card">
-                            <div class="experience-image">
-                                <img src="images/tarangire_safari.png" alt="Escursione nel parco del Tarangire">
-                            </div>
-                            <div class="experience-content">
-                                <h4>Escursione nel parco del Tarangire</h4>
-                            </div>
-                        </div>
-                        <div class="experience-card">
-                            <div class="experience-image">
-                                <img src="images/serengeti_stargazing.png" alt="Esperienza notturna nel parco del Serengeti">
-                            </div>
-                            <div class="experience-content">
-                                <h4>Esperienza notturna nel parco del Serengeti</h4>
-                            </div>
-                        </div>
-                        <div class="experience-card">
-                            <div class="experience-image">
-                                <img src="images/ngorongoro_masai.png" alt="Safari con i Masai nel parco del Ngorongoro">
-                            </div>
-                            <div class="experience-content">
-                                <h4>Safari con i Masai nel parco del Ngorongoro</h4>
-                            </div>
-                        </div>
-                    </div>
+      <div class="container">
+        <h2 class="section-title">Lista Nozze</h2>
+        <div class="gifts-content">
+          <p class="gifts-text">
+            Festeggiare insieme a voi nel giorno del nostro matrimonio &egrave; il regalo pi&ugrave;
+            grande che possiamo desiderare. Se gradite aiutarci potete contribuire a rendere unica
+            la nostra luna di miele.
+          </p>
+
+          <!-- Esperienze Luna di Miele -->
+          <h3 class="gifts-subtitle">Esperienze Luna di Miele</h3>
+
+          <div class="destination-card">
+            <h4 class="experience-region">Tanzania</h4>
+            <div class="experiences-grid">
+              <div class="experience-card">
+                <div class="experience-image">
+                  <img
+                    src="images/tanzania_pernottamento.png"
+                    alt="Trasferimenti e pernottamenti Tanzania"
+                  />
                 </div>
-                
-                <div class="destination-card">
-                    <h4 class="experience-region">Seychelles</h4>
-                    <div class="experiences-grid">
-                        <div class="experience-card">
-                            <div class="experience-image">
-                                <img src="images/seychelles_pernottamento.png" alt="Trasferimenti e pernottamenti Seychelles">
-                            </div>
-                            <div class="experience-content">
-                                <h4>Trasferimenti e pernottamenti</h4>
-                            </div>
-                        </div>
-                        <div class="experience-card">
-                            <div class="experience-image">
-                                <img src="images/seychelles_boat_cocktail_sunset.png" alt="Cocktail al tramonto in barca">
-                            </div>
-                            <div class="experience-content">
-                                <h4>Cocktail al tramonto in barca</h4>
-                            </div>
-                        </div>
-                        <div class="experience-card">
-                            <div class="experience-image">
-                                <img src="images/seychelles_couple_massage.png" alt="Massaggio di coppia">
-                            </div>
-                            <div class="experience-content">
-                                <h4>Massaggio di coppia</h4>
-                            </div>
-                        </div>
-                        <div class="experience-card">
-                            <div class="experience-image">
-                                <img src="images/seychelles_beach_dinner.png" alt="Cena romantica sulla spiaggia">
-                            </div>
-                            <div class="experience-content">
-                                <h4>Cena romantica sulla spiaggia</h4>
-                            </div>
-                        </div>
-                    </div>
+                <div class="experience-content">
+                  <h4>Trasferimenti e pernottamenti</h4>
                 </div>
-                
-                <div class="bank-details">
-                    <h3><i class="fas fa-university"></i> Coordinate Bancarie</h3>
-                    <div class="bank-info">
-                        <p><strong>Intestato a:</strong> Rindi Andrea, Fusi Giulia</p>
-                        <p><strong>IBAN:</strong> <span class="iban-code">IT63 A030 6909 4001 0000 0079 541</span></p>
-                    </div>
+              </div>
+              <div class="experience-card">
+                <div class="experience-image">
+                  <img src="images/tarangire_safari.png" alt="Escursione nel parco del Tarangire" />
                 </div>
+                <div class="experience-content">
+                  <h4>Escursione nel parco del Tarangire</h4>
+                </div>
+              </div>
+              <div class="experience-card">
+                <div class="experience-image">
+                  <img
+                    src="images/serengeti_stargazing.png"
+                    alt="Esperienza notturna nel parco del Serengeti"
+                  />
+                </div>
+                <div class="experience-content">
+                  <h4>Esperienza notturna nel parco del Serengeti</h4>
+                </div>
+              </div>
+              <div class="experience-card">
+                <div class="experience-image">
+                  <img
+                    src="images/ngorongoro_masai.png"
+                    alt="Safari con i Masai nel parco del Ngorongoro"
+                  />
+                </div>
+                <div class="experience-content">
+                  <h4>Safari con i Masai nel parco del Ngorongoro</h4>
+                </div>
+              </div>
             </div>
+          </div>
+
+          <div class="destination-card">
+            <h4 class="experience-region">Seychelles</h4>
+            <div class="experiences-grid">
+              <div class="experience-card">
+                <div class="experience-image">
+                  <img
+                    src="images/seychelles_pernottamento.png"
+                    alt="Trasferimenti e pernottamenti Seychelles"
+                  />
+                </div>
+                <div class="experience-content">
+                  <h4>Trasferimenti e pernottamenti</h4>
+                </div>
+              </div>
+              <div class="experience-card">
+                <div class="experience-image">
+                  <img
+                    src="images/seychelles_boat_cocktail_sunset.png"
+                    alt="Cocktail al tramonto in barca"
+                  />
+                </div>
+                <div class="experience-content">
+                  <h4>Cocktail al tramonto in barca</h4>
+                </div>
+              </div>
+              <div class="experience-card">
+                <div class="experience-image">
+                  <img src="images/seychelles_couple_massage.png" alt="Massaggio di coppia" />
+                </div>
+                <div class="experience-content">
+                  <h4>Massaggio di coppia</h4>
+                </div>
+              </div>
+              <div class="experience-card">
+                <div class="experience-image">
+                  <img
+                    src="images/seychelles_beach_dinner.png"
+                    alt="Cena romantica sulla spiaggia"
+                  />
+                </div>
+                <div class="experience-content">
+                  <h4>Cena romantica sulla spiaggia</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bank-details">
+            <h3><i class="fas fa-university"></i> Coordinate Bancarie</h3>
+            <div class="bank-info">
+              <p><strong>Intestato a:</strong> Rindi Andrea, Fusi Giulia</p>
+              <p>
+                <strong>IBAN:</strong>
+                <span class="iban-code">IT63 A030 6909 4001 0000 0079 541</span>
+              </p>
+            </div>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- Footer -->
     <footer class="footer">
-        <div class="container">
-            <div class="footer-content footer-simple">
-                <p class="footer-heart"><i class="fas fa-heart"></i></p>
-                <p class="footer-message">Non vediamo l'ora di festeggiare con tutti voi</p>
-                <a href="admin-hub.html" class="admin-link-footer" title="Pannello Admin">
-                    <i class="fas fa-shield-alt"></i> Admin
-                </a>
-            </div>
+      <div class="container">
+        <div class="footer-content footer-simple">
+          <p class="footer-heart"><i class="fas fa-heart"></i></p>
+          <p class="footer-message">Non vediamo l'ora di festeggiare con tutti voi</p>
+          <a href="admin-hub.html" class="admin-link-footer" title="Pannello Admin">
+            <i class="fas fa-shield-alt"></i> Admin
+          </a>
         </div>
+      </div>
     </footer>
 
     <!-- Upload Modal -->
     <div id="uploadModal" class="upload-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Carica Foto &amp; Video</h2>
-                <span class="close-modal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                    </div>
-                    <h3>Trascina qui le tue foto e video</h3>
-                    <p>oppure <span class="click-to-browse">clicca per selezionare</span></p>
-                    <input type="file" id="fileInput" multiple accept="image/*,video/*" style="display: none;">
-                    <div class="upload-info">
-                        <small>Formati supportati: JPG, PNG, MP4, MOV (max 100MB per file)</small>
-                    </div>
-                </div>
-                
-                <div class="upload-progress" id="uploadProgress" style="display: none;">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
-                    <div class="progress-text" id="progressText">Caricamento...</div>
-                </div>
-                
-                <div class="upload-preview" id="uploadPreview" style="display: none;">
-                    <h4>Anteprima:</h4>
-                    <div class="preview-grid" id="previewGrid"></div>
-                </div>
-                
-                <div class="upload-actions">
-                    <button id="uploadBtn" class="btn-upload" disabled>
-                        <i class="fas fa-upload"></i> Carica
-                    </button>
-                    <button id="cancelBtn" class="btn-cancel">Annulla</button>
-                </div>
-            </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Carica Foto &amp; Video</h2>
+          <span class="close-modal">&times;</span>
         </div>
+        <div class="modal-body">
+          <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">
+              <i class="fas fa-cloud-upload-alt"></i>
+            </div>
+            <h3>Trascina qui le tue foto e video</h3>
+            <p>oppure <span class="click-to-browse">clicca per selezionare</span></p>
+            <input
+              type="file"
+              id="fileInput"
+              multiple
+              accept="image/*,video/*"
+              style="display: none"
+            />
+            <div class="upload-info">
+              <small>Formati supportati: JPG, PNG, MP4, MOV (max 100MB per file)</small>
+            </div>
+          </div>
+
+          <div class="upload-progress" id="uploadProgress" style="display: none">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Caricamento...</div>
+          </div>
+
+          <div class="upload-preview" id="uploadPreview" style="display: none">
+            <h4>Anteprima:</h4>
+            <div class="preview-grid" id="previewGrid"></div>
+          </div>
+
+          <div class="upload-actions">
+            <button id="uploadBtn" class="btn-upload" disabled>
+              <i class="fas fa-upload"></i> Carica
+            </button>
+            <button id="cancelBtn" class="btn-cancel">Annulla</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Firebase SDK -->
     <!-- Load config.local.js FIRST (if exists, otherwise uses placeholder from firebase-config.js) -->
     <script src="config.local.js"></script>
-    
+
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
-    
+
     <script src="firebase-config.js"></script>
     <script src="script.js"></script>
     <script src="upload-modal.js"></script>
     <script src="video-handler.js"></script>
     <script src="rsvp-handler.js"></script>
-</body>
+  </body>
 </html>

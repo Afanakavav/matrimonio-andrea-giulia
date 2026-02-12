@@ -1,32 +1,32 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
+  <head>
     <title>Generate Password Hash</title>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Generate Password Hash</h1>
-    <input type="text" id="password" placeholder="Enter password" value="RindiFusi">
+    <input type="text" id="password" placeholder="Enter password" value="RindiFusi" />
     <button onclick="generateHash()">Generate Hash</button>
     <div id="result"></div>
 
     <script>
-        async function sha256(message) {
-            const msgBuffer = new TextEncoder().encode(message);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            return hashHex;
-        }
+      async function sha256(message) {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+        return hashHex;
+      }
 
-        async function generateHash() {
-            const password = document.getElementById('password').value;
-            const hash = await sha256(password);
-            document.getElementById('result').innerHTML = `
+      async function generateHash() {
+        const password = document.getElementById("password").value;
+        const hash = await sha256(password);
+        document.getElementById("result").innerHTML = `
                 <h3>Password: ${password}</h3>
                 <h3>Hash: ${hash}</h3>
                 <p>Copy this hash to auth-manager-secure.js</p>
             `;
-        }
+      }
     </script>
-</body>
+  </body>
 </html>

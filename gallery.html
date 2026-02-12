@@ -1,9 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
       default-src 'self';
       script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://www.google.com https://cdnjs.cloudflare.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
@@ -13,130 +15,137 @@
       frame-src https://www.google.com;
       object-src 'none';
       base-uri 'self';
-    ">
+    "
+    />
     <title>Galleria Foto & Video - Matrimonio Andrea & Giulia</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="gallery-styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="icon" href="data:,">
-</head>
-<body>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="gallery-styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <i class="fas fa-heart"></i>
-                <span>Matrimonio</span>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="index.html" class="nav-link">Home</a></li>
-                <li><a href="index.html#about" class="nav-link">La Nostra Storia</a></li>
-                <li><a href="index.html#ceremony" class="nav-link">Cerimonia</a></li>
-                <li><a href="index.html#reception" class="nav-link">Ricevimento</a></li>
-                <li><a href="index.html#rsvp" class="nav-link">R.S.V.P.</a></li>
-                <li><a href="index.html#gifts" class="nav-link">Regali</a></li>
-                <li><a href="index.html" class="nav-link" id="uploadBtn">📸 Carica</a></li>
-                <li><a href="gallery.html" class="nav-link active">🖼️ Galleria</a></li>
-            </ul>
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
+      <div class="nav-container">
+        <div class="nav-logo">
+          <i class="fas fa-heart"></i>
+          <span>Matrimonio</span>
         </div>
+        <ul class="nav-menu">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="index.html#about" class="nav-link">La Nostra Storia</a></li>
+          <li><a href="index.html#ceremony" class="nav-link">Cerimonia</a></li>
+          <li><a href="index.html#reception" class="nav-link">Ricevimento</a></li>
+          <li><a href="index.html#rsvp" class="nav-link">R.S.V.P.</a></li>
+          <li><a href="index.html#gifts" class="nav-link">Regali</a></li>
+          <li><a href="index.html" class="nav-link" id="uploadBtn">📸 Carica</a></li>
+          <li><a href="gallery.html" class="nav-link active">🖼️ Galleria</a></li>
+        </ul>
+        <div class="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
     </nav>
 
     <!-- Gallery Section -->
     <section class="gallery-section">
-        <div class="gallery-header">
-            <h1 class="gallery-title">Galleria del Matrimonio</h1>
-            <p class="gallery-subtitle">I momenti più belli di Andrea & Giulia</p>
-            <div class="gallery-stats">
-                <span id="totalMedia">0</span> contenuti condivisi
-            </div>
-        </div>
+      <div class="gallery-header">
+        <h1 class="gallery-title">Galleria del Matrimonio</h1>
+        <p class="gallery-subtitle">I momenti più belli di Andrea & Giulia</p>
+        <div class="gallery-stats"><span id="totalMedia">0</span> contenuti condivisi</div>
+      </div>
 
-        <!-- Gallery Container -->
-        <div class="gallery-container" id="galleryContainer">
-            <!-- Media items will be dynamically loaded here -->
-        </div>
-        
-        <!-- Load More Button -->
-        <div class="load-more-container" id="loadMoreContainer" style="display: none;">
-            <button id="loadMoreBtn" class="load-more-btn">
-                <i class="fas fa-plus"></i> Carica Altri
-            </button>
-        </div>
+      <!-- Gallery Container -->
+      <div class="gallery-container" id="galleryContainer">
+        <!-- Media items will be dynamically loaded here -->
+      </div>
 
-        <!-- Loading Indicator -->
-        <div class="loading-indicator" id="loadingIndicator">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span>Caricamento...</span>
-        </div>
+      <!-- Load More Button -->
+      <div class="load-more-container" id="loadMoreContainer" style="display: none">
+        <button id="loadMoreBtn" class="load-more-btn">
+          <i class="fas fa-plus"></i> Carica Altri
+        </button>
+      </div>
 
-        <!-- Empty State -->
-        <div class="empty-state" id="emptyState" style="display: none;">
-            <i class="fas fa-camera"></i>
-            <h3>Nessun contenuto ancora</h3>
-            <p>Sii il primo a condividere una foto o video del matrimonio!</p>
-            <a href="upload.html" class="upload-link-btn">
-                <i class="fas fa-plus"></i>
-                Carica il primo contenuto
-            </a>
-        </div>
+      <!-- Loading Indicator -->
+      <div class="loading-indicator" id="loadingIndicator">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Caricamento...</span>
+      </div>
 
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState" style="display: none">
+        <i class="fas fa-camera"></i>
+        <h3>Nessun contenuto ancora</h3>
+        <p>Sii il primo a condividere una foto o video del matrimonio!</p>
+        <a href="upload.html" class="upload-link-btn">
+          <i class="fas fa-plus"></i>
+          Carica il primo contenuto
+        </a>
+      </div>
     </section>
 
     <!-- Media Modal -->
     <div class="media-modal" id="mediaModal">
-        <div class="modal-content">
-            <span class="modal-close" id="modalClose">&times;</span>
-            <button class="modal-nav-btn modal-prev" id="modalPrev">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <button class="modal-nav-btn modal-next" id="modalNext">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-            <div class="modal-media-container">
-                <img id="modalImage" style="display: none;" alt="Immagine">
-                <video id="modalVideo" style="display: none;" controls>
-                    <source src="" type="video/mp4">
-                    Il tuo browser non supporta il video.
-                </video>
-            </div>
-            <div class="modal-counter" id="modalCounter">1 / 1</div>
+      <div class="modal-content">
+        <span class="modal-close" id="modalClose">&times;</span>
+        <button class="modal-nav-btn modal-prev" id="modalPrev">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="modal-nav-btn modal-next" id="modalNext">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        <div class="modal-media-container">
+          <img id="modalImage" style="display: none" alt="Immagine" />
+          <video id="modalVideo" style="display: none" controls>
+            <source src="" type="video/mp4" />
+            Il tuo browser non supporta il video.
+          </video>
         </div>
+        <div class="modal-counter" id="modalCounter">1 / 1</div>
+      </div>
     </div>
 
     <!-- Footer -->
     <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-text">
-                    <p>&copy; 2026 Afanakavav. Tutti i diritti riservati.</p>
-                    <p>Fatto con <i class="fas fa-heart"></i> per il nostro matrimonio</p>
-                </div>
-                <div class="footer-contact">
-                    <p>Per informazioni: <a href="mailto:francesco.perone00@gmail.com">francesco.perone00@gmail.com</a> o <a href="tel:+393398985125">+39 339 8985125</a></p>
-                    <div class="admin-links">
-                        <a href="admin-hub.html" class="admin-link" title="Pannello Admin">
-                            <i class="fas fa-shield-alt"></i>
-                        </a>
-                    </div>
-                </div>
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-text">
+            <p>&copy; 2026 Afanakavav. Tutti i diritti riservati.</p>
+            <p>Fatto con <i class="fas fa-heart"></i> per il nostro matrimonio</p>
+          </div>
+          <div class="footer-contact">
+            <p>
+              Per informazioni:
+              <a href="mailto:francesco.perone00@gmail.com">francesco.perone00@gmail.com</a> o
+              <a href="tel:+393398985125">+39 339 8985125</a>
+            </p>
+            <div class="admin-links">
+              <a href="admin-hub.html" class="admin-link" title="Pannello Admin">
+                <i class="fas fa-shield-alt"></i>
+              </a>
             </div>
+          </div>
         </div>
+      </div>
     </footer>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-    
+
     <script src="firebase-config.js"></script>
     <script src="script.js"></script>
     <script src="gallery-script.js"></script>
-</body>
+  </body>
 </html>
-

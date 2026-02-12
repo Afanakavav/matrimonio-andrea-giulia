@@ -1,9 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
       default-src 'self';
       script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://www.google.com https://cdnjs.cloudflare.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
@@ -13,216 +15,223 @@
       frame-src https://www.google.com;
       object-src 'none';
       base-uri 'self';
-    ">
+    "
+    />
     <title>Pannello Amministrazione - Matrimonio Andrea & Giulia</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="admin-styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="admin-styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="icon" href="data:," />
     <style>
-        .hub-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--accent-color) 0%, #f8f8f8 100%);
-            padding: 20px;
-        }
+      .hub-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--accent-color) 0%, #f8f8f8 100%);
+        padding: 20px;
+      }
 
+      .hub-content {
+        background: var(--white);
+        padding: 3rem;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        max-width: 800px;
+        width: 100%;
+      }
+
+      .hub-header {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+
+      .hub-header i {
+        font-size: 4rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+      }
+
+      .hub-header h1 {
+        font-family: var(--font-serif);
+        font-size: 2.5rem;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+      }
+
+      .hub-header p {
+        color: var(--text-light);
+        font-size: 1.1rem;
+      }
+
+      .hub-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .hub-card {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        padding: 2.5rem;
+        border-radius: 15px;
+        text-align: center;
+        transition: var(--transition);
+        cursor: pointer;
+        text-decoration: none;
+        color: var(--white);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .hub-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .hub-card i {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        display: block;
+      }
+
+      .hub-card h3 {
+        font-family: var(--font-serif);
+        font-size: 1.8rem;
+        margin-bottom: 0.8rem;
+      }
+
+      .hub-card p {
+        font-size: 1rem;
+        opacity: 0.95;
+        line-height: 1.6;
+      }
+
+      .hub-card.media-card {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      }
+
+      .hub-card.rsvp-card {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+      }
+
+      .hub-footer {
+        text-align: center;
+        padding-top: 2rem;
+        border-top: 2px solid #eee;
+      }
+
+      .back-home-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 2rem;
+        background: var(--white);
+        color: var(--primary-color);
+        border: 2px solid var(--primary-color);
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition);
+      }
+
+      .back-home-btn:hover {
+        background: var(--primary-color);
+        color: var(--white);
+        transform: translateY(-2px);
+      }
+
+      .hub-info {
+        text-align: center;
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: rgba(212, 175, 55, 0.1);
+        border-radius: 10px;
+      }
+
+      .hub-info i {
+        color: var(--primary-color);
+        margin-right: 0.5rem;
+      }
+
+      .hub-info p {
+        color: var(--text-light);
+        font-size: 0.95rem;
+        margin: 0.5rem 0;
+      }
+
+      @media (max-width: 768px) {
         .hub-content {
-            background: var(--white);
-            padding: 3rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
-            width: 100%;
-        }
-
-        .hub-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .hub-header i {
-            font-size: 4rem;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
+          padding: 2rem 1.5rem;
         }
 
         .hub-header h1 {
-            font-family: var(--font-serif);
-            font-size: 2.5rem;
-            color: var(--text-dark);
-            margin-bottom: 0.5rem;
+          font-size: 2rem;
         }
 
-        .hub-header p {
-            color: var(--text-light);
-            font-size: 1.1rem;
+        .hub-header i {
+          font-size: 3rem;
         }
 
         .hub-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
         }
 
         .hub-card {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            padding: 2.5rem;
-            border-radius: 15px;
-            text-align: center;
-            transition: var(--transition);
-            cursor: pointer;
-            text-decoration: none;
-            color: var(--white);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .hub-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+          padding: 2rem;
         }
 
         .hub-card i {
-            font-size: 4rem;
-            margin-bottom: 1.5rem;
-            display: block;
+          font-size: 3rem;
         }
 
         .hub-card h3 {
-            font-family: var(--font-serif);
-            font-size: 1.8rem;
-            margin-bottom: 0.8rem;
+          font-size: 1.5rem;
         }
-
-        .hub-card p {
-            font-size: 1rem;
-            opacity: 0.95;
-            line-height: 1.6;
-        }
-
-        .hub-card.media-card {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-        }
-
-        .hub-card.rsvp-card {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-        }
-
-        .hub-footer {
-            text-align: center;
-            padding-top: 2rem;
-            border-top: 2px solid #eee;
-        }
-
-        .back-home-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 1rem 2rem;
-            background: var(--white);
-            color: var(--primary-color);
-            border: 2px solid var(--primary-color);
-            border-radius: 8px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        .back-home-btn:hover {
-            background: var(--primary-color);
-            color: var(--white);
-            transform: translateY(-2px);
-        }
-
-        .hub-info {
-            text-align: center;
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background: rgba(212, 175, 55, 0.1);
-            border-radius: 10px;
-        }
-
-        .hub-info i {
-            color: var(--primary-color);
-            margin-right: 0.5rem;
-        }
-
-        .hub-info p {
-            color: var(--text-light);
-            font-size: 0.95rem;
-            margin: 0.5rem 0;
-        }
-
-        @media (max-width: 768px) {
-            .hub-content {
-                padding: 2rem 1.5rem;
-            }
-
-            .hub-header h1 {
-                font-size: 2rem;
-            }
-
-            .hub-header i {
-                font-size: 3rem;
-            }
-
-            .hub-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-
-            .hub-card {
-                padding: 2rem;
-            }
-
-            .hub-card i {
-                font-size: 3rem;
-            }
-
-            .hub-card h3 {
-                font-size: 1.5rem;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="hub-container">
-        <div class="hub-content">
-            <div class="hub-header">
-                <i class="fas fa-shield-alt"></i>
-                <h1>Pannello Amministrazione</h1>
-                <p>Gestisci il matrimonio di Andrea & Giulia</p>
-            </div>
-
-            <div class="hub-grid">
-                <a href="admin.html" class="hub-card media-card">
-                    <i class="fas fa-images"></i>
-                    <h3>Gestione Media</h3>
-                    <p>Visualizza, scarica ed elimina foto e video caricati dagli ospiti nella galleria</p>
-                </a>
-
-                <a href="admin-rsvp.html" class="hub-card rsvp-card">
-                    <i class="fas fa-users"></i>
-                    <h3>Gestione R.S.V.P.</h3>
-                    <p>Controlla le conferme di partecipazione, esporta i dati e gestisci gli invitati</p>
-                </a>
-            </div>
-
-            <div class="hub-info">
-                <p><i class="fas fa-info-circle"></i> Entrambi i pannelli richiedono l'autenticazione</p>
-            </div>
-
-            <div class="hub-footer">
-                <a href="index.html" class="back-home-btn">
-                    <i class="fas fa-home"></i>
-                    Torna al Sito
-                </a>
-            </div>
+      <div class="hub-content">
+        <div class="hub-header">
+          <i class="fas fa-shield-alt"></i>
+          <h1>Pannello Amministrazione</h1>
+          <p>Gestisci il matrimonio di Andrea & Giulia</p>
         </div>
+
+        <div class="hub-grid">
+          <a href="admin.html" class="hub-card media-card">
+            <i class="fas fa-images"></i>
+            <h3>Gestione Media</h3>
+            <p>Visualizza, scarica ed elimina foto e video caricati dagli ospiti nella galleria</p>
+          </a>
+
+          <a href="admin-rsvp.html" class="hub-card rsvp-card">
+            <i class="fas fa-users"></i>
+            <h3>Gestione R.S.V.P.</h3>
+            <p>Controlla le conferme di partecipazione, esporta i dati e gestisci gli invitati</p>
+          </a>
+        </div>
+
+        <div class="hub-info">
+          <p><i class="fas fa-info-circle"></i> Entrambi i pannelli richiedono l'autenticazione</p>
+        </div>
+
+        <div class="hub-footer">
+          <a href="index.html" class="back-home-btn">
+            <i class="fas fa-home"></i>
+            Torna al Sito
+          </a>
+        </div>
+      </div>
     </div>
 
     <!-- Firebase SDK -->
@@ -231,6 +240,5 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <script src="firebase-config.js?v=12"></script>
     <script src="auth-manager-secure.js?v=12"></script>
-</body>
+  </body>
 </html>
-

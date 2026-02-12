@@ -1,0 +1,23 @@
+# Dependencies and build
+node_modules/
+functions/node_modules/
+
+# Generated / vendored
+*.min.js
+package-lock.json
+
+# Local config (may contain secrets)
+config.local.js
+
+# Test output
+test-results/
+playwright-report/
+
+# Large binary / media
+*.mp4
+images/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
