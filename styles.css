@@ -1136,7 +1136,8 @@ body {
   grid-row: 1;
 }
 
-.timeline-image img {
+.timeline-image img,
+.timeline-image video {
   width: 100%;
   height: 250px;
   object-fit: cover;

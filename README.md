@@ -36,4 +36,9 @@ Sito per il matrimonio (5 luglio 2026).
 
 ## Deploy
 
-Push su `main` → GitHub Pages aggiorna il sito in automatico. Il dominio personalizzato è configurato tramite il file `CNAME` (andreagiulia5luglio26.it) e i record DNS presso Register.it.
+**Importante:** dopo ogni modifica eseguire **entrambi** i comandi:
+
+1. `firebase deploy` → aggiorna [matrimonio-andrea-giulia-2026.web.app](https://matrimonio-andrea-giulia-2026.web.app)
+2. `git push` → aggiorna [andreagiulia5luglio26.it](https://andreagiulia5luglio26.it) (GitHub Pages)
+
+Il dominio personalizzato è configurato tramite il file `CNAME` (andreagiulia5luglio26.it) e i record DNS presso Register.it.
