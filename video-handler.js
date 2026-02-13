@@ -1,6 +1,27 @@
 // Video Handler per garantire autoplay su tutti i dispositivi
 document.addEventListener("DOMContentLoaded", function () {
   const heroVideo = document.querySelector(".hero-video");
+  const chilometriVideo = document.querySelector(".chilometri-video");
+
+  if (chilometriVideo) {
+    chilometriVideo.playbackRate = 0.75;
+    chilometriVideo.play().catch(() => {});
+    if ("IntersectionObserver" in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              chilometriVideo.play().catch(() => {});
+            } else {
+              chilometriVideo.pause();
+            }
+          });
+        },
+        { threshold: 0.25 }
+      );
+      observer.observe(chilometriVideo);
+    }
+  }
 
   if (heroVideo) {
     // Tentativo di play automatico

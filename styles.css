@@ -1145,6 +1145,19 @@ body {
   box-shadow: var(--shadow);
 }
 
+/* Nascondi controlli video timeline (come hero-video) */
+.timeline-video::-webkit-media-controls {
+  display: none !important;
+}
+
+.timeline-video::-webkit-media-controls-enclosure {
+  display: none !important;
+}
+
+.timeline-video::-webkit-media-controls-panel {
+  display: none !important;
+}
+
 .timeline-image-placeholder {
   min-height: 250px;
   background: var(--bg-warm);
