@@ -173,6 +173,11 @@ body {
   color: var(--primary-color);
 }
 
+/* Nav: Carica e Galleria nascosti fino al matrimonio (codice conservato) */
+.nav-hidden {
+  display: none !important;
+}
+
 .hero-image {
   flex: 1;
   padding: 2rem;
@@ -971,8 +976,8 @@ body {
   }
 
   .hashtag {
-    font-size: 1.35rem;
-    white-space: normal;
+    font-size: 1.1rem;
+    white-space: nowrap;
     text-align: center;
     width: 100%;
   }
@@ -994,8 +999,8 @@ body {
   }
 
   .hashtag {
-    font-size: 1.1rem;
-    white-space: normal;
+    font-size: 0.95rem;
+    white-space: nowrap;
     text-align: center;
     width: 100%;
   }
@@ -1200,7 +1205,7 @@ body {
 
 .hashtag {
   font-family: var(--font-script);
-  font-size: 2.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--primary-color);
   margin: 1.5rem 0;
@@ -1209,6 +1214,7 @@ body {
   max-width: 100%;
   overflow-wrap: break-word;
   word-break: break-word;
+  white-space: nowrap;
 }
 
 .social-icons {
