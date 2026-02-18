@@ -5,17 +5,21 @@
   box-sizing: border-box;
 }
 
-/* Wedding Editorial palette — toni caldi ed eleganti */
+/* Wedding palette v2: Ivory Champagne + Sage */
 :root {
-  --primary-color: #5d7a6a;
-  --primary-dark: #4a6154;
-  --bg-warm: #f7f3ee;
-  --separator: #d9cfc4;
-  --accent-color: #faf6f1;
-  --text-dark: #4d554a;
-  --text-light: #6e7968;
-  --white: #fdfbf8;
-  --shadow: 0 4px 6px rgba(74, 97, 84, 0.1);
+  --white: #fbf6ee;
+  --bg-warm: #f4ebdd;
+  --accent-color: #f7efe3;
+
+  --primary-color: #5f7f71;
+  --primary-dark: #3f5e52;
+
+  --separator: #dccfbe;
+
+  --text-dark: #2f2a24;
+  --text-light: #6a5f54;
+
+  --shadow: 0 4px 6px rgba(63, 94, 82, 0.1);
   --transition: all 0.3s ease;
   --font-script: "Dancing Script", cursive;
   --font-serif: "Playfair Display", serif;
@@ -29,7 +33,7 @@ body {
   line-height: 1.7;
   color: var(--text-dark);
   overflow-x: hidden;
-  background: var(--bg-warm);
+  background: var(--white);
 }
 
 .container {
@@ -43,7 +47,7 @@ body {
   position: fixed;
   top: 0;
   width: 100%;
-  background: rgba(247, 243, 238, 0.97);
+  background: rgba(251, 246, 238, 0.97);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--separator);
   z-index: 1000;
@@ -749,7 +753,7 @@ body {
 .upload-area:hover,
 .upload-area.dragover {
   border-color: var(--primary-color);
-  background: rgba(93, 122, 106, 0.05);
+  background: rgba(95, 127, 113, 0.05);
 }
 
 .upload-icon {
@@ -1243,7 +1247,7 @@ body {
   border-color: var(--primary-dark);
   color: var(--white);
   transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(74, 97, 84, 0.2);
+  box-shadow: 0 6px 20px rgba(63, 94, 82, 0.2);
 }
 
 /* Maps Button */
@@ -1310,7 +1314,7 @@ body {
 .parking-link:hover {
   border-color: var(--primary-color);
   color: var(--primary-dark);
-  background: rgba(93, 122, 106, 0.08);
+  background: rgba(95, 127, 113, 0.08);
 }
 
 .parking-link i {
@@ -1564,7 +1568,7 @@ body {
 .iban-code {
   font-family: monospace;
   font-size: 1.1rem;
-  background: rgba(93, 122, 106, 0.1);
+  background: rgba(95, 127, 113, 0.1);
   padding: 0.5rem;
   border-radius: 5px;
   display: inline-block;
@@ -1573,7 +1577,7 @@ body {
 .bank-note {
   margin-top: 1rem;
   padding: 1rem;
-  background: rgba(93, 122, 106, 0.1);
+  background: rgba(95, 127, 113, 0.1);
   border-left: 3px solid var(--primary-color);
   border-radius: 5px;
   text-align: left;
@@ -1599,7 +1603,7 @@ body {
 }
 
 .rsvp-success {
-  background: rgba(93, 122, 106, 0.12);
+  background: rgba(95, 127, 113, 0.12);
   color: var(--primary-dark);
   padding: 2rem;
   border-radius: 15px;
@@ -1647,7 +1651,7 @@ body {
   text-align: center;
   margin-top: 2rem;
   padding: 1.5rem;
-  background: rgba(93, 122, 106, 0.1);
+  background: rgba(95, 127, 113, 0.1);
   border-radius: 10px;
   border-left: 4px solid var(--primary-color);
 }
