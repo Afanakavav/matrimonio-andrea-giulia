@@ -22,6 +22,8 @@ window.storage = storage;
 
 const WEDDING_CONFIG = {
   weddingDate: "2026-07-05",
+  uploadOpenDate: "2026-07-04T18:00:00",
+  uploadCloseDate: "2026-07-19T23:59:59",
   uploadEnabled: true,
   maxFileSize: 100 * 1024 * 1024,
   allowedTypes: [
@@ -36,8 +38,17 @@ const WEDDING_CONFIG = {
   maxFilesPerUpload: 20,
 };
 
+function getUploadStatus() {
+  const now = new Date();
+  const open = new Date(WEDDING_CONFIG.uploadOpenDate);
+  const close = new Date(WEDDING_CONFIG.uploadCloseDate);
+  if (now < open) return "before";
+  if (now > close) return "after";
+  return "open";
+}
+
 function isUploadEnabled() {
-  return true;
+  return getUploadStatus() === "open";
 }
 
 function isViewingEnabled() {

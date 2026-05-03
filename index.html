@@ -47,7 +47,7 @@
           <li><a href="#reception" class="nav-link">Ricevimento</a></li>
           <li><a href="#rsvp" class="nav-link">R.S.V.P.</a></li>
           <li><a href="#gifts" class="nav-link">Lista Nozze</a></li>
-          <li class="nav-hidden"><a href="#" class="nav-link" id="uploadBtn">Carica</a></li>
+          <li><a href="javascript:void(0)" class="nav-link" id="uploadBtn">Carica</a></li>
           <li class="nav-hidden"><a href="gallery.html" class="nav-link">Galleria</a></li>
         </ul>
         <div class="hamburger">
@@ -483,6 +483,17 @@
         </div>
       </div>
     </footer>
+
+    <!-- Upload Status Modal (prima/dopo periodo matrimonio) -->
+    <div id="uploadStatusModal" class="upload-soon-overlay" style="display:none">
+      <div class="upload-soon-card">
+        <button class="upload-soon-close" id="uploadStatusClose" aria-label="Chiudi">&times;</button>
+        <div class="upload-soon-icon" id="uploadStatusIcon"></div>
+        <h3 class="upload-soon-title" id="uploadStatusTitle"></h3>
+        <p class="upload-soon-text" id="uploadStatusText"></p>
+        <div class="upload-soon-actions" id="uploadStatusActions"></div>
+      </div>
+    </div>
 
     <!-- Upload Modal -->
     <div id="uploadModal" class="upload-modal">

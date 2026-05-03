@@ -1,3 +1,37 @@
+let _uploadModal = null;
+
+function handleUploadClick() {
+  const status = getUploadStatus();
+
+  if (status === "open") {
+    if (_uploadModal) _uploadModal.openModal();
+    return;
+  }
+
+  const overlay = document.getElementById("uploadStatusModal");
+  if (!overlay) return;
+
+  if (status === "before") {
+    document.getElementById("uploadStatusIcon").textContent = "✨";
+    document.getElementById("uploadStatusTitle").textContent = "La galleria si attiverà presto!";
+    document.getElementById("uploadStatusText").innerHTML =
+      "La galleria foto si attiverà il giorno del matrimonio!<br>" +
+      '<span class="upload-soon-date">Manca poco: 5 luglio 2026.</span><br><br>' +
+      "Torna a quella data per condividere i tuoi momenti con noi 💍";
+    document.getElementById("uploadStatusActions").innerHTML = "";
+  } else {
+    document.getElementById("uploadStatusIcon").textContent = "🎉";
+    document.getElementById("uploadStatusTitle").textContent = "Grazie per i ricordi condivisi!";
+    document.getElementById("uploadStatusText").textContent =
+      "La galleria è chiusa ai nuovi caricamenti, ma puoi rivedere tutti i momenti del nostro matrimonio nella Galleria →";
+    document.getElementById("uploadStatusActions").innerHTML =
+      '<a href="gallery.html" class="upload-soon-btn">Vai alla Galleria →</a>';
+  }
+
+  overlay.style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
 class UploadModal {
   constructor() {
     this.modal = document.getElementById("uploadModal");
@@ -19,7 +53,7 @@ class UploadModal {
   }
 
   init() {
-    this.uploadBtn.addEventListener("click", () => this.openModal());
+    this.uploadBtn.addEventListener("click", () => handleUploadClick());
     document.querySelector(".close-modal").addEventListener("click", () => this.closeModal());
     this.cancelBtn.addEventListener("click", () => this.closeModal());
 
@@ -38,13 +72,6 @@ class UploadModal {
   }
 
   openModal() {
-    if (!isUploadEnabled()) {
-      alert(
-        "Il caricamento di foto e video e disponibile solo durante il matrimonio e per una settimana successiva."
-      );
-      return;
-    }
-
     this.modal.classList.add("show");
     document.body.style.overflow = "hidden";
   }
@@ -287,5 +314,25 @@ class UploadModal {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  new UploadModal();
+  _uploadModal = new UploadModal();
+
+  // Gestione chiusura modal di stato upload
+  const statusOverlay = document.getElementById("uploadStatusModal");
+  if (statusOverlay) {
+    document.getElementById("uploadStatusClose").addEventListener("click", () => {
+      statusOverlay.style.display = "none";
+      document.body.style.overflow = "auto";
+    });
+    statusOverlay.addEventListener("click", (e) => {
+      if (e.target === statusOverlay) {
+        statusOverlay.style.display = "none";
+        document.body.style.overflow = "auto";
+      }
+    });
+  }
+
+  // Auto-apri modal se URL contiene ?action=upload (usato da gallery.html empty-state)
+  if (window.location.search.includes("action=upload")) {
+    setTimeout(() => handleUploadClick(), 300);
+  }
 });
