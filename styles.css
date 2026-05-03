@@ -651,22 +651,23 @@ body {
   color: rgba(255, 255, 255, 0.95);
 }
 .admin-link-footer {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: transparent;
-  color: var(--white);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 8px;
+  display: inline-block;
+  color: rgba(255, 255, 255, 0.45);
   text-decoration: none;
-  font-size: 0.95rem;
-  transition: var(--transition);
+  font-size: 0.75rem;
+  opacity: 0.6;
+  letter-spacing: 0.04em;
+  transition: opacity 0.2s ease, color 0.2s ease;
 }
 .admin-link-footer:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.8);
-  color: var(--white);
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.85);
+}
+.admin-link-footer:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 3px;
+  border-radius: 2px;
+  opacity: 1;
 }
 
 /* Upload Modal Styles */
@@ -1671,7 +1672,7 @@ body {
   text-decoration: underline;
 }
 
-/* Admin Links */
+/* Admin Links — discreti e non in evidenza per i visitatori casuali */
 .admin-links {
   display: flex;
   gap: 1rem;
@@ -1679,14 +1680,33 @@ body {
 }
 
 .admin-link {
-  color: var(--accent-color);
-  opacity: 0.3;
-  transition: var(--transition);
+  color: rgba(255, 255, 255, 0.45);
+  opacity: 0.6;
+  text-decoration: none;
+  font-size: 0.75rem;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  /* reset stili precedenti che creavano un bottone circolare prominente */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  background: none;
+  border: none;
+  border-radius: 0;
 }
 
 .admin-link:hover {
   opacity: 1;
-  transform: scale(1.2);
+  color: rgba(255, 255, 255, 0.85);
+  transform: none;
+}
+
+.admin-link:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 3px;
+  border-radius: 2px;
+  opacity: 1;
 }
 
 /* Responsive Adjustments */

@@ -1,0 +1,10 @@
+User-agent: *
+Disallow: /admin.html
+Disallow: /admin-hub.html
+Disallow: /admin-rsvp.html
+Disallow: /admin-media.html
+Disallow: /generate-hash.html
+Disallow: /test-hash.html
+Allow: /
+
+Sitemap: https://andreagiulia5luglio26.it/sitemap.xml
