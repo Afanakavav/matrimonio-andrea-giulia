@@ -10,6 +10,7 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
 const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 
 // Carica variabili d'ambiente
 require("dotenv").config();
@@ -223,6 +224,15 @@ exports.submitRSVP = functions
     }
 
     // 2. Validazione dati RSVP
+    // Hasciamo l'IP con SHA-256 per conformità GDPR: non salviamo l'IP in chiaro.
+    // Nota: utenti dietro NAT condividono lo stesso IP, ma per un sito matrimonio
+    // con ~200 ospiti questo livello di rate limiting è più che sufficiente.
+    const rawIp =
+      (context.rawRequest.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
+      context.rawRequest.ip ||
+      "unknown";
+    const ipHash = crypto.createHash("sha256").update(rawIp).digest("hex");
+
     const sanitizedData = {
       name: rsvpData.name.trim(),
       email: rsvpData.email.trim().toLowerCase(),
@@ -233,6 +243,7 @@ exports.submitRSVP = functions
       message: rsvpData.message?.trim() || "",
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
       recaptchaScore: verificationResult.score || null,
+      ipHash,
     };
 
     // Validazione email
@@ -273,24 +284,23 @@ exports.submitRSVP = functions
 
 /**
  * Cloud Function: Rate Limiting per RSVP
- * Previene spam limitando il numero di RSVP per IP
+ * Previene spam limitando il numero di RSVP per IP (salvato come hash SHA-256)
  */
 exports.checkRateLimit = functions.https.onCall(async (data, context) => {
-  // Ottieni IP dell'utente
-  const ip = context.rawRequest.ip;
-
-  if (!ip) {
-    throw new functions.https.HttpsError("internal", "Impossibile determinare IP");
-  }
+  const rawIp =
+    (context.rawRequest.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
+    context.rawRequest.ip ||
+    "unknown";
+  const ipHash = crypto.createHash("sha256").update(rawIp).digest("hex");
 
   try {
-    // Controlla numero di RSVP dall'IP nelle ultime 24 ore
+    // Controlla numero di RSVP dall'IP (hashed) nelle ultime 24 ore
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
     const recentRSVPs = await admin
       .firestore()
       .collection("rsvp-confirmations")
-      .where("ip", "==", ip)
+      .where("ipHash", "==", ipHash)
       .where("timestamp", ">", oneDayAgo)
       .get();
 
