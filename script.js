@@ -44,40 +44,7 @@ window.addEventListener("scroll", () => {
   }
 });
 
-// RSVP Form handling
-const rsvpForm = document.querySelector(".rsvp-form");
-if (rsvpForm) {
-  rsvpForm.addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    // Get form data
-    const formData = new FormData(this);
-    const name = formData.get("name");
-    const email = formData.get("email");
-    const guests = formData.get("guests");
-    const attendance = formData.get("attendance");
-
-    // Simple validation
-    if (!name || !email || !guests || !attendance) {
-      alert("Per favore, compila tutti i campi obbligatori.");
-      return;
-    }
-
-    // Simulate form submission
-    const submitBtn = this.querySelector(".rsvp-btn");
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = "Invio in corso...";
-    submitBtn.disabled = true;
-
-    // Simulate API call
-    setTimeout(() => {
-      alert("Grazie per la tua conferma! Ti abbiamo inviato una email di conferma.");
-      this.reset();
-      submitBtn.textContent = originalText;
-      submitBtn.disabled = false;
-    }, 2000);
-  });
-}
+// RSVP Form: gestito da rsvp-handler.js (Firebase + email info@andreagiulia5luglio26.it)
 
 // Add animation on scroll
 const observerOptions = {

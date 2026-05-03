@@ -9,12 +9,80 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
+const nodemailer = require("nodemailer");
 
 // Carica variabili d'ambiente
 require("dotenv").config();
 
 // Inizializza Firebase Admin
 admin.initializeApp();
+
+/**
+ * Crea transporter Nodemailer per Register.it (info@andreagiulia5luglio26.it)
+ */
+function createEmailTransporter() {
+  const host = process.env.EMAIL_HOST || "authsmtp.securemail.pro";
+  const port = parseInt(process.env.EMAIL_PORT || "465", 10);
+  const user = process.env.EMAIL_USER;
+  const pass = process.env.EMAIL_PASS;
+
+  if (!user || !pass) {
+    throw new Error("EMAIL_USER e EMAIL_PASS devono essere configurati in .env");
+  }
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: { user, pass },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+  });
+}
+
+/**
+ * Invia email di conferma RSVP all'ospite
+ * Mittente: info@andreagiulia5luglio26.it (Register.it)
+ */
+async function sendRsvpConfirmationEmail(rsvpData) {
+  const transporter = createEmailTransporter();
+  const fromEmail = "info@andreagiulia5luglio26.it";
+
+  const attendanceText = rsvpData.attendance === "yes" ? "Parteciperà" : "Non parteciperà";
+
+  const siteUrl = "https://andreagiulia5luglio26.it";
+
+  const mailOptions = {
+    from: `"Matrimonio Andrea & Giulia" <${fromEmail}>`,
+    to: rsvpData.email,
+    replyTo: fromEmail,
+    subject: "Conferma R.S.V.P. - Matrimonio Andrea & Giulia",
+    text: `
+Ciao ${rsvpData.name},
+
+grazie per aver confermato la tua partecipazione al matrimonio di Andrea & Giulia!
+
+Riepilogo conferma:
+- Partecipazione: ${attendanceText}
+- Numero Ospiti: ${rsvpData.guests}
+- Intolleranze Alimentari: ${rsvpData.intolerances}
+- Messaggio: ${rsvpData.message}
+
+Dettagli evento:
+📅 Data: Domenica 5 Luglio 2026
+🕐 Cerimonia: ore 15:30 - Chiesa di San Niccolò, Prato
+🍽️ Ricevimento: ore 18:00 - Villa Corsini a Mezzomonte, Impruneta
+
+Non vediamo l'ora di festeggiare con te!
+Se hai bisogno di modificare la tua conferma, visita il sito Matrimonio Andrea & Giulia: ${siteUrl}
+
+Con affetto,
+Andrea & Giulia
+    `.trim(),
+  };
+
+  return transporter.sendMail(mailOptions);
+}
 
 /**
  * Verifica token reCAPTCHA con Google
@@ -123,7 +191,9 @@ exports.verifyRecaptcha = functions.https.onCall(async (data, context) => {
  * }
  * Response: { success: boolean, rsvpId: string }
  */
-exports.submitRSVP = functions.https.onCall(async (data, context) => {
+exports.submitRSVP = functions
+  .runWith({ timeoutSeconds: 120 })
+  .https.onCall(async (data, context) => {
   const { token, rsvpData } = data;
 
   // Validazione input
@@ -176,7 +246,15 @@ exports.submitRSVP = functions.https.onCall(async (data, context) => {
 
     console.log("RSVP salvato:", rsvpRef.id, sanitizedData);
 
-    // 4. Invia email di conferma (gestito da EmailJS nel frontend)
+    // 4. Invia email di conferma (da info@andreagiulia5luglio26.it)
+    try {
+      await sendRsvpConfirmationEmail(sanitizedData);
+      console.log("Email di conferma inviata a:", sanitizedData.email);
+    } catch (emailError) {
+      console.error("Errore invio email conferma (RSVP salvato comunque):", emailError.message || emailError);
+      if (emailError.response) console.error("SMTP response:", emailError.response);
+      // Non bloccare: l'RSVP è già salvato
+    }
 
     return {
       success: true,

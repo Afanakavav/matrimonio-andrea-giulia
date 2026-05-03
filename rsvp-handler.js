@@ -1,8 +1,5 @@
-// RSVP Handler con EmailJS e Firebase
-// Inizializza EmailJS
-(function () {
-  emailjs.init("cVcAe6MvmwdmXfCXo"); // Sostituire con il tuo User ID di EmailJS
-})();
+// RSVP Handler con Firebase
+// L'email di conferma è inviata dalla Cloud Function (info@andreagiulia5luglio26.it)
 
 // Carica reCAPTCHA v2 (checkbox) per il form RSVP. La pagina carica solo v3 (App Check), che non rende il widget .g-recaptcha.
 function loadRecaptchaV2() {
@@ -96,8 +93,7 @@ const rsvpHandler = {
 
       console.log("RSVP salvato con successo:", result.data.rsvpId);
 
-      // Send confirmation email via EmailJS
-      await this.sendConfirmationEmail(formData);
+      // L'email di conferma è inviata dalla Cloud Function submitRSVP
 
       // Show success message
       this.form.style.display = "none";
@@ -135,26 +131,6 @@ const rsvpHandler = {
       // Re-enable button
       submitBtn.disabled = false;
       submitBtn.innerHTML = originalHTML;
-    }
-  },
-
-  async sendConfirmationEmail(formData) {
-    const templateParams = {
-      to_name: formData.name,
-      to_email: formData.email,
-      attendance: formData.attendance === "yes" ? "Parteciperà" : "Non parteciperà",
-      guests: formData.guests,
-      intolerances: formData.intolerances,
-      message: formData.message,
-    };
-
-    try {
-      // Sostituire con il tuo Service ID e Template ID di EmailJS
-      await emailjs.send("service_yp2w08r", "template_6sj1bah", templateParams);
-      console.log("Email di conferma inviata con successo");
-    } catch (error) {
-      console.error("Errore nell'invio dell'email:", error);
-      // Non bloccare il processo se l'email fallisce
     }
   },
 
