@@ -103,7 +103,8 @@
 }
 
 .load-more-btn:hover {
-  background: var(--secondary-color);
+  background-color: var(--primary-dark);
+  color: var(--white);
   transform: translateY(-2px);
 }
 
@@ -125,7 +126,7 @@
   color: var(--text-light);
 }
 
-.empty-state i {
+.empty-state > i {
   font-size: 4rem;
   margin-bottom: 2rem;
   color: var(--primary-color);
@@ -145,24 +146,33 @@
 
 .upload-link-btn {
   display: inline-block;
-  background: var(--primary-color);
-  color: var(--white);
-  padding: 1rem 2rem;
+  background-color: var(--primary-color);
+  color: #ffffff;
+  padding: 1rem 2.5rem;
   border-radius: 8px;
   text-decoration: none;
+  font-family: "Playfair Display", serif;
   font-weight: 600;
-  transition: var(--transition);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .upload-link-btn:hover {
-  background: var(--primary-dark);
+  background-color: var(--primary-dark);
+  color: #ffffff;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(63, 94, 82, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .upload-link-btn:focus {
-  outline: 3px solid var(--primary-color);
+  outline: 2px solid var(--primary-color);
   outline-offset: 2px;
+}
+
+.upload-link-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .message-container,
@@ -349,7 +359,8 @@
 }
 
 .upload-fab:hover {
-  background: var(--secondary-color);
+  background-color: var(--primary-dark);
+  color: var(--white);
   transform: scale(1.1);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
