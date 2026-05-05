@@ -606,6 +606,22 @@ body {
   gap: 1rem;
 }
 
+.footer-contacts {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.5rem;
+  justify-content: center;
+}
+
+.footer-contacts a {
+  white-space: nowrap;
+}
+
+.footer-contacts-sep {
+  color: rgba(255, 255, 255, 0.6);
+}
+
 .admin-links {
   display: flex;
   gap: 0.8rem;
