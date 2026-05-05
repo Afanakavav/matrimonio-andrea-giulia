@@ -155,8 +155,14 @@
 }
 
 .upload-link-btn:hover {
-  background: var(--secondary-color);
+  background: var(--primary-dark);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(63, 94, 82, 0.35);
+}
+
+.upload-link-btn:focus {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 .message-container,
