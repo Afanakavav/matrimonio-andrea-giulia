@@ -1,7 +1,36 @@
 {
   "hosting": {
     "public": ".",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "functions/**",
+      "firestore.rules",
+      "firestore.indexes.json",
+      "CODEBASE_AUDIT.md",
+      "README.md",
+      "PRD.md",
+      "generate-hash.html",
+      "test-hash.html",
+      "fix-index-encoding.js",
+      "playwright.config.js",
+      "playwright-report/**",
+      "test-results/**",
+      "tests/**",
+      "scripts/**",
+      "docs/**",
+      "config.local.js",
+      "*.local.*",
+      "**/.env*",
+      "**/*.log",
+      "**/.git/**",
+      "*.test.js",
+      ".eslintrc*",
+      ".prettierrc*",
+      "package.json",
+      "package-lock.json"
+    ]
   },
   "firestore": {
     "rules": "firestore.rules"
