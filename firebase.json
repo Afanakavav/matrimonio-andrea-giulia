@@ -21,6 +21,7 @@
       "test-results/**",
       "tests/**",
       "scripts/**",
+      "scripts/dependencies.md",
       "docs/**",
       "config.local.js",
       "*.local.*",
