@@ -103,7 +103,7 @@ async function main() {
   if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      storageBucket: `${serviceAccount.project_id}.appspot.com`,
+      storageBucket: `${serviceAccount.project_id}.firebasestorage.app`,
     });
   }
 
@@ -118,7 +118,7 @@ async function main() {
   console.log(`\n  Documenti totali: ${totalDocs}`);
 
   if (totalDocs === 0) {
-    console.log('  (Collezione vuota o non esiste ancora)');
+    console.log('  (Collection not yet created — will be created on first document)');
   } else {
     // Schema: raccogli tutti i campi distinti
     const fieldCounts = {};

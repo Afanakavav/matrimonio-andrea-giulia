@@ -1,21 +1,36 @@
 # Storage Audit - 2026-05-08
 
 ## Firebase Storage
-- Cartella wedding-media/: [COUNT] file totali
-- Suddivisione per tipo:
-  - Immagini: [X]
-  - Video: [Y]
-  - Altri: [Z]
-- Dimensione totale: [BYTES]
+
+- Bucket: `matrimonio-andrea-giulia-2026.firebasestorage.app`
+- Cartella `wedding-media/`: **0 file totali**
+  - Immagini: 0
+  - Video: 0
+  - Altri: 0
+- Dimensione totale: 0 B
+- Stato: bucket esistente ma completamente vuoto (clean slate)
 
 ## Firestore wedding-media collection
-- Documenti totali: [COUNT]
-- Schema documenti attuale (campi rilevati):
-  [LIST]
-- Documenti con campi nuovi (post-migrazione): [COUNT]
-- Documenti con vecchi campi (da migrare): [COUNT]
+
+- Documenti totali: **0**
+- Stato: collezione non ancora esistente (verrà creata automaticamente al primo documento)
+- Schema documenti attuale: n/a — nessun documento presente
+- Documenti con campi nuovi (post-migrazione): 0
+- Documenti con vecchi campi (da migrare): 0
+
+## Esempi di documento
+
+Nessun documento presente nella collezione `wedding-media`.  
+La collezione `rsvp-confirmations` esiste ed è popolata con RSVP reali, ma non fa parte di questo audit.
 
 ## Decisioni
-- [ ] Migrare TUTTI i documenti esistenti al nuovo schema?
-- [ ] Eliminare media di test orfani?
-- [ ] Conservare backup pre-migrazione?
+
+- [x] Migrare TUTTI i documenti esistenti al nuovo schema? **NO** (nessun documento esistente)
+- [x] Eliminare media di test orfani? **NO** (nessun media presente)
+- [x] Conservare backup pre-migrazione? **NO** (niente da backuppare)
+
+---
+
+**Audit confermato il 2026-05-08.**  
+La collezione `wedding-media` verrà creata automaticamente al primo upload.  
+Lo schema da implementare è quello definito in PRD.md sezione FR-DB-01.
