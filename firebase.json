@@ -31,7 +31,10 @@
       ".eslintrc*",
       ".prettierrc*",
       "package.json",
-      "package-lock.json"
+      "package-lock.json",
+      "STORAGE_AUDIT.md",
+      "scripts/serviceAccountKey.json",
+      "**/serviceAccountKey.json"
     ]
   },
   "firestore": {
