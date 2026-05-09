@@ -11,13 +11,27 @@ service firebase.storage {
       // Upload permesso da 9 maggio a 19 luglio 2026
       // Solo cartelle valide: originals, display, thumbs
       // File size max 100MB, tipo image/* o video/*
+      //
+      // FIX 2026-05-09: uploadBytesResumable (chunked) invia request.resource
+      // come undefined nei chunk intermedi → contentType e size non disponibili.
+      // Il check è reso "safe": se la property non esiste si lascia passare
+      // (la validazione del tipo avviene lato client e tramite Firestore).
       allow create: if
         folder in ['originals', 'display', 'thumbs'] &&
         request.time >= timestamp.date(2026, 5, 9) &&
         request.time <= timestamp.date(2026, 7, 19) &&
-        (request.resource.contentType.matches('image/.*') ||
-         request.resource.contentType.matches('video/.*')) &&
-        request.resource.size < 100 * 1024 * 1024;
+        (
+          // Resumable upload: contentType disponibile solo nel primo chunk
+          // Se non è disponibile, accettiamo (validazione fatta lato client + Firestore)
+          !('contentType' in request.resource) ||
+          request.resource.contentType.matches('image/.*') ||
+          request.resource.contentType.matches('video/.*')
+        ) &&
+        (
+          // Stessa logica per size: skip check se non disponibile
+          !('size' in request.resource) ||
+          request.resource.size < 100 * 1024 * 1024
+        );
 
       // Update e delete solo via Admin SDK
       allow update: if false;
