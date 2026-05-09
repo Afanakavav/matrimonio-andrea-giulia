@@ -29,10 +29,10 @@ service cloud.firestore {
       allow read: if true;
 
       allow create: if
-        // Finestra temporale: gli upload sono aperti solo durante il matrimonio e
-        // nei giorni immediatamente successivi (4–19 luglio 2026).
-        // Impedisce upload anticipati (test/spam) e mantiene il bucket pulito.
-        request.time >= timestamp.date(2026, 7, 4) &&
+        // Finestra temporale allargata: upload aperti dal 9 maggio 2026 per test
+        // full-stack in produzione, fino al 19 luglio 2026.
+        // I documenti del periodo test sono marcati con is_pre_wedding_test: true.
+        request.time >= timestamp.date(2026, 5, 9) &&
         request.time <= timestamp.date(2026, 7, 19) &&
 
         // Campi obbligatori: tutti devono essere presenti nel documento creato dal client.
@@ -61,6 +61,12 @@ service cloud.firestore {
           !request.resource.data.keys().hasAny(['uploader_name']) ||
           (request.resource.data.uploader_name is string &&
            request.resource.data.uploader_name.size() <= 50)
+        ) &&
+
+        // is_pre_wedding_test è opzionale; se presente deve essere booleano
+        (
+          !request.resource.data.keys().hasAny(['is_pre_wedding_test']) ||
+          request.resource.data.is_pre_wedding_test is bool
         );
 
       // Update bloccato: modifiche ai metadata (moderazione, AI score, thumbnail URL)

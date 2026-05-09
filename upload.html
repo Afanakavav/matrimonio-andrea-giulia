@@ -8,10 +8,12 @@
       content="
       default-src 'self';
       script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net;
+      worker-src 'self' blob:;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
-      img-src 'self' https: data: blob:;
+      img-src 'self' data: blob: https://firebasestorage.googleapis.com;
       font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
-      connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com https://*.cloudfunctions.net https://firebasestorage.googleapis.com;
+      connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com https://*.cloudfunctions.net https://firebasestorage.googleapis.com https://cdn.jsdelivr.net;
+      media-src 'self' blob: https://firebasestorage.googleapis.com;
       object-src 'none';
       base-uri 'self';
     "
@@ -48,6 +50,12 @@
          CONTAINER PRINCIPALE
     ══════════════════════════════════════════════════════════ -->
     <div class="upload-container">
+
+      <!-- Banner beta test — dimissibile, visibile su tutti gli step -->
+      <div id="beta-banner" class="beta-banner" style="display:none" role="status">
+        <span>🧪 Modalità test attiva — La galleria ufficiale si attiverà il giorno del matrimonio. Grazie per aiutarci a testare!</span>
+        <button class="beta-banner-close" id="beta-banner-close" aria-label="Chiudi banner">×</button>
+      </div>
 
       <!-- Banner errori globali -->
       <div id="error-banner" class="error-banner" style="display:none" role="alert"></div>

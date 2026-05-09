@@ -23,11 +23,25 @@
   const RATE_LIMIT     = 10;          // max file al minuto
   const MAX_PHOTO_MB   = 20 * 1024 * 1024;
   const MAX_VIDEO_MB   = 100 * 1024 * 1024;
+  // Upload aperti dal 9 maggio per test. Tutto ciò che precede il matrimonio
+  // viene marcato is_pre_wedding_test: true per separarlo dai media reali.
+  const TEST_PHASE_END = new Date('2026-07-04T18:00:00');
 
   // ══════════════════════════════════════════════════════════════
   // INIT
   // ══════════════════════════════════════════════════════════════
   function init() {
+    // Banner beta: mostra se non già dimesso
+    if (!localStorage.getItem('betaBannerDismissed')) {
+      const betaBanner = document.getElementById('beta-banner');
+      if (betaBanner) betaBanner.style.display = 'flex';
+    }
+    document.getElementById('beta-banner-close')?.addEventListener('click', () => {
+      const betaBanner = document.getElementById('beta-banner');
+      if (betaBanner) betaBanner.style.display = 'none';
+      localStorage.setItem('betaBannerDismissed', '1');
+    });
+
     // Pre-popola nome da sessione precedente
     state.name = localStorage.getItem('uploaderName') || '';
     const nameInput = document.getElementById('name-input');
@@ -347,7 +361,8 @@
       original_url:  downloadURLs.original  || null,
       display_url:   downloadURLs.display   || null,
       thumb_url:     downloadURLs.thumbs    || null,
-      status:        'pending',
+      status:             'pending',
+      is_pre_wedding_test: new Date() < TEST_PHASE_END,
     });
 
     // Aggiorna counter localStorage
