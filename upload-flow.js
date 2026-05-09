@@ -324,7 +324,15 @@
     const uploadPromises = versioni.map((ver) =>
       new Promise((resolve, reject) => {
         const ref  = storage.ref(ver.path);
-        const task = ref.put(ver.blob);
+        const metadata = {
+          contentType: ver.blob.type || file.type || 'application/octet-stream',
+          customMetadata: {
+            uploaderName: state.name || '',
+            uploadDate: new Date().toISOString(),
+            isPreWeddingTest: String(new Date() < TEST_PHASE_END),
+          },
+        };
+        const task = ref.put(ver.blob, metadata);
 
         task.on(
           'state_changed',
