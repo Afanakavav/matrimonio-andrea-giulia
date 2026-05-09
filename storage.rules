@@ -10,17 +10,17 @@ service firebase.storage {
 
       // Upload permesso da 9 maggio a 19 luglio 2026
       // Solo cartelle valide: originals, display, thumbs
-      // File size max 100MB, tipo image/* o video/*
+      // File size max 100MB
       //
-      // IMPORTANTE: il client DEVE passare contentType nei metadata di ogni
-      // chiamata ref.put(blob, metadata), altrimenti request.resource.contentType
-      // è undefined e la rule nega con 403. Vedi upload-flow.js → uploadFile().
+      // Validazione contentType rimossa: risulta inaffidabile per
+      // uploadBytesResumable (request.resource undefined nel chunk start).
+      // Validazione enforced lato client (input accept, metadata in put()).
+      // Cloud Function generateThumbnails (Settimana 2 Giorno 4) rifiuterà
+      // file non-immagine/video in pipeline server-side.
       allow create: if
         folder in ['originals', 'display', 'thumbs'] &&
         request.time >= timestamp.date(2026, 5, 9) &&
         request.time <= timestamp.date(2026, 7, 19) &&
-        (request.resource.contentType.matches('image/.*') ||
-         request.resource.contentType.matches('video/.*')) &&
         request.resource.size < 100 * 1024 * 1024;
 
       // Update e delete solo via Admin SDK
