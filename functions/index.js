@@ -334,6 +334,27 @@ exports.checkRateLimit = functions.https.onCall(async (data, context) => {
   }
 });
 
+/**
+ * generateThumbnails - Cloud Function event-driven
+ *
+ * Triggered: Storage upload in wedding-media/originals/
+ * Genera:
+ *   - wedding-media/display/{file} (max 2560x1440, JPEG q85, mozjpeg)
+ *   - wedding-media/thumbs/{file}  (600x600 cover crop, JPEG q75)
+ * Update: documento Firestore wedding-media corrispondente con
+ *         display_url + thumb_url + thumbs_generated_at
+ *
+ * Filtri di sicurezza (prevenzione loop):
+ *   - Solo file in wedding-media/originals/
+ *   - Solo content-type image/*
+ *   - Skip se già in display/ o thumbs/ (auto-trigger ricorsivo)
+ *
+ * Test end-to-end: 2026-05-09 ✅ VERIFIED via upload manuale Console
+ *
+ * Service Account: 295197554541-compute@developer.gserviceaccount.com
+ *   con role Storage Admin (per leggere/scrivere bucket Storage)
+ *   e Eventarc Event Receiver (per ricevere eventi Storage)
+ */
 exports.generateThumbnails = onObjectFinalized({
   cpu: 2,
   region: "us-central1",

@@ -430,3 +430,34 @@ Stack confermato (**NON usare Next.js, NON migrare a Supabase**):
 | `ca470ab` | security: rimuovi deadline RSVP, blocca delete e update pubbliche |
 | `e761ecb` | feat: feature flag temporale per upload con messaggi pre/post matrimonio |
 | `1194f4c` | checkpoint: pre-live-gallery setup |
+
+---
+
+## AGGIORNAMENTO 2026-05-09 — Settimana 2 Giorno 4
+
+### Cosa è stato fatto
+- ✅ Cloud Function generateThumbnails sviluppata e deployata
+- ✅ Pipeline server-side image processing testata end-to-end
+- ✅ Sharp 0.34.5 integrato per resize JPEG con mozjpeg
+- ✅ Schema Firestore wedding-media esteso (campi display_url, thumb_url, thumbs_generated_at)
+- ✅ Service Account IAM configurato (Storage Admin + Eventarc Event Receiver)
+
+### Cloud Functions live (4 total)
+- verifyRecaptcha (callable v1, 256MB)
+- submitRSVP (callable v1, 256MB)
+- checkRateLimit (callable v1, 256MB)
+- generateThumbnails (event-driven v2, 1024MB) ⭐ NEW
+
+### Pending Settimana 2
+- 🔴 Bug upload client: /upload.html fallisce con 403 storage/unauthorized
+  Diagnosi: isolato a SDK JS uploadBytesResumable, NON infrastrutturale
+  (verified: Admin SDK e Console UI scrivono Storage senza problemi)
+- 🟢 QR code generator (Giorno 5)
+- 🟢 Deploy preview channel + smoke test
+- 🟢 Merge in main + tag v2.0-upload-redesign
+
+### Test data cleanup
+File di test rimossi dopo verifica:
+- wedding-media/originals/Bacio.jpg
+- wedding-media/display/Bacio.jpg
+- wedding-media/thumbs/Bacio.jpg
