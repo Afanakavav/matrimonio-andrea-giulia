@@ -433,6 +433,75 @@ Stack confermato (**NON usare Next.js, NON migrare a Supabase**):
 
 ---
 
+## AGGIORNAMENTO 2026-05-10 — Settimana 2 Giorno 3 (parziale)
+
+### Bug upload client: status finale dopo 7 round di debug
+
+**Status: BLOCCATO. Sospeso per evitare diminishing returns.**
+
+### Cosa funziona (verified)
+- Storage upload via Admin SDK Node.js ✅
+- Storage upload via Firebase Console UI manuale ✅  
+- Cloud Function generateThumbnails end-to-end ✅
+- Anonymous Authentication (sign-in anonimo client) ✅
+- Storage rules Playground simulator dice ALLOWED ✅
+- API Key restrictions configurate (6 API: Firestore, Storage 
+  for Firebase, Identity Toolkit, Token Service, Installations, 
+  Firebase Rules) ✅
+
+### Cosa NON funziona
+- Upload via Firebase JS SDK 9.23.0 compat in browser
+- Errore: 403 Forbidden / storage/unauthorized
+- Comportamento: chunk "start" del protocollo resumable (POST a 
+  /o?name=...) viene rifiutato dal server
+- Response server: generic "Permission denied" senza detail rule
+
+### Diagnosi accumulata (7 round)
+1. CSP Web Workers (risolto)
+2. contentType check nelle rules (rimosso)
+3. uploadBytes vs uploadBytesResumable (single upload non bypassa 
+   il protocollo HTTP scelto dall'SDK)
+4. size check nelle rules (rimosso)
+5. Anonymous Auth (abilitato + rules con request.auth != null)
+6. API Key restrictions (aggiunto localhost referrer + Identity 
+   Toolkit API + Cloud Storage for Firebase)
+7. Rules pattern {allPaths=**} (Playground OK ma browser ancora 403)
+
+### Ipotesi residue (da indagare in futuro)
+- App Check enforcement implicitamente attivo (banner "Configure 
+  App Check" in tutti gli screenshot Storage Console)
+- CORS configuration del bucket (richiede gsutil per modifica, 
+  non Firebase Console)
+- Firebase JS SDK 9.23.0 + Anonymous Auth + Resumable upload 
+  combinazione con edge case bug
+- Configurazione "Sign in providers" o "OAuth consent screen" 
+  Google Cloud Platform incompleta
+
+### Decisione strategica
+- Pausa debug per evitare diminishing returns
+- Proseguire con Giorno 5 (QR code) che è feature indipendente
+- Tornare al bug con mente fresca + ricerca esterna (StackOverflow, 
+  Firebase GitHub Issues, Anthropic Claude)
+- Workaround temporaneo possibile: rules wedding-media completamente 
+  pubbliche (allow create: if true) durante test phase, con TODO 
+  stringere prima del 5 luglio 2026
+
+### File modificati durante Giorno 3
+- upload.html (page client completa)
+- upload-styles.css (UI completa con spinner CSS)
+- upload-flow.js (logica completa, Anonymous Auth integrato)
+- storage.rules (deployed con request.auth + {allPaths=**})
+- firestore.rules (deployed con wedding-media schema)
+- functions/index.js (generateThumbnails working)
+
+### Backend Cloud Functions live (4 totali)
+- verifyRecaptcha (callable v1)
+- submitRSVP (callable v1)
+- checkRateLimit (callable v1)
+- generateThumbnails (event-driven v2) ✅ TESTATO
+
+---
+
 ## AGGIORNAMENTO 2026-05-09 — Settimana 2 Giorno 4
 
 ### Cosa è stato fatto
