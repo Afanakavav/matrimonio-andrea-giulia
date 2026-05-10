@@ -30,7 +30,21 @@
   // ══════════════════════════════════════════════════════════════
   // INIT
   // ══════════════════════════════════════════════════════════════
-  function init() {
+  async function init() {
+    // Sign-in anonimo automatico (necessario per le storage rules)
+    try {
+      if (!firebase.auth().currentUser) {
+        const userCredential = await firebase.auth().signInAnonymously();
+        console.log('[upload-flow] Anonymous auth:', userCredential.user.uid);
+      } else {
+        console.log('[upload-flow] User already authenticated:', firebase.auth().currentUser.uid);
+      }
+    } catch (err) {
+      console.error('[upload-flow] Anonymous auth failed:', err);
+      mostraErrore('Errore di autenticazione. Ricarica la pagina.');
+      return;
+    }
+
     // Banner beta: mostra se non già dimesso
     if (!localStorage.getItem('betaBannerDismissed')) {
       const betaBanner = document.getElementById('beta-banner');
@@ -333,6 +347,7 @@
     await db.collection('wedding-media').add({
       uploadDate:    firebase.firestore.FieldValue.serverTimestamp(),
       uploader_name: state.name || '',
+      uploaderUid:   firebase.auth().currentUser?.uid || null,
       file_type:     type === 'image' ? 'image' : 'video',
       fileName:      file.name,
       fileSize:      file.size,

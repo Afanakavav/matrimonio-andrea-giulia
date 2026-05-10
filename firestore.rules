@@ -29,6 +29,9 @@ service cloud.firestore {
       allow read: if true;
 
       allow create: if
+        // Richiede auth (anche anonimo) — necessario per storage upload via JS SDK
+        request.auth != null &&
+
         // Finestra temporale allargata: upload aperti dal 9 maggio 2026 per test
         // full-stack in produzione, fino al 19 luglio 2026.
         // I documenti del periodo test sono marcati con is_pre_wedding_test: true.
@@ -67,6 +70,12 @@ service cloud.firestore {
         (
           !request.resource.data.keys().hasAny(['is_pre_wedding_test']) ||
           request.resource.data.is_pre_wedding_test is bool
+        ) &&
+
+        // uploaderUid è opzionale; se presente deve essere stringa (anti-abuse Settimana 3)
+        (
+          !request.resource.data.keys().hasAny(['uploaderUid']) ||
+          request.resource.data.uploaderUid is string
         );
 
       // Update bloccato: modifiche ai metadata (moderazione, AI score, thumbnail URL)

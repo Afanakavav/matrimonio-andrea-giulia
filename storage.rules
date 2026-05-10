@@ -18,6 +18,8 @@ service firebase.storage {
       // Cloud Function generateThumbnails (Settimana 2 Giorno 4) rifiuterà
       // file non-immagine/video in pipeline server-side.
       allow create: if
+        // Richiede auth (anche anonimo)
+        request.auth != null &&
         folder in ['originals', 'display', 'thumbs'] &&
         request.time >= timestamp.date(2026, 5, 9) &&
         request.time <= timestamp.date(2026, 7, 19) &&
