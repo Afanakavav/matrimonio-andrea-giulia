@@ -3,11 +3,19 @@ service firebase.storage {
   match /b/{bucket}/o {
 
     // wedding-media: upload dagli invitati
-    match /wedding-media/{folder}/{fileName} {
+    // Usa {allPaths=**} invece di {folder}/{fileName} perché il Firebase JS SDK
+    // usa il resumable protocol (X-Goog-Upload-Protocol: resumable) per file >256KB:
+    // la richiesta POST "chunk start" arriva su un path parziale che non matcha
+    // il pattern a due segmenti {folder}/{fileName}, causando "Permission denied".
+    // Con {allPaths=**} la rule matcha tutti i sotto-path incluso il chunk start.
+    match /wedding-media/{allPaths=**} {
 
-      // Read pubblico (per galleria pubblica)
+      // Lettura pubblica (per la galleria)
       allow read: if true;
 
+      // Upload: richiede solo auth + finestra temporale
+      // Path validation (originals/display/thumbs) enforced lato client +
+      // dalla Cloud Function generateThumbnails che processa solo originals/.
       // Validazione size delegata al client (compressione + UI limit) e
       // gestita anche server-side dalla Cloud Function generateThumbnails
       // (rifiuta file non-immagine). Il check size nelle rules è rimosso
@@ -15,13 +23,11 @@ service firebase.storage {
       // uploadBytesResumable.
       allow create: if
         request.auth != null &&
-        folder in ['originals', 'display', 'thumbs'] &&
-        request.time >= timestamp.date(2026, 5, 9) &&
+        request.time >= timestamp.date(2026, 5, 1) &&
         request.time <= timestamp.date(2026, 7, 19);
 
-      // Update e delete solo via Admin SDK
-      allow update: if false;
-      allow delete: if false;
+      // No update/delete da client (Cloud Function via Admin SDK)
+      allow update, delete: if false;
     }
 
     // Tutto il resto: nega
