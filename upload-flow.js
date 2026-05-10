@@ -185,12 +185,9 @@
       row.id = `progress-row-${idx}`;
       row.setAttribute('role', 'listitem');
       row.innerHTML = `
-        <div class="progress-file-name">${truncateName(file.name, 30)}</div>
         <div class="progress-bar-row">
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" id="bar-${idx}"></div>
-          </div>
-          <div class="progress-status" id="status-${idx}">0%</div>
+          <div class="progress-spinner" id="spinner-${idx}"></div>
+          <div class="progress-file-name">${truncateName(file.name, 30)}</div>
         </div>
       `;
       container.appendChild(row);
@@ -199,27 +196,25 @@
     updateProgressSummary();
   }
 
-  function updateProgress(fileIdx, percent) {
-    const bar    = document.getElementById(`bar-${fileIdx}`);
-    const status = document.getElementById(`status-${fileIdx}`);
-    if (bar) bar.style.width = Math.min(percent, 100) + '%';
-    if (status) {
-      if (percent >= 100) {
-        status.textContent = '✅';
-        status.classList.add('done');
-      } else {
-        status.textContent = Math.round(percent) + '%';
-        status.classList.remove('done');
-      }
+  function updateProgress(fileIdx, stato) {
+    const spinner = document.getElementById(`spinner-${fileIdx}`);
+    if (!spinner) return;
+
+    if (stato === 'completed') {
+      spinner.className = 'progress-checkmark';
+      spinner.textContent = '✓';
+    } else {
+      spinner.className = 'progress-spinner';
+      spinner.textContent = '';
     }
   }
 
   function markFileError(fileIdx, messaggio) {
-    const row    = document.getElementById(`progress-row-${fileIdx}`);
-    const status = document.getElementById(`status-${fileIdx}`);
+    const row     = document.getElementById(`progress-row-${fileIdx}`);
+    const spinner = document.getElementById(`spinner-${fileIdx}`);
 
     if (row) row.classList.add('has-error');
-    if (status) { status.textContent = '❌'; status.classList.remove('done'); }
+    if (spinner) { spinner.className = 'progress-error'; spinner.textContent = '✗'; }
 
     // Aggiungi bottone riprova (una sola volta)
     if (row && !row.querySelector('.btn-retry')) {
@@ -231,7 +226,7 @@
         row.querySelectorAll('.error-inline, .btn-retry').forEach((el) => el.remove());
         // Resetta il contatore errori per questo file e riprova
         state.failCount = Math.max(0, state.failCount - 1);
-        updateProgress(fileIdx, 0);
+        updateProgress(fileIdx, 'uploading');
         uploadWithRetry(state.files[fileIdx], fileIdx, state.fileType, 1);
       });
       row.appendChild(btnRetry);
@@ -300,7 +295,6 @@
         const compressed = await compressImage(file);
         displayBlob = compressed.display;
         thumbBlob   = compressed.thumb;
-        updateProgress(fileIdx, 5); // segnale visivo: compressione OK
       } catch (compErr) {
         logError('compressImage', compErr, { file: file.name });
         // Fallback: carica senza compressione
@@ -316,45 +310,22 @@
       versioni.push({ path: `thumbs/${baseName}`,    blob: thumbBlob,   key: 'thumbs'  });
     }
 
-    const downloadURLs   = {};
-    const progressPerVer = 90 / versioni.length; // 5% compressione + 90% upload
-    let   versioniDone   = 0;
+    const downloadURLs = {};
 
-    // Upload parallelo di tutte le versioni con progress tracking
-    const uploadPromises = versioni.map((ver) =>
-      new Promise((resolve, reject) => {
-        const ref  = storage.ref(ver.path);
-        const metadata = {
-          contentType: ver.blob.type || file.type || 'application/octet-stream',
-          customMetadata: {
-            uploaderName: state.name || '',
-            uploadDate: new Date().toISOString(),
-            isPreWeddingTest: String(new Date() < TEST_PHASE_END),
-          },
-        };
-        const task = ref.put(ver.blob, metadata);
-
-        task.on(
-          'state_changed',
-          (snapshot) => {
-            // Progress proporzionale a questa versione
-            const verPct  = snapshot.bytesTransferred / snapshot.totalBytes;
-            const totalPct = 5 + versioniDone * progressPerVer + verPct * progressPerVer;
-            updateProgress(fileIdx, totalPct);
-          },
-          (err) => reject(err),
-          async () => {
-            try {
-              downloadURLs[ver.key] = await task.snapshot.ref.getDownloadURL();
-              versioniDone++;
-              resolve();
-            } catch (err) {
-              reject(err);
-            }
-          }
-        );
-      })
-    );
+    // Upload parallelo di tutte le versioni (single upload — più affidabile con storage rules anonymous)
+    const uploadPromises = versioni.map(async (ver) => {
+      const ref = storage.ref(ver.path);
+      const metadata = {
+        contentType: ver.blob.type || file.type || 'application/octet-stream',
+        customMetadata: {
+          uploaderName: state.name || '',
+          uploadDate: new Date().toISOString(),
+          isPreWeddingTest: String(new Date() < TEST_PHASE_END),
+        },
+      };
+      const snapshot = await ref.put(ver.blob, metadata);
+      downloadURLs[ver.key] = await snapshot.ref.getDownloadURL();
+    });
 
     await Promise.all(uploadPromises);
 
@@ -377,7 +348,7 @@
     const prev = parseInt(localStorage.getItem('totalUploadedCount') || '0', 10);
     localStorage.setItem('totalUploadedCount', String(prev + 1));
 
-    updateProgress(fileIdx, 100);
+    updateProgress(fileIdx, 'completed');
   }
 
   // Controlla se tutti i file sono stati processati (success + failure)
