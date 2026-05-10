@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QR per stampa — Andrea &amp; Giulia</title>
   <meta name="description" content="12 QR code stampabili per foglio A4 — Andrea &amp; Giulia 5 luglio 2026" />
-  <link rel="icon" type="image/x-icon" href="favicon.ico" />
-  <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:;" />
+  <link rel="icon" type="image/png" href="images/Logo-QR-code.png" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cdn.jsdelivr.net;" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
   <style>
@@ -193,7 +192,7 @@
   <header class="page-header no-print">
     <h1>Andrea &amp; Giulia — 5 luglio 2026</h1>
     <p>12 QR Code per stampa A4</p>
-    <button class="btn-print" onclick="window.print()">&#128424;&#65039; Stampa</button>
+    <button id="btn-print" class="btn-print">&#128424;&#65039; Stampa</button>
     <span class="print-tip">Tip: stampa in alta qualità per scansione ottimale</span>
   </header>
 
@@ -254,6 +253,10 @@
         type: 'square'
       }
     };
+
+    document.getElementById('btn-print').addEventListener('click', function () {
+      window.print();
+    });
 
     document.addEventListener('DOMContentLoaded', function () {
       for (let i = 0; i < 12; i++) {
