@@ -348,28 +348,6 @@
       </div>
     </section>
 
-    <!-- QR Upload Foto -->
-    <section class="qr-upload-section">
-      <div class="container">
-        <h2 class="section-title">Condividi le tue foto</h2>
-        <p class="section-subtitle">
-          Scansiona il QR con il tuo smartphone e carica i tuoi scatti
-          direttamente nella nostra galleria condivisa
-        </p>
-        <div class="qr-upload-wrapper">
-          <div id="qr-upload-single" class="qr-display"></div>
-          <div class="qr-upload-actions">
-            <button id="qr-download-btn" class="btn-secondary">
-              &#128229; Scarica QR
-            </button>
-            <a href="qr-print.html" class="btn-secondary" target="_blank" rel="noopener">
-              &#128424;&#65039; Stampa 12 QR
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- Gifts Section -->
     <section id="gifts" class="gifts">
       <div class="container">
@@ -580,36 +558,5 @@
     <script src="video-handler.js?v=2"></script>
     <script src="rsvp-handler.js?v=2"></script>
 
-    <!-- QR Upload: genera 1 QR per la sezione Condividi le tue foto -->
-    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        var qrUpload = new QRCodeStyling({
-          width: 280,
-          height: 280,
-          type: 'svg',
-          data: 'https://andreagiulia5luglio26.it/upload.html',
-          margin: 0,
-          qrOptions: { errorCorrectionLevel: 'H' },
-          imageOptions: {
-            hideBackgroundDots: true,
-            imageSize: 0.4,
-            margin: 0,
-            crossOrigin: 'anonymous'
-          },
-          dotsOptions: { color: '#5a7d6f', type: 'square' },
-          backgroundOptions: { color: '#ffffff' },
-          image: 'images/Logo-QR-code.png',
-          cornersSquareOptions: { color: '#5a7d6f', type: 'square' },
-          cornersDotOptions: { color: '#5a7d6f', type: 'square' }
-        });
-
-        qrUpload.append(document.getElementById('qr-upload-single'));
-
-        document.getElementById('qr-download-btn').addEventListener('click', function () {
-          qrUpload.download({ name: 'andreagiulia-upload-qr', extension: 'png' });
-        });
-      });
-    </script>
   </body>
 </html>

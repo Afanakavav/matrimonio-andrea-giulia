@@ -1879,7 +1879,7 @@ body {
   color: #fff;
 }
 
-/* ── QR Upload Section ── */
+/* === QR Code (riutilizzato in admin-qr.html, non in index.html) === */
 .qr-upload-section {
   padding: 4rem 1rem;
   background: var(--bg-warm, #f5e6d3);
