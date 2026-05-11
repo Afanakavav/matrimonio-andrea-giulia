@@ -568,6 +568,73 @@ Stack confermato (**NON usare Next.js, NON migrare a Supabase**):
 
 ---
 
+## AGGIORNAMENTO 2026-05-11 — Settimana 2 Giorno 6 COMPLETATO
+
+### Deploy preview channel + smoke test desktop + mobile
+
+**Status: COMPLETATO ✅**
+
+### Cosa è stato fatto
+- Deploy preview channel `preview-giorno6` su Firebase Hosting (scadenza 7 giorni)
+- Smoke test desktop: 6/10 test PASS (skip 4 upload, bug Giorno 3 noto)
+- Smoke test mobile reale: PASS (homepage, nav, sezioni, RSVP UI, QR)
+- Aggiunti favicon AG globalmente a tutte le 8 pagine HTML
+- Aggiunto bottone "Torna alla home" in upload.html Step 2
+
+### URL preview
+- Channel: `preview-giorno6`
+- URL: https://matrimonio-andrea-giulia-2026--preview-giorno6-20456ocf.web.app
+- Scadenza: 2026-05-18
+
+### Configurazione domini whitelist (procedura post-deploy preview)
+Tutti i nuovi domini preview channel richiedono aggiunta whitelist in 3 posti:
+1. Firebase Auth → Authorized Domains
+2. Cloud Console → API Key (Browser key 8 ott 2025) → HTTP referrers
+3. reCAPTCHA admin → Settings → Domains
+
+Domini attualmente whitelistati:
+- localhost, localhost:5000
+- afanakavav.github.io
+- andreagiulia5luglio26.it, www.andreagiulia5luglio26.it
+- matrimonio-andrea-giulia-2026.web.app
+- matrimonio-andrea-giulia-2026.firebaseapp.com
+- matrimonio-andrea-giulia-2026--preview-giorno6-20456ocf.web.app
+
+### Bug noti residui (NON bloccanti per produzione)
+1. **Bug Giorno 3 (upload Storage 403)**:
+   - Auth funziona, ma upload chunk start fallisce con storage/unauthorized
+   - Riprodotto in preview environment (8° round confermato)
+   - Ipotesi residue da indagare:
+     a. CORS configuration del bucket Storage (gsutil)
+     b. App Check enforcement implicitamente attivo
+     c. JS SDK 9.23.0 + Anonymous Auth + Resumable upload edge case
+   - Strategia: rimandare a giugno per test reali, MVP utilizzabile senza upload via Admin SDK come fallback
+
+2. **reCAPTCHA "Invalid domain"**:
+   - Domini aggiunti correttamente in reCAPTCHA admin
+   - Propagazione lenta, potrebbe richiedere fino a 24h
+   - Da riverificare domani prima del deploy produzione
+
+3. **config.local.js 404**:
+   - Atteso (file gitignored, override locale)
+   - Console warning cosmetico, nessun impatto funzionale
+
+### Status Settimana 2 (riepilogo aggiornato)
+- ✅ Giorno 1: Setup branch + audit
+- ✅ Giorno 2: Schema Firestore + rules
+- 🟡 Giorno 3: Upload page (UI ok, backend bug noto)
+- ✅ Giorno 4: Cloud Function generateThumbnails
+- ✅ Giorno 5: QR Code Generator
+- ✅ Giorno 6: Deploy preview + smoke test ⭐ OGGI
+- ⏳ Giorno 7: Deploy produzione + merge in main + tag v2.0
+
+### File modificati Giorno 6
+- 7 file HTML: favicon AG aggiunto
+- upload.html, upload-styles.css: bottone "Torna alla home"
+- CODEBASE_AUDIT.md: questa sezione
+
+---
+
 ## AGGIORNAMENTO 2026-05-09 — Settimana 2 Giorno 4
 
 ### Cosa è stato fatto
