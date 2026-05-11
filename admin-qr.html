@@ -224,6 +224,49 @@
     <script src="firebase-config.js?v=12"></script>
     <script src="auth-manager-secure.js?v=12"></script>
 
+    <!-- Auth init: istanzia AuthManagerSecure, form submit, occhiolino, logout -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var authManager = new AuthManagerSecure();
+
+        var loginForm    = document.getElementById('loginForm');
+        var loginError   = document.getElementById('loginError');
+        var logoutBtn    = document.getElementById('logoutBtn');
+        var pwdToggle    = document.getElementById('passwordToggle');
+        var pwdInput     = document.getElementById('password');
+
+        if (loginForm) {
+          loginForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            var result = await authManager.login(pwdInput.value);
+            if (!result.success) {
+              loginError.textContent = result.message || 'Password errata';
+            }
+          });
+        }
+
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', async function () {
+            await authManager.logout();
+          });
+        }
+
+        if (pwdToggle && pwdInput) {
+          pwdToggle.addEventListener('click', function () {
+            if (pwdInput.type === 'password') {
+              pwdInput.type = 'text';
+              pwdToggle.classList.remove('fa-eye');
+              pwdToggle.classList.add('fa-eye-slash');
+            } else {
+              pwdInput.type = 'password';
+              pwdToggle.classList.remove('fa-eye-slash');
+              pwdToggle.classList.add('fa-eye');
+            }
+          });
+        }
+      });
+    </script>
+
     <!-- QR generation -->
     <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
     <script>
