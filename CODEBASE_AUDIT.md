@@ -502,6 +502,72 @@ Stack confermato (**NON usare Next.js, NON migrare a Supabase**):
 
 ---
 
+## AGGIORNAMENTO 2026-05-10 — Settimana 2 Giorno 5 COMPLETATO
+
+### QR Code Generator (in area admin)
+
+**Status: COMPLETATO ✅**
+
+### File creati
+- qr-print.html: pagina stampa con 12 QR per A4, bottone Stampa,
+  generazione via qr-code-styling CDN
+- admin-qr.html: pagina admin protetta da password con QR singolo
+  + download PNG + link a qr-print.html + istruzioni stampa
+
+### File modificati
+- index.html: rimossa sezione "Condividi le tue foto" (era pubblica,
+  spostata in admin)
+- styles.css: classi QR conservate per riuso in admin-qr.html
+- admin-hub.html: aggiunta card "QR Code Generator" (terza nella grid)
+- admin-styles.css: fix sistemico bug `var(--secondary-color)` →
+  `var(--primary-dark)` per bottoni hover (era invisibile)
+
+### Bug fixati durante implementazione
+1. CSP qr-print.html: aggiunto Google Fonts + `unsafe-inline` per
+   script-src (basso rischio per pagina di stampa senza input)
+2. Inline event handler `onclick` rimosso da bottone Stampa, sostituito
+   con addEventListener
+3. firebase-storage-compat mancante in admin-qr.html (richiesto da
+   firebase-config.js)
+4. AuthManagerSecure non istanziato in admin-qr.html (mancava script
+   dedicato come admin-rsvp-script.js)
+5. **BUG LATENTE SISTEMICO**: var(--secondary-color) non definita in
+   admin-styles.css, causava bottoni hover invisibili in tutte le pagine
+   admin (hub, rsvp, qr). Fixato globalmente sostituendo con
+   --primary-dark (#3f5e52).
+
+### Design choice
+- Mantenuti ENTRAMBI i flussi: download PNG singolo + stampa 12 per A4
+- Sposi possono scegliere strategia stampa più adatta (1 grande, 12
+  pronti, custom layout via PNG)
+- QR removed da home pubblica perché feature per gli sposi, non per
+  ospiti
+
+### Tecnologie usate
+- qr-code-styling v1.6.0-rc.1 via CDN (no npm install)
+- SVG output per qualità di stampa massima
+- Logo AG centrale (images/Logo-QR-code.png) con errorCorrectionLevel 'H'
+- Colore #5a7d6f (verde matrimonio coerente)
+
+### Test effettuati
+- ✅ qr-print.html: 12 QR generati, stampa A4 preview perfetta
+- ✅ admin-hub.html: 3 card visibili (media, rsvp, qr)
+- ✅ admin-qr.html: login funziona, QR visualizzato, download PNG, link
+  stampa A4, logout
+- ✅ Scansione mobile: telefono riconosce URL `andreagiulia5luglio26.it/upload.html`
+- ✅ Bug sistemico bottoni hover fixato in tutte le pagine admin
+
+### Status Settimana 2 (riepilogo)
+- ✅ Giorno 1: Setup branch + audit
+- ✅ Giorno 2: Schema Firestore + rules + env
+- 🟡 Giorno 3: Upload page (UI 100%, backend bug — sospeso)
+- ✅ Giorno 4: Cloud Function generateThumbnails
+- ✅ Giorno 5: QR Code Generator ⭐ OGGI
+- ⏳ Giorno 6: Deploy preview + smoke test
+- ⏳ Giorno 7: Deploy produzione + merge + tag
+
+---
+
 ## AGGIORNAMENTO 2026-05-09 — Settimana 2 Giorno 4
 
 ### Cosa è stato fatto
