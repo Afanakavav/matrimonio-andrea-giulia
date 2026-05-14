@@ -635,6 +635,81 @@ Domini attualmente whitelistati:
 
 ---
 
+## AGGIORNAMENTO 2026-05-14 — Mini-sessione bug fix
+
+### Sessione 22:00-23:30 — Fix delete RSVP + prevenzione CSP
+
+**Status: COMPLETATO ✅**
+
+### Bug fix: delete RSVP funziona ora
+
+**Problema**: il pannello admin-rsvp.html non poteva cancellare RSVP,
+falliva con "Missing or insufficient permissions" perché Firestore
+rules bloccano delete diretto da client (architettura scelta in Sett 1
+per sicurezza).
+
+**Soluzione**: Cloud Function callable `deleteRSVP`:
+- Verifica password admin (env var ADMIN_PASSWORD)
+- Cancella documento via Admin SDK con privilegi elevati
+- Audit log automatico (Cloud Logging) con timestamp + name + email
+- Errori HTTPS espressi: invalid-argument, permission-denied, not-found, internal
+
+**Modifiche**:
+- functions/index.js: nuova CF deleteRSVP (callable v1, 256MB)
+- functions/.env: aggiunto ADMIN_PASSWORD=RindiFusi
+- admin-rsvp-script.js: chiamata httpsCallable invece di delete diretto
+- auth-manager-secure.js: salva password in sessionStorage dopo login,
+  rimuove al logout
+- admin-rsvp.html: aggiunto firebase-functions-compat.js SDK
+- admin-rsvp.html: CSP aggiornato con *.cloudfunctions.net
+- admin-qr.html + admin.html: CSP aggiornato preventivamente
+
+**Cloud Functions live ora (5)**:
+- verifyRecaptcha (callable v1)
+- submitRSVP (callable v1)
+- checkRateLimit (callable v1)
+- generateThumbnails (event-driven v2)
+- deleteRSVP (callable v1) ⭐ NUOVO
+
+**Tech debt accettato**:
+- Password admin in chiaro in 3 posti (auth-manager-secure.js,
+  sessionStorage, functions/.env). Mitigations: HTTPS sempre,
+  sessionStorage si svuota chiudendo tab, .env gitignored. Da fixare
+  con Firebase Auth + custom claims in Sett 3.
+
+### Bug noti residui (aggiornato)
+
+1. **Upload Storage 403** (bug Giorno 3, 8 round falliti)
+   - Status: ANCORA APERTO
+   - Strategia: domani Giorno 7 — opzioni A/B/C da decidere col PM
+     (ricerca esterna, CF proxy upload, workaround banner)
+
+2. **reCAPTCHA V2/V3 mismatch architetturale**
+   - Status: tech debt, funziona ma mismatch
+   - 2 site key registrate: V2 (`6Lc8hOUr...`, usata in index.html)
+     e V3 (`6Ler8mMs...`)
+   - Da rivedere in Sett 3
+
+### Test effettuati stasera
+- ✅ Deploy CF deleteRSVP riuscito (us-central1, 256MB)
+- ✅ Re-deploy preview channel preview-giorno6 (3 volte)
+- ✅ Test browser: login admin → crea RSVP test → cancella → success
+- ✅ Verifica console F12: nessun errore
+- ✅ sessionStorage.getItem('adminPassword') returna 'RindiFusi'
+  dopo login
+- ✅ Documento sparito dalla UI lista admin
+
+### Status Settimana 2 (aggiornato)
+- ✅ Giorno 1-2: Setup + schema
+- 🟡 Giorno 3: Upload page (UI ok, backend ancora bug)
+- ✅ Giorno 4: Cloud Function generateThumbnails
+- ✅ Giorno 5: QR Code Generator
+- ✅ Giorno 6: Preview channel + smoke test
+- ⏳ Giorno 7: Deploy produzione + merge + tag v2.0 ← DOMANI
+- + Mini-sessione 14 mag: fix delete RSVP ⭐ OGGI
+
+---
+
 ## AGGIORNAMENTO 2026-05-09 — Settimana 2 Giorno 4
 
 ### Cosa è stato fatto
