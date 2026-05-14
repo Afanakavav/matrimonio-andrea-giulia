@@ -440,3 +440,47 @@ exports.generateThumbnails = onObjectFinalized({
   console.log(`generateThumbnails completed for ${filePath}`);
   return null;
 });
+
+/**
+ * Cloud Function: Elimina RSVP (solo admin)
+ * Bypassa le Firestore rules (allow delete: if false) tramite Admin SDK
+ */
+exports.deleteRSVP = functions
+  .runWith({ memory: "256MB" })
+  .https.onCall(async (data, context) => {
+    const { documentId, password } = data;
+
+    if (!documentId || typeof documentId !== "string") {
+      throw new functions.https.HttpsError("invalid-argument", "documentId richiesto");
+    }
+    if (!password) {
+      throw new functions.https.HttpsError("invalid-argument", "password richiesta");
+    }
+    if (password !== process.env.ADMIN_PASSWORD) {
+      throw new functions.https.HttpsError("permission-denied", "Password admin non valida");
+    }
+
+    try {
+      const docRef = admin.firestore().collection("rsvp-confirmations").doc(documentId);
+      const docSnap = await docRef.get();
+
+      if (!docSnap.exists) {
+        throw new functions.https.HttpsError("not-found", "Documento RSVP non trovato");
+      }
+
+      const docData = docSnap.data();
+      console.log(
+        `[deleteRSVP] Admin deleted RSVP ${documentId}: ${docData.name} <${docData.email}> at ${new Date().toISOString()}`
+      );
+
+      await docRef.delete();
+
+      return { success: true, deletedId: documentId };
+    } catch (error) {
+      if (error instanceof functions.https.HttpsError) {
+        throw error;
+      }
+      console.error("Errore deleteRSVP:", error);
+      throw new functions.https.HttpsError("internal", "Errore interno durante l'eliminazione RSVP");
+    }
+  });
