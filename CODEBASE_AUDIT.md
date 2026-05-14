@@ -710,6 +710,156 @@ per sicurezza).
 
 ---
 
+## AGGIORNAMENTO 2026-05-14 — Analisi strategica upload bug (post-fix delete RSVP)
+
+### Sessione 22:35-23:00 — Ricerca esterna su Storage 403
+
+**Status: ANALISI COMPLETATA ✅ — fix da eseguire domani Giorno 7**
+
+### Diagnosi probabile: CORS misconfiguration sul bucket Storage
+
+Dopo 8 round falliti nei giorni 9-10 maggio (rules permutate, Anonymous
+Auth abilitato/disabilitato, API Key restrictions verificate, ecc.), la
+ricerca esterna stasera ha identificato un pattern molto specifico che
+corrisponde al nostro caso.
+
+**Pattern descritto da Firebase community**:
+- Bucket Cloud Storage ha CORS configurazione default (restrittiva,
+  no cross-origin)
+- Web app hostata su dominio diverso dal bucket (custom domain o
+  preview channel)
+- Browser fa preflight request che fallisce
+- Errore generato dal SDK assomiglia a "storage/unauthorized" (403)
+- Trae in inganno: NON è un problema di Storage rules
+
+**Match con il nostro caso**:
+- Bucket: gs://matrimonio-andrea-giulia-2026.firebasestorage.app
+- Web app: andreagiulia5luglio26.it (prod) + preview channels web.app
+- Errore: storage/unauthorized 403 anche con rules `allow read,write: if true`
+- Conferma indiretta: nessuna modifica alle rules ha risolto in 8 round
+
+### Confidenza diagnosi: 70-80%
+
+Indicatori positivi:
+- Pattern documentato in più tutorial recenti (2024-2025)
+- Errore browser corrisponde ESATTAMENTE al sintomo
+- Spiega perché rules permissive non hanno fixato (era altro problema)
+- Spiega perché il problema appare solo con upload (non download)
+
+Indicatori di incertezza:
+- Bucket usa il nuovo formato `.firebasestorage.app` (non vecchio `.appspot.com`)
+- La maggior parte dei tutorial usa formato vecchio
+- Comportamento `gsutil` su bucket nuovo non testato direttamente
+
+### Piano operativo Giorno 7 (domani mattina, 12 maggio)
+
+#### Fase 1 — Test CORS hypothesis (~30 min)
+1. Verifica installazione gsutil (Google Cloud SDK)
+   - Se non installato: scarica da https://cloud.google.com/sdk/docs/install
+   - Se Windows: usa installer GoogleCloudSDKInstaller.exe
+2. Autentica: `gcloud auth login`
+3. Set progetto: `gcloud config set project matrimonio-andrea-giulia-2026`
+4. Crea file cors.json nella root del progetto con contenuto:
+
+```json
+[
+  {
+    "origin": [
+      "https://andreagiulia5luglio26.it",
+      "https://www.andreagiulia5luglio26.it",
+      "https://matrimonio-andrea-giulia-2026.web.app",
+      "https://matrimonio-andrea-giulia-2026.firebaseapp.com",
+      "https://matrimonio-andrea-giulia-2026--preview-giorno6-20456ocf.web.app",
+      "http://localhost:5000",
+      "http://localhost"
+    ],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": [
+      "Content-Type",
+      "Authorization",
+      "Content-Length",
+      "User-Agent",
+      "x-goog-resumable",
+      "x-goog-upload-protocol",
+      "x-goog-upload-command",
+      "x-goog-upload-content-length",
+      "x-goog-upload-offset"
+    ]
+  }
+]
+```
+
+5. Applica al bucket:
+   `gsutil cors set cors.json gs://matrimonio-andrea-giulia-2026.firebasestorage.app`
+6. Verifica applicato:
+   `gsutil cors get gs://matrimonio-andrea-giulia-2026.firebasestorage.app`
+7. Re-deploy preview se necessario (NO, modifiche CORS sono bucket-level)
+8. Test upload nel preview URL admin /upload.html (Chrome incognito)
+9. ✅ Se funziona: BUG RISOLTO. Procedi Fase 3.
+10. ❌ Se fallisce: passa a Fase 2.
+
+#### Fase 2 — Plan B: CF proxy upload (~60 min, solo se Fase 1 fallisce)
+- Nuova Cloud Function HTTPS callable `uploadMedia`
+- Riceve file via FormData
+- Salva su Storage via Admin SDK (bypassa client JS SDK)
+- Crea documento Firestore wedding-media
+- Risponde con URL pubblici
+- Limite: 32 MB per request (CF HTTP limit)
+- Per video > 32MB: signed upload URL in Sett 3
+
+#### Fase 3 — Deploy produzione (~30 min)
+1. `git checkout main`
+2. `git merge feature/upload-redesign --no-ff`
+3. `git push origin main`
+4. `firebase deploy --only hosting`
+5. Smoke test produzione su andreagiulia5luglio26.it
+6. `git tag -a v2.0-upload-redesign -m "Settimana 2: upload + QR + delete RSVP + Cloud Functions"`
+7. `git push origin v2.0-upload-redesign`
+
+#### Fase 4 — Documentazione + bilancio (~15 min)
+- Update CODEBASE_AUDIT.md con esito fix CORS
+- Update bug noti residui
+- Bilancio Settimana 2 in chat con PM
+
+### Probabilità complessiva chiusura Settimana 2 domani
+
+- Fase 1 success rate: 70-80%
+- Fase 2 (fallback) success rate: 95%
+- Probabilità complessiva: ~95-99%
+
+**In ogni scenario**, il deploy produzione di domani NON è bloccato
+dall'upload bug. Se Fase 1+2 falliscono entrambe (~5% probabilità),
+fallback è banner "Upload in arrivo, torna il 5 luglio" che permette
+deploy con feature in standby.
+
+### Note tecniche
+
+**Perché CORS può presentarsi come 403 unauthorized?**
+
+I browser eseguono preflight OPTIONS request prima di POST/PUT cross-origin.
+Se il server (Cloud Storage) non risponde con header CORS validi
+(Access-Control-Allow-Origin, ecc.), il browser annulla la request.
+
+Il Firebase JS SDK riceve un errore generico di rete e lo wrappa come
+`storage/unauthorized` (codice errore default per 403). Il messaggio
+quindi confonde: sembra rules failure ma è CORS.
+
+**Verifica diagnosi a posteriori**:
+- Aprire DevTools → Network → tentativo upload
+- Cercare OPTIONS request prima del POST
+- Se OPTIONS ha status 403 o no CORS headers → conferma CORS
+- Se OPTIONS è OK ma POST è 403 → è rules (improbabile dato che già
+  testato `if true`)
+
+### Riferimenti consultati
+- flamesshield.com: "How to Fix CORS Errors in Firebase Storage" (Aug 2025)
+- vinaysaurabh.dev: "Fixing the CORS error in Firebase Storage on web" (May 2025)
+- agiratech.com: "How to Fix Firebase Storage CORS Issues Using gsutil" (Apr 2025)
+- groups.google.com firebase-talk: thread storia analoga
+
+---
+
 ## AGGIORNAMENTO 2026-05-09 — Settimana 2 Giorno 4
 
 ### Cosa è stato fatto
