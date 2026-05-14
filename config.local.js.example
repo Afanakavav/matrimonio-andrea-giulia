@@ -28,10 +28,9 @@ window.FIREBASE_CONFIG = {
 //      matrimonio-andrea-giulia-2026.firebaseapp.com,
 //      matrimonio-andrea-giulia-2026--preview-giorno6-20456ocf.web.app
 //
-// 2. DEV/LOCAL KEY (V3): 6Ler8mMsAAAAAGgYjDCohfta9BrDcp4NqBiYrTd3
+// 2. DEV/LOCAL KEY (V3): 6LcIrSksAAAAAMOGMT7_W16O84yTnb09RlGSCljJ
 //    - Tipo: reCAPTCHA v3 (score-based)
 //    - Usata in: config.local.js (override per sviluppo locale)
-//    - Site ID admin: 744747691
 //
 // MISMATCH NOTO: il sito è progettato per reCAPTCHA v3 (Cloud Function
 // verifyRecaptcha valuta score), ma in index.html è caricata key v2.
@@ -39,4 +38,4 @@ window.FIREBASE_CONFIG = {
 // architetturalmente è tech debt da risolvere in Sett 3.
 //
 // =============================================================
-window.RECAPTCHA_SITE_KEY = '6Ler8mMsAAAAAGgYjDCohfta9BrDcp4NqBiYrTd3';
+window.RECAPTCHA_SITE_KEY = '6LcIrSksAAAAAMOGMT7_W16O84yTnb09RlGSCljJ';
