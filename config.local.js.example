@@ -13,5 +13,30 @@ window.FIREBASE_CONFIG = {
     measurementId: 'G-WTT3TQN19C'
 };
 
-// reCAPTCHA v3 Site Key (for Firebase App Check)
-window.RECAPTCHA_SITE_KEY = '6LcIrSksAAAAAMOGMT7_W16O84yTnb09RlGSCljJ';
+// =============================================================
+// reCAPTCHA SITE KEYS — DOCUMENTAZIONE
+// =============================================================
+//
+// Il progetto usa DUE site key reCAPTCHA registrate sul progetto
+// francesco.perone00@gmail.com:
+//
+// 1. PRODUCTION KEY (V2): 6Lc8hOUrAAAAAKNISo5RnygXf9JsnpJz-_9hRjuW
+//    - Tipo: reCAPTCHA v2 (checkbox/invisible)
+//    - Usata in: index.html riga ~318 (hardcoded)
+//    - Domini whitelisted in reCAPTCHA admin: andreagiulia5luglio26.it,
+//      www.andreagiulia5luglio26.it, matrimonio-andrea-giulia-2026.web.app,
+//      matrimonio-andrea-giulia-2026.firebaseapp.com,
+//      matrimonio-andrea-giulia-2026--preview-giorno6-20456ocf.web.app
+//
+// 2. DEV/LOCAL KEY (V3): 6Ler8mMsAAAAAGgYjDCohfta9BrDcp4NqBiYrTd3
+//    - Tipo: reCAPTCHA v3 (score-based)
+//    - Usata in: config.local.js (override per sviluppo locale)
+//    - Site ID admin: 744747691
+//
+// MISMATCH NOTO: il sito è progettato per reCAPTCHA v3 (Cloud Function
+// verifyRecaptcha valuta score), ma in index.html è caricata key v2.
+// Funziona perché il widget v2 invisible è API-compatibile, ma
+// architetturalmente è tech debt da risolvere in Sett 3.
+//
+// =============================================================
+window.RECAPTCHA_SITE_KEY = '6Ler8mMsAAAAAGgYjDCohfta9BrDcp4NqBiYrTd3';
