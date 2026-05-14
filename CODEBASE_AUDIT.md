@@ -860,6 +860,65 @@ quindi confonde: sembra rules failure ma è CORS.
 
 ---
 
+## AGGIORNAMENTO 2026-05-14 — Setup gsutil completato (preparazione Giorno 7)
+
+### Status: COMPLETATO ✅
+
+### Cosa è stato fatto stasera tardi (23:00-23:30)
+- ✅ Download Google Cloud SDK Windows installer
+- ✅ Installazione in `C:\Users\frape\AppData\Local\Google\Cloud SDK`
+- ✅ `gcloud auth login` riuscito con francesco.perone00@gmail.com
+- ✅ Progetto default settato: matrimonio-andrea-giulia-2026
+- ✅ Verifica finale: gcloud 568.0.0, gsutil 5.37, config OK
+
+### Comandi pronti per il Giorno 7
+
+**Opzione consigliata (gsutil legacy, più documentato)**:
+```
+cd C:\Users\frape\matrimonio-sito
+gsutil cors set cors.json gs://matrimonio-andrea-giulia-2026.firebasestorage.app
+gsutil cors get gs://matrimonio-andrea-giulia-2026.firebasestorage.app
+```
+
+**Opzione moderna (gcloud storage, raccomandato da Google)**:
+```
+cd C:\Users\frape\matrimonio-sito
+gcloud storage buckets update gs://matrimonio-andrea-giulia-2026.firebasestorage.app --cors-file=cors.json
+gcloud storage buckets describe gs://matrimonio-andrea-giulia-2026.firebasestorage.app --format="value(cors_config)"
+```
+
+Nota: gsutil mostra warning "deprecated" ma funziona normalmente.
+Decidere quale usare domani in base alla preferenza (gsutil è
+documentato in più tutorial, gcloud storage è il futuro).
+
+### Stato config gcloud locale
+
+```
+[core]
+account = francesco.perone00@gmail.com
+disable_usage_reporting = True
+project = matrimonio-andrea-giulia-2026
+```
+
+### Fase 1 e 2 del Giorno 7 (aggiornato)
+
+~~Fase 2 — Setup gsutil (20-30 min)~~ ✅ FATTO STASERA
+
+**Nuovo piano Giorno 7 (più snello, ~1h 30min totali)**:
+1. Pre-flight (5 min) — `git pull origin feature/upload-redesign`
+2. Fix CORS (15 min) — `gsutil cors set ...` + verifica
+3. Test upload preview (15 min) — Chrome incognito + upload reale
+4. Plan B se fallisce (60 min) — CF proxy upload
+5. Deploy produzione (30 min) — merge main + firebase deploy
+6. Tag v2.0 + bilancio (15 min)
+
+### Risparmio tempo stimato per domani
+
+- 25 minuti risparmiati (setup gsutil non più necessario)
+- Probabilità chiusura Settimana 2 domani: invariata 95-99%
+
+---
+
 ## AGGIORNAMENTO 2026-05-09 — Settimana 2 Giorno 4
 
 ### Cosa è stato fatto
