@@ -919,6 +919,110 @@ project = matrimonio-andrea-giulia-2026
 
 ---
 
+## AGGIORNAMENTO 2026-05-15 — Settimana 2 COMPLETATA ✅
+
+### Giorno 7 — Deploy produzione + chiusura Settimana 2
+
+**Status: COMPLETATO ✅ — Tag v2.0-upload-redesign**
+
+### Cronologia operativa (15 maggio 2026)
+
+**16:47-17:00** — Pre-flight pomeridiano
+- git fetch + status pulito
+- gsutil + gcloud verificati attivi
+- preview-giorno6 attivo fino al 21 mag
+- cors.json validato
+
+**17:01-17:10** — Fase 2: Fix CORS bucket Storage
+- gsutil cors get → bucket aveva NO CORS configuration (diagnosi confermata)
+- gsutil cors set cors.json → applicato
+- gsutil cors get → 7 origin + 5 method + 9 header attivi
+
+**17:10-17:30** — Fase 3: Test upload preview (PRIMA con CORS soltanto)
+- Upload ancora 403, sintomo identico ma causa diversa
+- Ricerca CORS era CORRETTA ma INCOMPLETA: c'era anche un bug client
+
+**17:30-17:55** — Fase 3.5: DIAGNOSI VERA del bug Giorno 3
+- Lettura codice + rules end-to-end
+- TROVATO: upload-flow.js usava path `originals/`, `display/`, `thumbs/` SENZA prefisso `wedding-media/`
+- Storage rules richiedono `wedding-media/{allPaths=**}` → 403 silenzioso
+- Cloud Function generateThumbnails già ascolta `wedding-media/originals/`
+- Strategia A: client uploada SOLO wedding-media/originals/, CF genera display+thumbs
+
+**17:55-18:10** — Fix Strategia A
+- Rimosse 17 righe da upload-flow.js (compressione client + 2 upload display/thumbs)
+- Fixato schema mismatch gallery-script.js (fileType→file_type, downloadURL→display_url)
+- Commit + push
+
+**18:10-18:30** — Test E2E preview definitivo
+- Upload reale foto: ✅ SUCCESS
+- Galleria: ✅ foto visibile
+- Modal: ✅ versione display caricata
+- Firestore: ✅ document corretto con display_url/thumb_url popolati dalla CF
+
+**18:30-18:50** — Deploy produzione
+- git checkout main + merge feature/upload-redesign --no-ff
+- git push origin main
+- firebase deploy --only hosting → live su andreagiulia5luglio26.it
+
+**18:50-19:00** — Smoke test produzione
+- Homepage, upload reale, galleria, admin: ✅ 5/6 pass
+- 2 bug minori trovati: admin-script schema (TypeError null) + nav menu galleria nascosta
+
+**19:00-19:50** — Fix admin-script.js + index.html
+- 15 occorrenze fileType/downloadURL sostituite in admin-script.js
+- Rimossa class nav-hidden da index.html, aggiunte emoji 📸 🖼️
+- Push + re-deploy hosting
+
+**19:50-20:20** — Fix admin operations (delete media + favorites)
+- 2 nuove Cloud Functions: deleteMedia (cancella 3 file Storage + Firestore) + toggleFavorite
+- admin-script.js: chiamate dirette Storage/Firestore → httpsCallable CF
+- admin.html: SDK firebase-functions-compat aggiunto
+- Deploy functions + hosting
+- Smoke test: delete singolo + favorite ✅, deleteSelected (batch) ancora KO → tech debt Sett 3
+
+**20:20-...** — Tag v2.0 + chiusura
+
+### Cloud Functions live (7 totali)
+1. verifyRecaptcha (Sett 1)
+2. submitRSVP (Sett 1)
+3. checkRateLimit (Sett 1)
+4. generateThumbnails (Sett 2 G4)
+5. deleteRSVP (Sett 2 Mini 14 mag)
+6. deleteMedia ⭐ NUOVA (Sett 2 G7)
+7. toggleFavorite ⭐ NUOVA (Sett 2 G7)
+
+### Numeri Settimana 2
+- Giorni di lavoro effettivi: 7 (1-2 mag setup, 8-10 mag dev, 11 mag preview, 14 mag fix, 15 mag deploy)
+- Giorni di pausa: 3 (martedì-mercoledì-giovedì)
+- Commit nel branch: ~25
+- Cloud Functions nuove: 4
+- Bug critici risolti: 1 (Giorno 3, 8 round)
+- Bug minori risolti: ~10
+- File nuovi: 11+ (cors.json, qr-print, admin-qr, upload, ecc.)
+- Righe codice aggiunte: +3635 (da diff merge)
+
+### Tech debt esplicito per Settimana 3
+1. **Feature uploader_name visibile** in admin media (richiesta utente 15 mag sera)
+2. **Filtri admin per uploader_name** (richiesta utente 15 mag sera)
+3. **deleteSelected (batch)** migrazione a CF (riuso deleteMedia in loop)
+4. **reCAPTCHA V2/V3 mismatch**: documentare/risolvere
+5. **Password admin hardcoded**: migrare a Firebase Auth + custom claims
+6. **gallery-script.js status filter**: aggiungere quando moderazione attiva
+7. **compressImage()** dead code in upload-flow.js (Strategia A delega tutto a CF)
+8. **Merge commit "A A A" cosmetico** in git history (lasciare, force-push non vale)
+
+### Roadmap aggiornata
+- ✅ Sett 1: DONE (tag v1.0-foundations, 7 maggio)
+- ✅ Sett 2: DONE (tag v2.0-upload-redesign, 15 maggio) ⭐ OGGI
+- 📋 Sett 3 (16-22 mag): Moderazione admin + AI scoring + feature uploader_name
+- 📋 Sett 4-5 (23-31 mag, compressed): Live page + AI Storyteller + Janitor
+- 🎯 1 giugno: MVP COMPLETO TESTATO INTERNAMENTE
+- 📋 2 giugno - 4 luglio: Test reali con amici + polish finale
+- 🎉 5 luglio: matrimonio Andrea & Giulia
+
+---
+
 ## AGGIORNAMENTO 2026-05-09 — Settimana 2 Giorno 4
 
 ### Cosa è stato fatto
