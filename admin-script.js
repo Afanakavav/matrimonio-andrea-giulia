@@ -201,9 +201,9 @@ class AdminPanel {
     let favoriteCount = 0;
 
     this.mediaItems.forEach((item) => {
-      if (item.fileType && item.fileType.startsWith("image/")) {
+      if (item.file_type === 'image') {
         photoCount++;
-      } else if (item.fileType && item.fileType.startsWith("video/")) {
+      } else if (item.file_type === 'video') {
         videoCount++;
       }
 
@@ -227,11 +227,11 @@ class AdminPanel {
     const typeFilter = this.filterType.value;
     if (typeFilter === "photo") {
       filteredItems = filteredItems.filter(
-        (item) => item.fileType && item.fileType.startsWith("image/")
+        (item) => item.file_type === 'image'
       );
     } else if (typeFilter === "video") {
       filteredItems = filteredItems.filter(
-        (item) => item.fileType && item.fileType.startsWith("video/")
+        (item) => item.file_type === 'video'
       );
     } else if (typeFilter === "favorites") {
       filteredItems = filteredItems.filter((item) => item.favorite);
@@ -261,14 +261,14 @@ class AdminPanel {
       mediaItem.className = "admin-media-item";
       mediaItem.dataset.id = item.id;
 
-      const isImage = item.fileType && item.fileType.startsWith("image/");
-      const isVideo = item.fileType && item.fileType.startsWith("video/");
+      const isImage = item.file_type === 'image';
+      const isVideo = item.file_type === 'video';
 
       let thumbnailHTML = "";
       if (isImage) {
-        thumbnailHTML = `<img src="${item.downloadURL}" alt="Media" class="media-thumbnail">`;
+        thumbnailHTML = `<img src="${item.display_url || item.original_url}" alt="Media" class="media-thumbnail">`;
       } else if (isVideo) {
-        thumbnailHTML = `<video src="${item.downloadURL}" class="media-thumbnail"></video>`;
+        thumbnailHTML = `<video src="${item.display_url || item.original_url}" class="media-thumbnail"></video>`;
       }
 
       mediaItem.innerHTML = `
@@ -465,7 +465,7 @@ class AdminPanel {
   async downloadSingle(item) {
     try {
       // Fetch with CORS mode
-      const response = await fetch(item.downloadURL, {
+      const response = await fetch(item.original_url || item.display_url, {
         mode: "cors",
         credentials: "omit",
       });
@@ -496,7 +496,7 @@ class AdminPanel {
 
       // Fallback: open in new tab
       try {
-        window.open(item.downloadURL, "_blank");
+        window.open(item.original_url || item.display_url, "_blank");
         console.log("Download alternativo: aperto in nuova tab");
       } catch (fallbackError) {
         alert("Errore nel download del file. Riprova più tardi.");
@@ -587,7 +587,7 @@ class AdminPanel {
 
   shareWhatsApp(item) {
     const text = "Guarda questa foto/video del matrimonio di Andrea & Giulia! 💍";
-    const url = `https://wa.me/?text=${encodeURIComponent(text + "\n" + item.downloadURL)}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text + "\n" + (item.original_url || item.display_url))}`;
     window.open(url, "_blank");
   }
 
@@ -596,12 +596,12 @@ class AdminPanel {
     this.previewFileSize.textContent = this.formatFileSize(item.fileSize || 0);
     this.previewFileDate.textContent = this.formatDate(item.uploadDate);
 
-    if (item.fileType && item.fileType.startsWith("image/")) {
-      this.previewImage.src = item.downloadURL;
+    if (item.file_type === 'image') {
+      this.previewImage.src = item.display_url || item.original_url;
       this.previewImage.style.display = "block";
       this.previewVideo.style.display = "none";
-    } else if (item.fileType && item.fileType.startsWith("video/")) {
-      this.previewVideo.src = item.downloadURL;
+    } else if (item.file_type === 'video') {
+      this.previewVideo.src = item.display_url || item.original_url;
       this.previewVideo.style.display = "block";
       this.previewImage.style.display = "none";
     }
