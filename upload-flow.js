@@ -318,7 +318,7 @@
     }
 
     // Definisce le versioni da caricare
-    const versioni = [{ path: `originals/${baseName}`, blob: file, key: 'original' }];
+    const versioni = [{ path: `wedding-media/originals/${baseName}`, blob: file, key: 'original' }];
     if (type === 'image') {
       versioni.push({ path: `display/${baseName}`,   blob: displayBlob, key: 'display' });
       versioni.push({ path: `thumbs/${baseName}`,    blob: thumbBlob,   key: 'thumbs'  });
@@ -351,7 +351,7 @@
       file_type:     type === 'image' ? 'image' : 'video',
       fileName:      file.name,
       fileSize:      file.size,
-      storagePath:   `originals/${baseName}`,
+      storagePath:   `wedding-media/originals/${baseName}`,
       original_url:  downloadURLs.original  || null,
       display_url:   downloadURLs.display   || null,
       thumb_url:     downloadURLs.thumbs    || null,
