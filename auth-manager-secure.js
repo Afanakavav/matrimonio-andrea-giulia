@@ -86,6 +86,7 @@ class AuthManagerSecure {
         this.adminUID = "secure-admin";
         this.user = { email: "admin" }; // Email semplificata, non utilizzata per auth
         sessionStorage.setItem("adminLoggedIn", "true");
+        sessionStorage.setItem("adminPassword", password);
         this.showAdminPanel();
 
         // Notifica AdminPanel del login riuscito
@@ -132,6 +133,7 @@ class AuthManagerSecure {
   async logout() {
     try {
       sessionStorage.removeItem("adminLoggedIn");
+      sessionStorage.removeItem("adminPassword");
       this.isAuthenticated = false;
       this.adminUID = null;
       this.user = null;

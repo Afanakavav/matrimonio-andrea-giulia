@@ -7,10 +7,15 @@
  */
 
 const functions = require("firebase-functions");
+const { onObjectFinalized } = require("firebase-functions/v2/storage");
 const admin = require("firebase-admin");
 const axios = require("axios");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const sharp = require("sharp");
+const path = require("path");
+const os = require("os");
+const fs = require("fs");
 
 // Carica variabili d'ambiente
 require("dotenv").config();
@@ -328,3 +333,154 @@ exports.checkRateLimit = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError("internal", "Errore nel controllo rate limiting");
   }
 });
+
+/**
+ * generateThumbnails - Cloud Function event-driven
+ *
+ * Triggered: Storage upload in wedding-media/originals/
+ * Genera:
+ *   - wedding-media/display/{file} (max 2560x1440, JPEG q85, mozjpeg)
+ *   - wedding-media/thumbs/{file}  (600x600 cover crop, JPEG q75)
+ * Update: documento Firestore wedding-media corrispondente con
+ *         display_url + thumb_url + thumbs_generated_at
+ *
+ * Filtri di sicurezza (prevenzione loop):
+ *   - Solo file in wedding-media/originals/
+ *   - Solo content-type image/*
+ *   - Skip se già in display/ o thumbs/ (auto-trigger ricorsivo)
+ *
+ * Test end-to-end: 2026-05-09 ✅ VERIFIED via upload manuale Console
+ *
+ * Service Account: 295197554541-compute@developer.gserviceaccount.com
+ *   con role Storage Admin (per leggere/scrivere bucket Storage)
+ *   e Eventarc Event Receiver (per ricevere eventi Storage)
+ */
+exports.generateThumbnails = onObjectFinalized({
+  cpu: 2,
+  region: "us-central1",
+  memory: "1GiB",
+  timeoutSeconds: 120,
+  bucket: "matrimonio-andrea-giulia-2026.firebasestorage.app",
+}, async (event) => {
+  const fileBucket = event.data.bucket;
+  const filePath = event.data.name;
+  const contentType = event.data.contentType;
+
+  if (!filePath.startsWith("wedding-media/originals/")) {
+    console.log(`Skip: ${filePath} non è in originals/`);
+    return null;
+  }
+
+  if (!contentType || !contentType.startsWith("image/")) {
+    console.log(`Skip: ${filePath} non è image/* (content-type: ${contentType})`);
+    return null;
+  }
+
+  const fileName = path.basename(filePath);
+  const tempFilePath = path.join(os.tmpdir(), fileName);
+
+  const bucket = admin.storage().bucket(fileBucket);
+  await bucket.file(filePath).download({ destination: tempFilePath });
+  console.log(`Downloaded ${filePath} to ${tempFilePath}`);
+
+  const displayTempPath = path.join(os.tmpdir(), `display_${fileName}`);
+  await sharp(tempFilePath)
+    .rotate()
+    .resize(2560, 1440, { fit: "inside", withoutEnlargement: true })
+    .jpeg({ quality: 85, mozjpeg: true })
+    .toFile(displayTempPath);
+
+  const thumbTempPath = path.join(os.tmpdir(), `thumb_${fileName}`);
+  await sharp(tempFilePath)
+    .rotate()
+    .resize(600, 600, { fit: "cover", position: "center" })
+    .jpeg({ quality: 75, mozjpeg: true })
+    .toFile(thumbTempPath);
+
+  const displayDestination = `wedding-media/display/${fileName}`;
+  const thumbDestination = `wedding-media/thumbs/${fileName}`;
+
+  const [displayFile] = await bucket.upload(displayTempPath, {
+    destination: displayDestination,
+    metadata: { contentType: "image/jpeg" },
+  });
+  await displayFile.makePublic();
+
+  const [thumbFile] = await bucket.upload(thumbTempPath, {
+    destination: thumbDestination,
+    metadata: { contentType: "image/jpeg" },
+  });
+  await thumbFile.makePublic();
+
+  const displayUrl = `https://firebasestorage.googleapis.com/v0/b/${fileBucket}/o/${encodeURIComponent(displayDestination)}?alt=media`;
+  const thumbUrl = `https://firebasestorage.googleapis.com/v0/b/${fileBucket}/o/${encodeURIComponent(thumbDestination)}?alt=media`;
+
+  const db = admin.firestore();
+  const querySnapshot = await db.collection("wedding-media")
+    .where("storagePath", "==", filePath)
+    .limit(1)
+    .get();
+
+  if (querySnapshot.empty) {
+    console.warn(`Nessun documento Firestore trovato per ${filePath}`);
+  } else {
+    const docRef = querySnapshot.docs[0].ref;
+    await docRef.update({
+      display_url: displayUrl,
+      thumb_url: thumbUrl,
+      thumbs_generated_at: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    console.log(`Updated Firestore doc ${docRef.id} with display+thumb URLs`);
+  }
+
+  fs.unlinkSync(tempFilePath);
+  fs.unlinkSync(displayTempPath);
+  fs.unlinkSync(thumbTempPath);
+
+  console.log(`generateThumbnails completed for ${filePath}`);
+  return null;
+});
+
+/**
+ * Cloud Function: Elimina RSVP (solo admin)
+ * Bypassa le Firestore rules (allow delete: if false) tramite Admin SDK
+ */
+exports.deleteRSVP = functions
+  .runWith({ memory: "256MB" })
+  .https.onCall(async (data, context) => {
+    const { documentId, password } = data;
+
+    if (!documentId || typeof documentId !== "string") {
+      throw new functions.https.HttpsError("invalid-argument", "documentId richiesto");
+    }
+    if (!password) {
+      throw new functions.https.HttpsError("invalid-argument", "password richiesta");
+    }
+    if (password !== process.env.ADMIN_PASSWORD) {
+      throw new functions.https.HttpsError("permission-denied", "Password admin non valida");
+    }
+
+    try {
+      const docRef = admin.firestore().collection("rsvp-confirmations").doc(documentId);
+      const docSnap = await docRef.get();
+
+      if (!docSnap.exists) {
+        throw new functions.https.HttpsError("not-found", "Documento RSVP non trovato");
+      }
+
+      const docData = docSnap.data();
+      console.log(
+        `[deleteRSVP] Admin deleted RSVP ${documentId}: ${docData.name} <${docData.email}> at ${new Date().toISOString()}`
+      );
+
+      await docRef.delete();
+
+      return { success: true, deletedId: documentId };
+    } catch (error) {
+      if (error instanceof functions.https.HttpsError) {
+        throw error;
+      }
+      console.error("Errore deleteRSVP:", error);
+      throw new functions.https.HttpsError("internal", "Errore interno durante l'eliminazione RSVP");
+    }
+  });

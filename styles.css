@@ -1878,3 +1878,78 @@ body {
   background: var(--primary-dark);
   color: #fff;
 }
+
+/* === QR Code (riutilizzato in admin-qr.html, non in index.html) === */
+.qr-upload-section {
+  padding: 4rem 1rem;
+  background: var(--bg-warm, #f5e6d3);
+  text-align: center;
+}
+
+.qr-upload-section .container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.section-subtitle {
+  font-size: 1.05rem;
+  color: var(--text-muted, #6b6b6b);
+  font-style: italic;
+  margin-top: 0.75rem;
+  line-height: 1.6;
+}
+
+.qr-upload-wrapper {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.qr-display {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.qr-display svg,
+.qr-display canvas {
+  display: block;
+  width: 280px;
+  height: 280px;
+}
+
+.qr-upload-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-secondary {
+  background: var(--primary-color, #5a7d6f);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Lora', serif;
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #4a6b5f;
+}
+
+@media (max-width: 600px) {
+  .qr-display svg,
+  .qr-display canvas {
+    width: 240px;
+    height: 240px;
+  }
+}

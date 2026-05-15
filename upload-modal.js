@@ -4,7 +4,7 @@ function handleUploadClick() {
   const status = getUploadStatus();
 
   if (status === "open") {
-    if (_uploadModal) _uploadModal.openModal();
+    window.location.href = '/upload.html';
     return;
   }
 

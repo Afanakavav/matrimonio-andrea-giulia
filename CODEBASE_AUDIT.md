@@ -430,3 +430,520 @@ Stack confermato (**NON usare Next.js, NON migrare a Supabase**):
 | `ca470ab` | security: rimuovi deadline RSVP, blocca delete e update pubbliche |
 | `e761ecb` | feat: feature flag temporale per upload con messaggi pre/post matrimonio |
 | `1194f4c` | checkpoint: pre-live-gallery setup |
+
+---
+
+## AGGIORNAMENTO 2026-05-10 — Settimana 2 Giorno 3 (parziale)
+
+### Bug upload client: status finale dopo 7 round di debug
+
+**Status: BLOCCATO. Sospeso per evitare diminishing returns.**
+
+### Cosa funziona (verified)
+- Storage upload via Admin SDK Node.js ✅
+- Storage upload via Firebase Console UI manuale ✅  
+- Cloud Function generateThumbnails end-to-end ✅
+- Anonymous Authentication (sign-in anonimo client) ✅
+- Storage rules Playground simulator dice ALLOWED ✅
+- API Key restrictions configurate (6 API: Firestore, Storage 
+  for Firebase, Identity Toolkit, Token Service, Installations, 
+  Firebase Rules) ✅
+
+### Cosa NON funziona
+- Upload via Firebase JS SDK 9.23.0 compat in browser
+- Errore: 403 Forbidden / storage/unauthorized
+- Comportamento: chunk "start" del protocollo resumable (POST a 
+  /o?name=...) viene rifiutato dal server
+- Response server: generic "Permission denied" senza detail rule
+
+### Diagnosi accumulata (7 round)
+1. CSP Web Workers (risolto)
+2. contentType check nelle rules (rimosso)
+3. uploadBytes vs uploadBytesResumable (single upload non bypassa 
+   il protocollo HTTP scelto dall'SDK)
+4. size check nelle rules (rimosso)
+5. Anonymous Auth (abilitato + rules con request.auth != null)
+6. API Key restrictions (aggiunto localhost referrer + Identity 
+   Toolkit API + Cloud Storage for Firebase)
+7. Rules pattern {allPaths=**} (Playground OK ma browser ancora 403)
+
+### Ipotesi residue (da indagare in futuro)
+- App Check enforcement implicitamente attivo (banner "Configure 
+  App Check" in tutti gli screenshot Storage Console)
+- CORS configuration del bucket (richiede gsutil per modifica, 
+  non Firebase Console)
+- Firebase JS SDK 9.23.0 + Anonymous Auth + Resumable upload 
+  combinazione con edge case bug
+- Configurazione "Sign in providers" o "OAuth consent screen" 
+  Google Cloud Platform incompleta
+
+### Decisione strategica
+- Pausa debug per evitare diminishing returns
+- Proseguire con Giorno 5 (QR code) che è feature indipendente
+- Tornare al bug con mente fresca + ricerca esterna (StackOverflow, 
+  Firebase GitHub Issues, Anthropic Claude)
+- Workaround temporaneo possibile: rules wedding-media completamente 
+  pubbliche (allow create: if true) durante test phase, con TODO 
+  stringere prima del 5 luglio 2026
+
+### File modificati durante Giorno 3
+- upload.html (page client completa)
+- upload-styles.css (UI completa con spinner CSS)
+- upload-flow.js (logica completa, Anonymous Auth integrato)
+- storage.rules (deployed con request.auth + {allPaths=**})
+- firestore.rules (deployed con wedding-media schema)
+- functions/index.js (generateThumbnails working)
+
+### Backend Cloud Functions live (4 totali)
+- verifyRecaptcha (callable v1)
+- submitRSVP (callable v1)
+- checkRateLimit (callable v1)
+- generateThumbnails (event-driven v2) ✅ TESTATO
+
+---
+
+## AGGIORNAMENTO 2026-05-10 — Settimana 2 Giorno 5 COMPLETATO
+
+### QR Code Generator (in area admin)
+
+**Status: COMPLETATO ✅**
+
+### File creati
+- qr-print.html: pagina stampa con 12 QR per A4, bottone Stampa,
+  generazione via qr-code-styling CDN
+- admin-qr.html: pagina admin protetta da password con QR singolo
+  + download PNG + link a qr-print.html + istruzioni stampa
+
+### File modificati
+- index.html: rimossa sezione "Condividi le tue foto" (era pubblica,
+  spostata in admin)
+- styles.css: classi QR conservate per riuso in admin-qr.html
+- admin-hub.html: aggiunta card "QR Code Generator" (terza nella grid)
+- admin-styles.css: fix sistemico bug `var(--secondary-color)` →
+  `var(--primary-dark)` per bottoni hover (era invisibile)
+
+### Bug fixati durante implementazione
+1. CSP qr-print.html: aggiunto Google Fonts + `unsafe-inline` per
+   script-src (basso rischio per pagina di stampa senza input)
+2. Inline event handler `onclick` rimosso da bottone Stampa, sostituito
+   con addEventListener
+3. firebase-storage-compat mancante in admin-qr.html (richiesto da
+   firebase-config.js)
+4. AuthManagerSecure non istanziato in admin-qr.html (mancava script
+   dedicato come admin-rsvp-script.js)
+5. **BUG LATENTE SISTEMICO**: var(--secondary-color) non definita in
+   admin-styles.css, causava bottoni hover invisibili in tutte le pagine
+   admin (hub, rsvp, qr). Fixato globalmente sostituendo con
+   --primary-dark (#3f5e52).
+
+### Design choice
+- Mantenuti ENTRAMBI i flussi: download PNG singolo + stampa 12 per A4
+- Sposi possono scegliere strategia stampa più adatta (1 grande, 12
+  pronti, custom layout via PNG)
+- QR removed da home pubblica perché feature per gli sposi, non per
+  ospiti
+
+### Tecnologie usate
+- qr-code-styling v1.6.0-rc.1 via CDN (no npm install)
+- SVG output per qualità di stampa massima
+- Logo AG centrale (images/Logo-QR-code.png) con errorCorrectionLevel 'H'
+- Colore #5a7d6f (verde matrimonio coerente)
+
+### Test effettuati
+- ✅ qr-print.html: 12 QR generati, stampa A4 preview perfetta
+- ✅ admin-hub.html: 3 card visibili (media, rsvp, qr)
+- ✅ admin-qr.html: login funziona, QR visualizzato, download PNG, link
+  stampa A4, logout
+- ✅ Scansione mobile: telefono riconosce URL `andreagiulia5luglio26.it/upload.html`
+- ✅ Bug sistemico bottoni hover fixato in tutte le pagine admin
+
+### Status Settimana 2 (riepilogo)
+- ✅ Giorno 1: Setup branch + audit
+- ✅ Giorno 2: Schema Firestore + rules + env
+- 🟡 Giorno 3: Upload page (UI 100%, backend bug — sospeso)
+- ✅ Giorno 4: Cloud Function generateThumbnails
+- ✅ Giorno 5: QR Code Generator ⭐ OGGI
+- ⏳ Giorno 6: Deploy preview + smoke test
+- ⏳ Giorno 7: Deploy produzione + merge + tag
+
+---
+
+## AGGIORNAMENTO 2026-05-11 — Settimana 2 Giorno 6 COMPLETATO
+
+### Deploy preview channel + smoke test desktop + mobile
+
+**Status: COMPLETATO ✅**
+
+### Cosa è stato fatto
+- Deploy preview channel `preview-giorno6` su Firebase Hosting (scadenza 7 giorni)
+- Smoke test desktop: 6/10 test PASS (skip 4 upload, bug Giorno 3 noto)
+- Smoke test mobile reale: PASS (homepage, nav, sezioni, RSVP UI, QR)
+- Aggiunti favicon AG globalmente a tutte le 8 pagine HTML
+- Aggiunto bottone "Torna alla home" in upload.html Step 2
+
+### URL preview
+- Channel: `preview-giorno6`
+- URL: https://matrimonio-andrea-giulia-2026--preview-giorno6-20456ocf.web.app
+- Scadenza: 2026-05-18
+
+### Configurazione domini whitelist (procedura post-deploy preview)
+Tutti i nuovi domini preview channel richiedono aggiunta whitelist in 3 posti:
+1. Firebase Auth → Authorized Domains
+2. Cloud Console → API Key (Browser key 8 ott 2025) → HTTP referrers
+3. reCAPTCHA admin → Settings → Domains
+
+Domini attualmente whitelistati:
+- localhost, localhost:5000
+- afanakavav.github.io
+- andreagiulia5luglio26.it, www.andreagiulia5luglio26.it
+- matrimonio-andrea-giulia-2026.web.app
+- matrimonio-andrea-giulia-2026.firebaseapp.com
+- matrimonio-andrea-giulia-2026--preview-giorno6-20456ocf.web.app
+
+### Bug noti residui (NON bloccanti per produzione)
+1. **Bug Giorno 3 (upload Storage 403)**:
+   - Auth funziona, ma upload chunk start fallisce con storage/unauthorized
+   - Riprodotto in preview environment (8° round confermato)
+   - Ipotesi residue da indagare:
+     a. CORS configuration del bucket Storage (gsutil)
+     b. App Check enforcement implicitamente attivo
+     c. JS SDK 9.23.0 + Anonymous Auth + Resumable upload edge case
+   - Strategia: rimandare a giugno per test reali, MVP utilizzabile senza upload via Admin SDK come fallback
+
+2. **reCAPTCHA "Invalid domain"**:
+   - Domini aggiunti correttamente in reCAPTCHA admin
+   - Propagazione lenta, potrebbe richiedere fino a 24h
+   - Da riverificare domani prima del deploy produzione
+
+3. **config.local.js 404**:
+   - Atteso (file gitignored, override locale)
+   - Console warning cosmetico, nessun impatto funzionale
+
+### Status Settimana 2 (riepilogo aggiornato)
+- ✅ Giorno 1: Setup branch + audit
+- ✅ Giorno 2: Schema Firestore + rules
+- 🟡 Giorno 3: Upload page (UI ok, backend bug noto)
+- ✅ Giorno 4: Cloud Function generateThumbnails
+- ✅ Giorno 5: QR Code Generator
+- ✅ Giorno 6: Deploy preview + smoke test ⭐ OGGI
+- ⏳ Giorno 7: Deploy produzione + merge in main + tag v2.0
+
+### File modificati Giorno 6
+- 7 file HTML: favicon AG aggiunto
+- upload.html, upload-styles.css: bottone "Torna alla home"
+- CODEBASE_AUDIT.md: questa sezione
+
+---
+
+## AGGIORNAMENTO 2026-05-14 — Mini-sessione bug fix
+
+### Sessione 22:00-23:30 — Fix delete RSVP + prevenzione CSP
+
+**Status: COMPLETATO ✅**
+
+### Bug fix: delete RSVP funziona ora
+
+**Problema**: il pannello admin-rsvp.html non poteva cancellare RSVP,
+falliva con "Missing or insufficient permissions" perché Firestore
+rules bloccano delete diretto da client (architettura scelta in Sett 1
+per sicurezza).
+
+**Soluzione**: Cloud Function callable `deleteRSVP`:
+- Verifica password admin (env var ADMIN_PASSWORD)
+- Cancella documento via Admin SDK con privilegi elevati
+- Audit log automatico (Cloud Logging) con timestamp + name + email
+- Errori HTTPS espressi: invalid-argument, permission-denied, not-found, internal
+
+**Modifiche**:
+- functions/index.js: nuova CF deleteRSVP (callable v1, 256MB)
+- functions/.env: aggiunto ADMIN_PASSWORD=RindiFusi
+- admin-rsvp-script.js: chiamata httpsCallable invece di delete diretto
+- auth-manager-secure.js: salva password in sessionStorage dopo login,
+  rimuove al logout
+- admin-rsvp.html: aggiunto firebase-functions-compat.js SDK
+- admin-rsvp.html: CSP aggiornato con *.cloudfunctions.net
+- admin-qr.html + admin.html: CSP aggiornato preventivamente
+
+**Cloud Functions live ora (5)**:
+- verifyRecaptcha (callable v1)
+- submitRSVP (callable v1)
+- checkRateLimit (callable v1)
+- generateThumbnails (event-driven v2)
+- deleteRSVP (callable v1) ⭐ NUOVO
+
+**Tech debt accettato**:
+- Password admin in chiaro in 3 posti (auth-manager-secure.js,
+  sessionStorage, functions/.env). Mitigations: HTTPS sempre,
+  sessionStorage si svuota chiudendo tab, .env gitignored. Da fixare
+  con Firebase Auth + custom claims in Sett 3.
+
+### Bug noti residui (aggiornato)
+
+1. **Upload Storage 403** (bug Giorno 3, 8 round falliti)
+   - Status: ANCORA APERTO
+   - Strategia: domani Giorno 7 — opzioni A/B/C da decidere col PM
+     (ricerca esterna, CF proxy upload, workaround banner)
+
+2. **reCAPTCHA V2/V3 mismatch architetturale**
+   - Status: tech debt, funziona ma mismatch
+   - 2 site key registrate: V2 (`6Lc8hOUr...`, usata in index.html)
+     e V3 (`6Ler8mMs...`)
+   - Da rivedere in Sett 3
+
+### Test effettuati stasera
+- ✅ Deploy CF deleteRSVP riuscito (us-central1, 256MB)
+- ✅ Re-deploy preview channel preview-giorno6 (3 volte)
+- ✅ Test browser: login admin → crea RSVP test → cancella → success
+- ✅ Verifica console F12: nessun errore
+- ✅ sessionStorage.getItem('adminPassword') returna 'RindiFusi'
+  dopo login
+- ✅ Documento sparito dalla UI lista admin
+
+### Status Settimana 2 (aggiornato)
+- ✅ Giorno 1-2: Setup + schema
+- 🟡 Giorno 3: Upload page (UI ok, backend ancora bug)
+- ✅ Giorno 4: Cloud Function generateThumbnails
+- ✅ Giorno 5: QR Code Generator
+- ✅ Giorno 6: Preview channel + smoke test
+- ⏳ Giorno 7: Deploy produzione + merge + tag v2.0 ← DOMANI
+- + Mini-sessione 14 mag: fix delete RSVP ⭐ OGGI
+
+---
+
+## AGGIORNAMENTO 2026-05-14 — Analisi strategica upload bug (post-fix delete RSVP)
+
+### Sessione 22:35-23:00 — Ricerca esterna su Storage 403
+
+**Status: ANALISI COMPLETATA ✅ — fix da eseguire domani Giorno 7**
+
+### Diagnosi probabile: CORS misconfiguration sul bucket Storage
+
+Dopo 8 round falliti nei giorni 9-10 maggio (rules permutate, Anonymous
+Auth abilitato/disabilitato, API Key restrictions verificate, ecc.), la
+ricerca esterna stasera ha identificato un pattern molto specifico che
+corrisponde al nostro caso.
+
+**Pattern descritto da Firebase community**:
+- Bucket Cloud Storage ha CORS configurazione default (restrittiva,
+  no cross-origin)
+- Web app hostata su dominio diverso dal bucket (custom domain o
+  preview channel)
+- Browser fa preflight request che fallisce
+- Errore generato dal SDK assomiglia a "storage/unauthorized" (403)
+- Trae in inganno: NON è un problema di Storage rules
+
+**Match con il nostro caso**:
+- Bucket: gs://matrimonio-andrea-giulia-2026.firebasestorage.app
+- Web app: andreagiulia5luglio26.it (prod) + preview channels web.app
+- Errore: storage/unauthorized 403 anche con rules `allow read,write: if true`
+- Conferma indiretta: nessuna modifica alle rules ha risolto in 8 round
+
+### Confidenza diagnosi: 70-80%
+
+Indicatori positivi:
+- Pattern documentato in più tutorial recenti (2024-2025)
+- Errore browser corrisponde ESATTAMENTE al sintomo
+- Spiega perché rules permissive non hanno fixato (era altro problema)
+- Spiega perché il problema appare solo con upload (non download)
+
+Indicatori di incertezza:
+- Bucket usa il nuovo formato `.firebasestorage.app` (non vecchio `.appspot.com`)
+- La maggior parte dei tutorial usa formato vecchio
+- Comportamento `gsutil` su bucket nuovo non testato direttamente
+
+### Piano operativo Giorno 7 (domani mattina, 12 maggio)
+
+#### Fase 1 — Test CORS hypothesis (~30 min)
+1. Verifica installazione gsutil (Google Cloud SDK)
+   - Se non installato: scarica da https://cloud.google.com/sdk/docs/install
+   - Se Windows: usa installer GoogleCloudSDKInstaller.exe
+2. Autentica: `gcloud auth login`
+3. Set progetto: `gcloud config set project matrimonio-andrea-giulia-2026`
+4. Crea file cors.json nella root del progetto con contenuto:
+
+```json
+[
+  {
+    "origin": [
+      "https://andreagiulia5luglio26.it",
+      "https://www.andreagiulia5luglio26.it",
+      "https://matrimonio-andrea-giulia-2026.web.app",
+      "https://matrimonio-andrea-giulia-2026.firebaseapp.com",
+      "https://matrimonio-andrea-giulia-2026--preview-giorno6-20456ocf.web.app",
+      "http://localhost:5000",
+      "http://localhost"
+    ],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": [
+      "Content-Type",
+      "Authorization",
+      "Content-Length",
+      "User-Agent",
+      "x-goog-resumable",
+      "x-goog-upload-protocol",
+      "x-goog-upload-command",
+      "x-goog-upload-content-length",
+      "x-goog-upload-offset"
+    ]
+  }
+]
+```
+
+5. Applica al bucket:
+   `gsutil cors set cors.json gs://matrimonio-andrea-giulia-2026.firebasestorage.app`
+6. Verifica applicato:
+   `gsutil cors get gs://matrimonio-andrea-giulia-2026.firebasestorage.app`
+7. Re-deploy preview se necessario (NO, modifiche CORS sono bucket-level)
+8. Test upload nel preview URL admin /upload.html (Chrome incognito)
+9. ✅ Se funziona: BUG RISOLTO. Procedi Fase 3.
+10. ❌ Se fallisce: passa a Fase 2.
+
+#### Fase 2 — Plan B: CF proxy upload (~60 min, solo se Fase 1 fallisce)
+- Nuova Cloud Function HTTPS callable `uploadMedia`
+- Riceve file via FormData
+- Salva su Storage via Admin SDK (bypassa client JS SDK)
+- Crea documento Firestore wedding-media
+- Risponde con URL pubblici
+- Limite: 32 MB per request (CF HTTP limit)
+- Per video > 32MB: signed upload URL in Sett 3
+
+#### Fase 3 — Deploy produzione (~30 min)
+1. `git checkout main`
+2. `git merge feature/upload-redesign --no-ff`
+3. `git push origin main`
+4. `firebase deploy --only hosting`
+5. Smoke test produzione su andreagiulia5luglio26.it
+6. `git tag -a v2.0-upload-redesign -m "Settimana 2: upload + QR + delete RSVP + Cloud Functions"`
+7. `git push origin v2.0-upload-redesign`
+
+#### Fase 4 — Documentazione + bilancio (~15 min)
+- Update CODEBASE_AUDIT.md con esito fix CORS
+- Update bug noti residui
+- Bilancio Settimana 2 in chat con PM
+
+### Probabilità complessiva chiusura Settimana 2 domani
+
+- Fase 1 success rate: 70-80%
+- Fase 2 (fallback) success rate: 95%
+- Probabilità complessiva: ~95-99%
+
+**In ogni scenario**, il deploy produzione di domani NON è bloccato
+dall'upload bug. Se Fase 1+2 falliscono entrambe (~5% probabilità),
+fallback è banner "Upload in arrivo, torna il 5 luglio" che permette
+deploy con feature in standby.
+
+### Note tecniche
+
+**Perché CORS può presentarsi come 403 unauthorized?**
+
+I browser eseguono preflight OPTIONS request prima di POST/PUT cross-origin.
+Se il server (Cloud Storage) non risponde con header CORS validi
+(Access-Control-Allow-Origin, ecc.), il browser annulla la request.
+
+Il Firebase JS SDK riceve un errore generico di rete e lo wrappa come
+`storage/unauthorized` (codice errore default per 403). Il messaggio
+quindi confonde: sembra rules failure ma è CORS.
+
+**Verifica diagnosi a posteriori**:
+- Aprire DevTools → Network → tentativo upload
+- Cercare OPTIONS request prima del POST
+- Se OPTIONS ha status 403 o no CORS headers → conferma CORS
+- Se OPTIONS è OK ma POST è 403 → è rules (improbabile dato che già
+  testato `if true`)
+
+### Riferimenti consultati
+- flamesshield.com: "How to Fix CORS Errors in Firebase Storage" (Aug 2025)
+- vinaysaurabh.dev: "Fixing the CORS error in Firebase Storage on web" (May 2025)
+- agiratech.com: "How to Fix Firebase Storage CORS Issues Using gsutil" (Apr 2025)
+- groups.google.com firebase-talk: thread storia analoga
+
+---
+
+## AGGIORNAMENTO 2026-05-14 — Setup gsutil completato (preparazione Giorno 7)
+
+### Status: COMPLETATO ✅
+
+### Cosa è stato fatto stasera tardi (23:00-23:30)
+- ✅ Download Google Cloud SDK Windows installer
+- ✅ Installazione in `C:\Users\frape\AppData\Local\Google\Cloud SDK`
+- ✅ `gcloud auth login` riuscito con francesco.perone00@gmail.com
+- ✅ Progetto default settato: matrimonio-andrea-giulia-2026
+- ✅ Verifica finale: gcloud 568.0.0, gsutil 5.37, config OK
+
+### Comandi pronti per il Giorno 7
+
+**Opzione consigliata (gsutil legacy, più documentato)**:
+```
+cd C:\Users\frape\matrimonio-sito
+gsutil cors set cors.json gs://matrimonio-andrea-giulia-2026.firebasestorage.app
+gsutil cors get gs://matrimonio-andrea-giulia-2026.firebasestorage.app
+```
+
+**Opzione moderna (gcloud storage, raccomandato da Google)**:
+```
+cd C:\Users\frape\matrimonio-sito
+gcloud storage buckets update gs://matrimonio-andrea-giulia-2026.firebasestorage.app --cors-file=cors.json
+gcloud storage buckets describe gs://matrimonio-andrea-giulia-2026.firebasestorage.app --format="value(cors_config)"
+```
+
+Nota: gsutil mostra warning "deprecated" ma funziona normalmente.
+Decidere quale usare domani in base alla preferenza (gsutil è
+documentato in più tutorial, gcloud storage è il futuro).
+
+### Stato config gcloud locale
+
+```
+[core]
+account = francesco.perone00@gmail.com
+disable_usage_reporting = True
+project = matrimonio-andrea-giulia-2026
+```
+
+### Fase 1 e 2 del Giorno 7 (aggiornato)
+
+~~Fase 2 — Setup gsutil (20-30 min)~~ ✅ FATTO STASERA
+
+**Nuovo piano Giorno 7 (più snello, ~1h 30min totali)**:
+1. Pre-flight (5 min) — `git pull origin feature/upload-redesign`
+2. Fix CORS (15 min) — `gsutil cors set ...` + verifica
+3. Test upload preview (15 min) — Chrome incognito + upload reale
+4. Plan B se fallisce (60 min) — CF proxy upload
+5. Deploy produzione (30 min) — merge main + firebase deploy
+6. Tag v2.0 + bilancio (15 min)
+
+### Risparmio tempo stimato per domani
+
+- 25 minuti risparmiati (setup gsutil non più necessario)
+- Probabilità chiusura Settimana 2 domani: invariata 95-99%
+
+---
+
+## AGGIORNAMENTO 2026-05-09 — Settimana 2 Giorno 4
+
+### Cosa è stato fatto
+- ✅ Cloud Function generateThumbnails sviluppata e deployata
+- ✅ Pipeline server-side image processing testata end-to-end
+- ✅ Sharp 0.34.5 integrato per resize JPEG con mozjpeg
+- ✅ Schema Firestore wedding-media esteso (campi display_url, thumb_url, thumbs_generated_at)
+- ✅ Service Account IAM configurato (Storage Admin + Eventarc Event Receiver)
+
+### Cloud Functions live (4 total)
+- verifyRecaptcha (callable v1, 256MB)
+- submitRSVP (callable v1, 256MB)
+- checkRateLimit (callable v1, 256MB)
+- generateThumbnails (event-driven v2, 1024MB) ⭐ NEW
+
+### Pending Settimana 2
+- 🔴 Bug upload client: /upload.html fallisce con 403 storage/unauthorized
+  Diagnosi: isolato a SDK JS uploadBytesResumable, NON infrastrutturale
+  (verified: Admin SDK e Console UI scrivono Storage senza problemi)
+- 🟢 QR code generator (Giorno 5)
+- 🟢 Deploy preview channel + smoke test
+- 🟢 Merge in main + tag v2.0-upload-redesign
+
+### Test data cleanup
+File di test rimossi dopo verifica:
+- wedding-media/originals/Bacio.jpg
+- wedding-media/display/Bacio.jpg
+- wedding-media/thumbs/Bacio.jpg

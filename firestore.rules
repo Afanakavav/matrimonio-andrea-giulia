@@ -21,15 +21,65 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Media: creazione/lettura pubblica nel periodo del matrimonio.
-    // Update e delete bloccati: operazioni admin vanno fatte via Firebase Admin SDK.
-    match /wedding-media/{document=**} {
-      allow create: if request.time >= timestamp.date(2026, 7, 4)
-                    && request.time < timestamp.date(2026, 7, 20);
-
+    // Media: creazione pubblica con validazione payload completo nel periodo del matrimonio.
+    // Update e delete bloccati: tutte le operazioni admin (moderazione, AI scoring,
+    // eliminazione) vanno fatte via Firebase Admin SDK / Cloud Functions con privilegi
+    // elevati, mai direttamente dall'API pubblica esposta al browser.
+    match /wedding-media/{docId} {
       allow read: if true;
 
-      // Nessuno può modificare i metadata di un media già caricato via API pubblica
+      allow create: if
+        // Richiede auth (anche anonimo) — necessario per storage upload via JS SDK
+        request.auth != null &&
+
+        // Finestra temporale allargata: upload aperti dal 9 maggio 2026 per test
+        // full-stack in produzione, fino al 19 luglio 2026.
+        // I documenti del periodo test sono marcati con is_pre_wedding_test: true.
+        request.time >= timestamp.date(2026, 5, 9) &&
+        request.time <= timestamp.date(2026, 7, 19) &&
+
+        // Campi obbligatori: tutti devono essere presenti nel documento creato dal client.
+        // display_url, thumb_url, ai_* e moderation fields vengono aggiunti
+        // successivamente da Cloud Functions, non dal client.
+        request.resource.data.keys().hasAll([
+          'uploadDate', 'file_type', 'fileName', 'fileSize',
+          'storagePath', 'original_url', 'status'
+        ]) &&
+
+        // Tipi ammessi: solo immagini e video (schema PRD FR-DB-01)
+        request.resource.data.file_type in ['image', 'video'] &&
+
+        // Status iniziale obbligatoriamente 'pending': la moderazione (approvazione,
+        // rifiuto, featured) è esclusiva responsabilità dell'admin via Admin SDK.
+        // Un client non può mai auto-approvare il proprio upload.
+        request.resource.data.status == 'pending' &&
+
+        // fileSize: numero intero positivo, max 100 MB
+        request.resource.data.fileSize is int &&
+        request.resource.data.fileSize > 0 &&
+        request.resource.data.fileSize < 100 * 1024 * 1024 &&
+
+        // uploader_name è opzionale; se presente deve essere stringa <= 50 caratteri
+        (
+          !request.resource.data.keys().hasAny(['uploader_name']) ||
+          (request.resource.data.uploader_name is string &&
+           request.resource.data.uploader_name.size() <= 50)
+        ) &&
+
+        // is_pre_wedding_test è opzionale; se presente deve essere booleano
+        (
+          !request.resource.data.keys().hasAny(['is_pre_wedding_test']) ||
+          request.resource.data.is_pre_wedding_test is bool
+        ) &&
+
+        // uploaderUid è opzionale; se presente deve essere stringa (anti-abuse Settimana 3)
+        (
+          !request.resource.data.keys().hasAny(['uploaderUid']) ||
+          request.resource.data.uploaderUid is string
+        );
+
+      // Update bloccato: modifiche ai metadata (moderazione, AI score, thumbnail URL)
+      // avvengono solo via Admin SDK con Service Account, mai dall'API pubblica.
       allow update: if false;
 
       // Delete bloccato per evitare vandalismo. Usa Firebase Admin SDK / Cloud Functions.

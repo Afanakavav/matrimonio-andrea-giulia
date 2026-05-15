@@ -22,7 +22,10 @@ window.storage = storage;
 
 const WEDDING_CONFIG = {
   weddingDate: "2026-07-05",
-  uploadOpenDate: "2026-07-04T18:00:00",
+  // NOTA: finestra aperta da oggi (9 maggio 2026) per permettere
+  // test full-stack in produzione. Il flag is_pre_wedding_test
+  // distinguerà i media test dai media veri del matrimonio.
+  uploadOpenDate: "2026-05-09T00:00:00",
   uploadCloseDate: "2026-07-19T23:59:59",
   uploadEnabled: true,
   maxFileSize: 100 * 1024 * 1024,

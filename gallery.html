@@ -28,7 +28,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
-    <link rel="icon" href="data:," />
+    <link rel="icon" type="image/png" href="images/Logo-QR-code.png" />
   </head>
   <body>
     <!-- Navigation -->
@@ -87,7 +87,7 @@
         <i class="fas fa-camera"></i>
         <h3>Nessun contenuto ancora</h3>
         <p>Sii il primo a condividere una foto o video del matrimonio!</p>
-        <a href="/index.html?action=upload" class="upload-link-btn">Carica il primo contenuto</a>
+        <a href="/index.html?action=upload" class="upload-link-btn" onclick="if(typeof getUploadStatus==='function'&&getUploadStatus()==='open'){event.preventDefault();window.location.href='/upload.html';}">Carica il primo contenuto</a>
       </div>
     </section>
 

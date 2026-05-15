@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://www.google.com https://cdnjs.cloudflare.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
+      img-src 'self' https: data: blob:;
+      font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://r2cdn.perplexity.ai;
+      connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com https://cdn.jsdelivr.net https://*.cloudfunctions.net;
+      frame-src https://www.google.com;
+      object-src 'none';
+      base-uri 'self';
+    "
+    />
+    <title>Admin QR Code Generator — Andrea & Giulia</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="admin-styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="icon" type="image/png" href="images/Logo-QR-code.png" />
+    <style>
+      .admin-main {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+      }
+
+      .admin-hero {
+        text-align: center;
+        padding: 2rem 1rem 1rem;
+      }
+
+      .admin-hero h1 {
+        font-family: "Playfair Display", serif;
+        font-size: 2rem;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+      }
+
+      .admin-hero p {
+        color: var(--text-light);
+        font-size: 1rem;
+      }
+
+      .qr-section {
+        background: var(--white);
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+        margin-bottom: 2rem;
+      }
+
+      .qr-section h2 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.4rem;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+      }
+
+      .qr-section > p {
+        color: var(--text-light);
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .qr-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+      }
+
+      #qr-upload-single {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .qr-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .url-box {
+        font-family: monospace;
+        font-size: 1rem;
+        background: #f5e6d3;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        word-break: break-all;
+      }
+
+      .instructions-list {
+        line-height: 2;
+        padding-left: 1.5rem;
+      }
+
+      @media (max-width: 768px) {
+        .admin-main {
+          padding: 0 1rem;
+        }
+
+        .qr-section {
+          padding: 1.5rem 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+      <div class="login-container">
+        <div class="login-header">
+          <i class="fas fa-qrcode"></i>
+          <h1>Admin QR Code</h1>
+          <p>Generatore QR per gli sposi</p>
+        </div>
+        <form id="loginForm" class="login-form">
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="password-input-container">
+              <input type="password" id="password" placeholder="Inserisci la password" required />
+              <i class="fas fa-eye password-toggle" id="passwordToggle"></i>
+            </div>
+          </div>
+          <button type="submit" class="login-btn">
+            <i class="fas fa-sign-in-alt"></i> Accedi
+          </button>
+          <div id="loginError" class="login-error"></div>
+        </form>
+        <a href="index.html" class="back-link">
+          <i class="fas fa-arrow-left"></i> Torna alla Homepage
+        </a>
+      </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="admin-panel">
+      <!-- Header -->
+      <header class="admin-header">
+        <div class="admin-header-content">
+          <div class="admin-logo">
+            <i class="fas fa-qrcode"></i>
+            <span>Admin Panel - QR Code Generator</span>
+          </div>
+          <div class="admin-actions">
+            <a href="admin-hub.html" class="btn-secondary">
+              <i class="fas fa-th"></i> Admin Hub
+            </a>
+            <a href="index.html" class="btn-secondary">
+              <i class="fas fa-home"></i> Homepage
+            </a>
+            <button id="logoutBtn" class="btn-danger">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main content -->
+      <div class="admin-main">
+
+        <section class="admin-hero">
+          <h1>QR Code per gli ospiti</h1>
+          <p>Genera, scarica e stampa i QR per condividere l'URL della galleria upload con gli invitati.</p>
+        </section>
+
+        <!-- QR singolo + download -->
+        <section class="qr-section">
+          <h2>QR singolo</h2>
+          <p>Anteprima del QR. Scaricalo per condividerlo digitalmente o farlo stampare in alta risoluzione.</p>
+          <div class="qr-wrapper">
+            <div id="qr-upload-single"></div>
+            <div class="qr-actions">
+              <button id="qr-download-btn" class="btn-secondary">
+                <i class="fas fa-download"></i> Scarica QR (PNG)
+              </button>
+              <a href="qr-print.html" class="btn-secondary" target="_blank" rel="noopener">
+                <i class="fas fa-print"></i> Stampa 12 QR (A4)
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <!-- URL codificato -->
+        <section class="qr-section">
+          <h2>URL codificato nel QR</h2>
+          <p>Questo è l'URL che gli ospiti aprono dopo aver scansionato. Non modificare a meno che non cambi il dominio del sito.</p>
+          <div class="url-box">https://andreagiulia5luglio26.it/upload.html</div>
+        </section>
+
+        <!-- Istruzioni per gli sposi -->
+        <section class="qr-section">
+          <h2>Come usare i QR</h2>
+          <ol class="instructions-list">
+            <li>Clicca <strong>"Stampa 12 QR (A4)"</strong> per aprire la pagina di stampa</li>
+            <li>Usa <strong>Ctrl+P</strong> (o clicca il bottone Stampa in alto) per stampare</li>
+            <li>Consigliato: stampa in <strong>alta qualità</strong> su carta opaca per scansione ottimale</li>
+            <li>Ritaglia i 12 QR e posizionali ai centri tavola del matrimonio</li>
+            <li>Gli invitati scansionano col telefono → si apre la pagina di upload foto</li>
+          </ol>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <script src="firebase-config.js?v=12"></script>
+    <script src="auth-manager-secure.js?v=12"></script>
+
+    <!-- Auth init: istanzia AuthManagerSecure, form submit, occhiolino, logout -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var authManager = new AuthManagerSecure();
+
+        var loginForm    = document.getElementById('loginForm');
+        var loginError   = document.getElementById('loginError');
+        var logoutBtn    = document.getElementById('logoutBtn');
+        var pwdToggle    = document.getElementById('passwordToggle');
+        var pwdInput     = document.getElementById('password');
+
+        if (loginForm) {
+          loginForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            var result = await authManager.login(pwdInput.value);
+            if (!result.success) {
+              loginError.textContent = result.message || 'Password errata';
+            }
+          });
+        }
+
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', async function () {
+            await authManager.logout();
+          });
+        }
+
+        if (pwdToggle && pwdInput) {
+          pwdToggle.addEventListener('click', function () {
+            if (pwdInput.type === 'password') {
+              pwdInput.type = 'text';
+              pwdToggle.classList.remove('fa-eye');
+              pwdToggle.classList.add('fa-eye-slash');
+            } else {
+              pwdInput.type = 'password';
+              pwdToggle.classList.remove('fa-eye-slash');
+              pwdToggle.classList.add('fa-eye');
+            }
+          });
+        }
+      });
+    </script>
+
+    <!-- QR generation -->
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+    <script>
+      var qrInstance = null;
+
+      function initQR() {
+        qrInstance = new QRCodeStyling({
+          width: 280,
+          height: 280,
+          type: 'svg',
+          data: 'https://andreagiulia5luglio26.it/upload.html',
+          margin: 0,
+          qrOptions: { errorCorrectionLevel: 'H' },
+          imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 0, crossOrigin: 'anonymous' },
+          dotsOptions: { color: '#5a7d6f', type: 'square' },
+          backgroundOptions: { color: '#ffffff' },
+          image: 'images/Logo-QR-code.png',
+          cornersSquareOptions: { color: '#5a7d6f', type: 'square' },
+          cornersDotOptions: { color: '#5a7d6f', type: 'square' }
+        });
+
+        var target = document.getElementById('qr-upload-single');
+        if (target) {
+          target.innerHTML = '';
+          qrInstance.append(target);
+        }
+
+        var btn = document.getElementById('qr-download-btn');
+        if (btn) {
+          btn.addEventListener('click', function () {
+            qrInstance.download({ name: 'andreagiulia-upload-qr', extension: 'png' });
+          });
+        }
+      }
+
+      // Poll finché auth-manager non rivela il pannello (loginScreen rimosso)
+      var initInterval = setInterval(function () {
+        var login = document.getElementById('loginScreen');
+        if (login && (login.style.display === 'none' || login.classList.contains('hidden'))) {
+          clearInterval(initInterval);
+          if (!qrInstance) initQR();
+        }
+      }, 200);
+
+      // Fallback: genera comunque dopo 10s (l'admin-panel è già nel DOM)
+      setTimeout(function () {
+        clearInterval(initInterval);
+        if (!qrInstance) initQR();
+      }, 10000);
+    </script>
+  </body>
+</html>

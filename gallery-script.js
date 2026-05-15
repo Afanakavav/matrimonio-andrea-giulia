@@ -99,15 +99,15 @@ class Gallery {
     const mediaItem = document.createElement("div");
     mediaItem.className = "gallery-item";
 
-    if (item.fileType && item.fileType.startsWith("image/")) {
+    if (item.file_type === "image") {
       const img = document.createElement("img");
-      img.src = item.downloadURL;
+      img.src = item.display_url || item.original_url;
       img.alt = item.fileName || "Foto matrimonio";
       img.loading = "lazy";
       mediaItem.appendChild(img);
-    } else if (item.fileType && item.fileType.startsWith("video/")) {
+    } else if (item.file_type === "video") {
       const video = document.createElement("video");
-      video.src = item.downloadURL;
+      video.src = item.display_url || item.original_url;
       video.muted = true;
       video.loop = true;
       video.loading = "lazy";
@@ -137,13 +137,13 @@ class Gallery {
     const modalImage = document.getElementById("modalImage");
     const modalVideo = document.getElementById("modalVideo");
 
-    if (item.fileType && item.fileType.startsWith("image/")) {
-      modalImage.src = item.downloadURL;
+    if (item.file_type === "image") {
+      modalImage.src = item.display_url || item.original_url;
       modalImage.style.display = "block";
       modalVideo.style.display = "none";
       modalVideo.pause();
-    } else if (item.fileType && item.fileType.startsWith("video/")) {
-      modalVideo.src = item.downloadURL;
+    } else if (item.file_type === "video") {
+      modalVideo.src = item.display_url || item.original_url;
       modalVideo.style.display = "block";
       modalImage.style.display = "none";
     }

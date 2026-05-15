@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR per stampa — Andrea &amp; Giulia</title>
+  <meta name="description" content="12 QR code stampabili per foglio A4 — Andrea &amp; Giulia 5 luglio 2026" />
+  <link rel="icon" type="image/png" href="images/Logo-QR-code.png" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cdn.jsdelivr.net;" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary-color: #5a7d6f;
+      --primary-dark: #3d5c50;
+      --bg-warm: #faf8f5;
+      --text-dark: #2c2c2c;
+      --text-muted: #6b6b6b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background-color: var(--bg-warm);
+      color: var(--text-dark);
+    }
+
+    /* ── Screen header ── */
+    .page-header {
+      text-align: center;
+      padding: 2rem 1rem 1.5rem;
+      border-bottom: 1px solid #e0dbd3;
+      background: #fff;
+    }
+
+    .page-header h1 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-bottom: 1rem;
+    }
+
+    .btn-print {
+      display: inline-block;
+      background-color: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 0.55rem 1.4rem;
+      font-family: 'Lora', serif;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-print:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .print-tip {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.6rem;
+      font-style: italic;
+    }
+
+    /* ── QR grid ── */
+    .qr-sheet {
+      max-width: 210mm;
+      margin: 1.5rem auto;
+      padding: 0 1rem;
+    }
+
+    .qr-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+    }
+
+    .qr-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0.6rem 0.4rem 0.5rem;
+      background: #fff;
+    }
+
+    .qr-target {
+      width: 190px;
+      height: 190px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-target svg {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .qr-caption {
+      margin-top: 0.35rem;
+      font-size: 9pt;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    /* ── Footer ── */
+    .page-footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* ── Screen only: dashed border on cells ── */
+    @media screen {
+      .qr-cell {
+        border: 1px dashed #ccc;
+        border-radius: 3px;
+      }
+    }
+
+    /* ── Print ── */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 1.5cm;
+      }
+
+      body {
+        background: #fff;
+        margin: 0;
+        padding: 0;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .page-header {
+        display: none !important;
+      }
+
+      .page-footer {
+        display: none !important;
+      }
+
+      .qr-sheet {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      .qr-grid {
+        gap: 0.3rem;
+        page-break-inside: avoid;
+      }
+
+      .qr-cell {
+        break-inside: avoid;
+        border: none;
+        padding: 0.3rem 0.2rem;
+      }
+
+      .qr-target {
+        width: 170px;
+        height: 170px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Screen-only header -->
+  <header class="page-header no-print">
+    <h1>Andrea &amp; Giulia — 5 luglio 2026</h1>
+    <p>12 QR Code per stampa A4</p>
+    <button id="btn-print" class="btn-print">&#128424;&#65039; Stampa</button>
+    <span class="print-tip">Tip: stampa in alta qualità per scansione ottimale</span>
+  </header>
+
+  <!-- QR grid -->
+  <main class="qr-sheet">
+    <div class="qr-grid" id="qr-grid">
+      <!-- 12 celle generate via JS -->
+      <div class="qr-cell" id="qr-cell-0"><div class="qr-target"></div><p class="qr-caption">Scansiona per condividere<br>le tue foto</p></div>
+      <div class="qr-cell" id="qr-cell-1"><div class="qr-target"></div><p class="qr-caption">Scansiona per condividere<br>le tue foto</p></div>
+      <div class="qr-cell" id="qr-cell-2"><div class="qr-target"></div><p class="qr-caption">Scansiona per condividere<br>le tue foto</p></div>
+      <div class="qr-cell" id="qr-cell-3"><div class="qr-target"></div><p class="qr-caption">Scansiona per condividere<br>le tue foto</p></div>
+      <div class="qr-cell" id="qr-cell-4"><div class="qr-target"></div><p class="qr-caption">Scansiona per condividere<br>le tue foto</p></div>
+      <div class="qr-cell" id="qr-cell-5"><div class="qr-target"></div><p class="qr-caption">Scansiona per condividere<br>le tue foto</p></div>
+      <div class="qr-cell" id="qr-cell-6"><div class="qr-target"></div><p class="qr-caption">Scansiona per condividere<br>le tue foto</p></div>
+      <div class="qr-cell" id="qr-cell-7"><div class="qr-target"></div><p class="qr-caption">Scansiona per condividere<br>le tue foto</p></div>
+      <div class="qr-cell" id="qr-cell-8"><div class="qr-target"></div><p class="qr-caption">Scansiona per condividere<br>le tue foto</p></div>
+      <div class="qr-cell" id="qr-cell-9"><div class="qr-target"></div><p class="qr-caption">Scansiona per condividere<br>le tue foto</p></div>
+      <div class="qr-cell" id="qr-cell-10"><div class="qr-target"></div><p class="qr-caption">Scansiona per condividere<br>le tue foto</p></div>
+      <div class="qr-cell" id="qr-cell-11"><div class="qr-target"></div><p class="qr-caption">Scansiona per condividere<br>le tue foto</p></div>
+    </div>
+  </main>
+
+  <footer class="page-footer no-print">
+    <p>andreagiulia5luglio26.it &mdash; generato il 11 maggio 2026</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  <script>
+    const qrConfig = {
+      width: 190,
+      height: 190,
+      type: 'svg',
+      data: 'https://andreagiulia5luglio26.it/upload.html',
+      margin: 0,
+      qrOptions: {
+        errorCorrectionLevel: 'H'
+      },
+      imageOptions: {
+        hideBackgroundDots: true,
+        imageSize: 0.4,
+        margin: 0,
+        crossOrigin: 'anonymous'
+      },
+      dotsOptions: {
+        color: '#5a7d6f',
+        type: 'square'
+      },
+      backgroundOptions: {
+        color: '#ffffff'
+      },
+      image: 'images/Logo-QR-code.png',
+      cornersSquareOptions: {
+        color: '#5a7d6f',
+        type: 'square'
+      },
+      cornersDotOptions: {
+        color: '#5a7d6f',
+        type: 'square'
+      }
+    };
+
+    document.getElementById('btn-print').addEventListener('click', function () {
+      window.print();
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      for (let i = 0; i < 12; i++) {
+        const qrCode = new QRCodeStyling(qrConfig);
+        const target = document.querySelector('#qr-cell-' + i + ' .qr-target');
+        qrCode.append(target);
+      }
+    });
+  </script>
+
+</body>
+</html>

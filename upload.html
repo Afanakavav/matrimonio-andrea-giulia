@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net;
+      worker-src 'self' blob:;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
+      img-src 'self' data: blob: https://firebasestorage.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+      connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com https://*.cloudfunctions.net https://firebasestorage.googleapis.com https://cdn.jsdelivr.net;
+      media-src 'self' blob: https://firebasestorage.googleapis.com;
+      object-src 'none';
+      base-uri 'self';
+    "
+    />
+    <title>Carica i tuoi momenti — Andrea &amp; Giulia</title>
+    <link rel="icon" type="image/png" href="images/Logo-QR-code.png" />
+
+    <!-- Font: Playfair Display (già usato nel sito) -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome per icona cuore -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- Palette comune + stili specifici upload -->
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="upload-styles.css" />
+
+    <!-- Firebase SDK 9.23.0 compat -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <!-- Compressione immagini client-side -->
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+  </head>
+  <body class="upload-body">
+
+    <!-- ══════════════════════════════════════════════════════════
+         CONTAINER PRINCIPALE
+    ══════════════════════════════════════════════════════════ -->
+    <div class="upload-container">
+
+      <!-- Banner beta test — dimissibile, visibile su tutti gli step -->
+      <div id="beta-banner" class="beta-banner" style="display:none" role="status">
+        <span>🧪 Modalità test attiva — La galleria ufficiale si attiverà il giorno del matrimonio. Grazie per aiutarci a testare!</span>
+        <button class="beta-banner-close" id="beta-banner-close" aria-label="Chiudi banner">×</button>
+      </div>
+
+      <!-- Banner errori globali -->
+      <div id="error-banner" class="error-banner" style="display:none" role="alert"></div>
+
+      <!-- ───────────────────────────────────────────────────────
+           STEP 1 — Nome invitato (default visibile)
+      ─────────────────────────────────────────────────────────── -->
+      <section id="step-name" class="step step-active">
+        <div class="heart-logo heart-sparkle" aria-hidden="true">
+          <i class="fas fa-heart"></i>
+        </div>
+        <h1>Condividi i tuoi momenti</h1>
+        <p class="step-subtitle">Aiutaci a creare la nostra galleria live!</p>
+
+        <div class="name-input-wrap">
+          <input
+            type="text"
+            id="name-input"
+            maxlength="50"
+            placeholder="Il tuo nome (es. Marco)"
+            autocomplete="given-name"
+            aria-label="Il tuo nome"
+          />
+          <p class="input-hint">
+            Opzionale ma raccomandato — aiuta gli sposi a ricordare chi ha condiviso
+          </p>
+        </div>
+
+        <button id="btn-start" class="btn-primary">
+          Inizia <span aria-hidden="true">→</span>
+        </button>
+      </section>
+
+      <!-- ───────────────────────────────────────────────────────
+           STEP 2 — Carica file
+      ─────────────────────────────────────────────────────────── -->
+      <section id="step-upload" class="step">
+        <div class="heart-logo" aria-hidden="true">
+          <i class="fas fa-heart"></i>
+        </div>
+        <h2 id="upload-greeting">Ciao!</h2>
+
+        <div class="upload-buttons">
+          <button id="btn-upload-photo" class="btn-upload-type">
+            <span class="upload-type-icon">📸</span>
+            <span>Carica foto</span>
+          </button>
+          <button id="btn-upload-video" class="btn-upload-type">
+            <span class="upload-type-icon">🎥</span>
+            <span>Carica video</span>
+          </button>
+        </div>
+
+        <!-- Input file nascosti -->
+        <input
+          type="file"
+          id="file-input-photo"
+          accept="image/*"
+          multiple
+          style="display:none"
+          aria-hidden="true"
+        />
+        <input
+          type="file"
+          id="file-input-video"
+          accept="video/mp4,video/quicktime,.mp4,.mov"
+          multiple
+          style="display:none"
+          aria-hidden="true"
+        />
+
+        <p id="upload-counter" class="upload-counter">📦 0 file inviati finora</p>
+
+        <button id="btn-change-name" class="btn-link">Cambia nome</button>
+
+        <a href="index.html" class="btn-back-home">← Torna alla home</a>
+      </section>
+
+      <!-- ───────────────────────────────────────────────────────
+           STEP 3 — Progress upload
+      ─────────────────────────────────────────────────────────── -->
+      <section id="step-progress" class="step">
+        <div class="heart-logo" aria-hidden="true">
+          <i class="fas fa-heart"></i>
+        </div>
+        <h2>Sto caricando...</h2>
+
+        <div id="files-progress" class="files-progress" role="list"></div>
+
+        <p id="progress-summary" class="progress-summary">0 di 0 completate</p>
+      </section>
+
+      <!-- ───────────────────────────────────────────────────────
+           STEP 4 — Successo
+      ─────────────────────────────────────────────────────────── -->
+      <section id="step-success" class="step">
+        <div class="heart-logo heart-sparkle" aria-hidden="true">
+          <i class="fas fa-heart"></i>
+        </div>
+        <h1 id="success-name">✨ Grazie!</h1>
+        <p id="success-count" class="success-count">I tuoi file sono stati inviati.</p>
+        <p class="success-hint">Guardale apparire sul grande schermo!</p>
+
+        <div class="success-actions">
+          <button id="btn-upload-more" class="btn-primary">
+            📸 Carica altre
+          </button>
+          <a href="gallery.html" class="btn-secondary">
+            Vedi galleria live →
+          </a>
+        </div>
+      </section>
+
+    </div><!-- /.upload-container -->
+
+    <!-- Config locale (sovrascrive config prod per sviluppo) -->
+    <script src="config.local.js"></script>
+    <!-- Config Firebase + helper getUploadStatus() -->
+    <script src="firebase-config.js"></script>
+    <!-- Logica 4-step upload -->
+    <script src="upload-flow.js"></script>
+  </body>
+</html>

@@ -333,17 +333,34 @@ class AdminRSVPPanel {
   }
 
   async deleteRSVP(id) {
-    if (!confirm("Sei sicuro di voler eliminare questa prenotazione?")) return;
+    if (!confirm("Sei sicuro di voler eliminare questa prenotazione? Operazione irreversibile.")) return;
+
+    const password = sessionStorage.getItem("adminPassword");
+    if (!password) {
+      alert("Errore: sessione admin scaduta. Effettua nuovamente il login.");
+      return;
+    }
 
     try {
-      await db.collection("rsvp-confirmations").doc(id).delete();
-      this.rsvpItems = this.rsvpItems.filter((item) => item.id !== id);
-      this.updateStats();
-      this.applyFilters();
-      alert("Prenotazione eliminata con successo!");
+      const deleteRSVPFn = firebase.functions().httpsCallable("deleteRSVP");
+      const result = await deleteRSVPFn({ documentId: id, password });
+
+      if (result.data.success) {
+        console.log("RSVP eliminato:", result.data.deletedId);
+        this.rsvpItems = this.rsvpItems.filter((item) => item.id !== id);
+        this.updateStats();
+        this.applyFilters();
+        alert("Prenotazione eliminata con successo!");
+      }
     } catch (error) {
       console.error("Errore nell'eliminazione:", error);
-      alert("Errore nell'eliminazione della prenotazione.");
+      const message =
+        error.code === "functions/permission-denied"
+          ? "Password admin non valida. Effettua nuovamente il login."
+          : error.code === "functions/not-found"
+          ? "Prenotazione non trovata (forse già eliminata)."
+          : "Errore: " + error.message;
+      alert(message);
     }
   }
 
