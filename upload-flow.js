@@ -300,29 +300,8 @@
     const safeName  = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const baseName  = `${uuid}_${safeName}`;
 
-    let displayBlob = null;
-    let thumbBlob   = null;
-
-    // Compressione client-side solo per immagini
-    if (type === 'image') {
-      try {
-        const compressed = await compressImage(file);
-        displayBlob = compressed.display;
-        thumbBlob   = compressed.thumb;
-      } catch (compErr) {
-        logError('compressImage', compErr, { file: file.name });
-        // Fallback: carica senza compressione
-        displayBlob = file;
-        thumbBlob   = file;
-      }
-    }
-
     // Definisce le versioni da caricare
     const versioni = [{ path: `wedding-media/originals/${baseName}`, blob: file, key: 'original' }];
-    if (type === 'image') {
-      versioni.push({ path: `display/${baseName}`,   blob: displayBlob, key: 'display' });
-      versioni.push({ path: `thumbs/${baseName}`,    blob: thumbBlob,   key: 'thumbs'  });
-    }
 
     const downloadURLs = {};
 
