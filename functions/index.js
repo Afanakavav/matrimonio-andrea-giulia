@@ -484,3 +484,99 @@ exports.deleteRSVP = functions
       throw new functions.https.HttpsError("internal", "Errore interno durante l'eliminazione RSVP");
     }
   });
+
+/**
+ * Cloud Function: Elimina media (solo admin)
+ * Cancella i 3 file Storage (originals + display + thumbs) e il documento Firestore.
+ * Best-effort per Storage: se uno dei 3 manca (es. CF thumbnails non ancora girata),
+ * logga il warning ma completa la cancellazione Firestore.
+ */
+exports.deleteMedia = functions
+  .runWith({ memory: "256MB" })
+  .https.onCall(async (data, context) => {
+    const { documentId, password } = data;
+
+    if (!documentId || typeof documentId !== "string")
+      throw new functions.https.HttpsError("invalid-argument", "documentId richiesto");
+    if (!password)
+      throw new functions.https.HttpsError("invalid-argument", "password richiesta");
+    if (password !== process.env.ADMIN_PASSWORD)
+      throw new functions.https.HttpsError("permission-denied", "Password admin non valida");
+
+    const db = admin.firestore();
+    const bucket = admin.storage().bucket();
+
+    const docRef = db.collection("wedding-media").doc(documentId);
+    const docSnap = await docRef.get();
+    if (!docSnap.exists)
+      throw new functions.https.HttpsError("not-found", "Documento media non trovato");
+
+    const docData = docSnap.data();
+    const baseName = docData.storagePath?.replace("wedding-media/originals/", "");
+
+    if (!baseName) {
+      console.warn(`[deleteMedia] baseName mancante per ${documentId}, skip storage cleanup`);
+    }
+
+    console.log(`[deleteMedia] Admin deleting media ${documentId}: ${docData.fileName} by ${docData.uploader_name || "anonymous"} at ${new Date().toISOString()}`);
+
+    const pathsToDelete = baseName ? [
+      `wedding-media/originals/${baseName}`,
+      `wedding-media/display/${baseName}`,
+      `wedding-media/thumbs/${baseName}`,
+    ] : [];
+
+    const deleteResults = await Promise.allSettled(
+      pathsToDelete.map((p) => bucket.file(p).delete())
+    );
+
+    deleteResults.forEach((result, idx) => {
+      if (result.status === "rejected") {
+        console.warn(`[deleteMedia] Storage delete failed for ${pathsToDelete[idx]}: ${result.reason?.message}`);
+      }
+    });
+
+    await docRef.delete();
+
+    return {
+      success: true,
+      deletedId: documentId,
+      storageDeleted: deleteResults.filter((r) => r.status === "fulfilled").length,
+      storageTotal: pathsToDelete.length,
+    };
+  });
+
+/**
+ * Cloud Function: Toggle preferito media (solo admin)
+ * Bypassa Firestore rules (allow update: if false) tramite Admin SDK.
+ */
+exports.toggleFavorite = functions
+  .runWith({ memory: "256MB" })
+  .https.onCall(async (data, context) => {
+    const { documentId, password } = data;
+
+    if (!documentId || typeof documentId !== "string")
+      throw new functions.https.HttpsError("invalid-argument", "documentId richiesto");
+    if (!password)
+      throw new functions.https.HttpsError("invalid-argument", "password richiesta");
+    if (password !== process.env.ADMIN_PASSWORD)
+      throw new functions.https.HttpsError("permission-denied", "Password admin non valida");
+
+    const docRef = admin.firestore().collection("wedding-media").doc(documentId);
+    const docSnap = await docRef.get();
+    if (!docSnap.exists)
+      throw new functions.https.HttpsError("not-found", "Documento media non trovato");
+
+    const docData = docSnap.data();
+    const currentValue = docData.favorite || false;
+    const newValue = !currentValue;
+
+    console.log(`[toggleFavorite] Admin ${currentValue ? "unfavorited" : "favorited"} media ${documentId}: ${docData.fileName} at ${new Date().toISOString()}`);
+
+    await docRef.update({
+      favorite: newValue,
+      favorite_toggled_at: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    return { success: true, documentId, newValue };
+  });

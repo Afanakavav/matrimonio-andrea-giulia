@@ -370,54 +370,68 @@ class AdminPanel {
   }
 
   async toggleFavorite(id) {
+    const password = sessionStorage.getItem("adminPassword");
+    if (!password) {
+      alert("Errore: sessione admin scaduta. Effettua nuovamente il login.");
+      return;
+    }
+
     try {
-      const item = this.mediaItems.find((i) => i.id === id);
-      const newFavoriteStatus = !item.favorite;
+      const toggleFavoriteFn = firebase.functions().httpsCallable("toggleFavorite");
+      const result = await toggleFavoriteFn({ documentId: id, password });
 
-      await db.collection("wedding-media").doc(id).update({
-        favorite: newFavoriteStatus,
-      });
+      if (result.data.success) {
+        const item = this.mediaItems.find((i) => i.id === id);
+        item.favorite = result.data.newValue;
 
-      item.favorite = newFavoriteStatus;
+        const favoriteBtn = document.querySelector(`.favorite-btn[data-id="${id}"]`);
+        if (result.data.newValue) {
+          favoriteBtn.classList.add("active");
+        } else {
+          favoriteBtn.classList.remove("active");
+        }
 
-      const favoriteBtn = document.querySelector(`.favorite-btn[data-id="${id}"]`);
-      if (newFavoriteStatus) {
-        favoriteBtn.classList.add("active");
-      } else {
-        favoriteBtn.classList.remove("active");
+        this.updateStats();
       }
-
-      this.updateStats();
     } catch (error) {
       console.error("Errore nel toggle preferito:", error);
-      alert("Errore nell'aggiornare i preferiti.");
+      const message =
+        error.code === "functions/permission-denied"
+          ? "Password admin non valida. Effettua nuovamente il login."
+          : "Errore: " + error.message;
+      alert(message);
     }
   }
 
   async deleteSingle(id) {
     if (!confirm("Sei sicuro di voler eliminare questo file?")) return;
 
+    const password = sessionStorage.getItem("adminPassword");
+    if (!password) {
+      alert("Errore: sessione admin scaduta. Effettua nuovamente il login.");
+      return;
+    }
+
     try {
-      const item = this.mediaItems.find((i) => i.id === id);
+      const deleteMediaFn = firebase.functions().httpsCallable("deleteMedia");
+      const result = await deleteMediaFn({ documentId: id, password });
 
-      // Delete from Storage
-      if (item.storagePath) {
-        await storage.ref(item.storagePath).delete();
+      if (result.data.success) {
+        this.mediaItems = this.mediaItems.filter((i) => i.id !== id);
+        this.selectedItems.delete(id);
+        this.updateStats();
+        this.applyFilters();
+        alert("File eliminato con successo!");
       }
-
-      // Delete from Firestore
-      await db.collection("wedding-media").doc(id).delete();
-
-      // Update UI
-      this.mediaItems = this.mediaItems.filter((i) => i.id !== id);
-      this.selectedItems.delete(id);
-      this.updateStats();
-      this.applyFilters();
-
-      alert("File eliminato con successo!");
     } catch (error) {
       console.error("Errore nell'eliminazione:", error);
-      alert("Errore nell'eliminazione del file.");
+      const message =
+        error.code === "functions/permission-denied"
+          ? "Password admin non valida. Effettua nuovamente il login."
+          : error.code === "functions/not-found"
+          ? "File non trovato (forse già eliminato)."
+          : "Errore: " + error.message;
+      alert(message);
     }
   }
 
