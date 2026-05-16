@@ -1023,6 +1023,90 @@ project = matrimonio-andrea-giulia-2026
 
 ---
 
+## AGGIORNAMENTO 2026-05-16 — Settimana 3 Giorno 1 (sabato sera)
+
+### Sessione 18:05-19:00 — 3 task chiusi con disciplina di scope
+
+**Status: COMPLETATO ✅**
+
+### Cosa è stato fatto stasera
+
+**Task A — Feature uploader_name visibile + filtro dropdown admin**
+- admin-script.js: nuovo metodo `escapeHtml()` per XSS protection
+- admin-script.js: template card mostra terza riga con `uploader_name` 
+  + icona Font Awesome user
+- admin-script.js: nuovo metodo `populateUploaderFilter()` chiamato 
+  dopo loadMedia
+- admin-script.js: nuovo filtro `this.uploaderFilter` in applyFilters
+- admin.html: dropdown `<select id="uploaderFilter">` in sezione filters
+- admin-styles.css: stile `.media-uploader` + `.filter-select`
+- Commit: d508533
+
+**Task B — Fix deleteSelected batch (Cancella selezionati)**
+- admin-script.js: refactor `deleteSelected()` usa CF deleteMedia in 
+  Promise.allSettled (parallelo, resilient)
+- Riusa CF già deployata in Sett 2, niente nuove CF
+- UI feedback: alert con succeeded/failed counts
+- `this.selectedItems.clear()` + chiamata `updateSelectionUI()` riusata
+- Commit: c0d69d8
+
+**Task C — Fix race condition CF generateThumbnails (BONUS)**
+- Bug scoperto durante diagnostica: display_url/thumb_url null in alcuni 
+  documenti Firestore caricati ieri sera (Sett 2 deploy)
+- Causa: race condition tra Storage finalize trigger e client write 
+  Firestore doc. File piccoli (<100KB) trigger CF MOLTO veloce → 
+  documento Firestore ancora non scritto dal client.
+- Fix: nuovo helper `findDocWithRetry(db, filePath, maxAttempts=4)` con 
+  backoff esponenziale 500ms→1s→2s→4s (7.5s max)
+- functions/index.js: lookup documento usa retry helper invece di query 
+  diretta
+- Deploy: firebase deploy --only functions:generateThumbnails (Successful 
+  update operation)
+- Verifica: smoke test con foto piccola (27KB QR) → log "Tentativo 1 
+  fallito, aspetto 500ms... Documento trovato al tentativo 2 (dopo 
+  500ms)" → display_url e thumb_url popolati correttamente
+- Commit: 0a0a235
+
+### Cloud Functions live (7 totali, generateThumbnails aggiornata)
+1. verifyRecaptcha
+2. submitRSVP
+3. checkRateLimit
+4. generateThumbnails ⭐ AGGIORNATA con retry race condition
+5. deleteRSVP
+6. deleteMedia
+7. toggleFavorite
+
+### Pattern operativi confermati stasera
+1. **Diagnostica precisa prima del fix**: 5 minuti di analisi Cloud 
+   Functions Logs ha rivelato race condition specifica file piccoli
+2. **Riuso CF esistenti**: deleteSelected riusa deleteMedia (no nuove CF)
+3. **Prompt brevi + scope chiaro**: 3 task chiusi in ~55 minuti
+4. **Patto rispettato**: stop dopo Opzione 1 (race condition fix), 
+   no Opzione 3 nonostante tempo disponibile
+
+### Tech debt residuo (rimandato a Sett 3 Giorno 2+)
+1. **reCAPTCHA V2/V3 mismatch architetturale**: V2 prod, V3 dev
+2. **compressImage() dead code in upload-flow.js** (Strategia A delega 
+   tutto a CF generateThumbnails)
+3. **Password admin "RindiFusi" hardcoded** in 3 posti: migrare a 
+   Firebase Auth + custom claims
+4. **gallery-script.js status filter**: aggiungere quando moderazione 
+   admin attiva (richiederà indice composito Firestore)
+5. **Merge commit "A A A" cosmetico** in git history main
+
+### Roadmap aggiornata
+- ✅ Sett 1: DONE (tag v1.0-foundations)
+- ✅ Sett 2: DONE (tag v2.0-upload-redesign, 15 maggio)
+- 🟢 Sett 3: IN CORSO
+  - ✅ Giorno 1 sabato 16 mag (oggi): uploader_name + deleteSelected + race condition fix
+  - 📋 Giorno 2 domenica 17 mag: Moderazione admin (admin-media + CF moderateMedia + galleria filter status)
+  - 📋 Giorno 3-7: AI scoring (Claude Vision) + polish
+- 📋 Sett 4-5 (compressed): live page + AI Storyteller
+- 🎯 1 giugno: MVP COMPLETO TESTATO INTERNAMENTE (16 giorni rimangono)
+- 🎉 5 luglio: matrimonio
+
+---
+
 ## AGGIORNAMENTO 2026-05-09 — Settimana 2 Giorno 4
 
 ### Cosa è stato fatto
