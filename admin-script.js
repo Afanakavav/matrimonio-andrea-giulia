@@ -459,38 +459,61 @@ class AdminPanel {
       return;
     }
 
-    if (this.selectedItems.size === 0) return;
+    if (this.selectedItems.size === 0) {
+      alert("Nessun elemento selezionato.");
+      return;
+    }
 
-    if (!confirm(`Sei sicuro di voler eliminare ${this.selectedItems.size} file?`)) return;
+    const count = this.selectedItems.size;
+    if (!confirm(`Sei sicuro di voler eliminare ${count} elementi selezionati? Operazione irreversibile.`)) {
+      return;
+    }
 
-    try {
-      const deletePromises = [];
+    const password = sessionStorage.getItem("adminPassword");
+    if (!password) {
+      alert("Sessione scaduta. Effettua nuovamente il login.");
+      return;
+    }
 
-      for (const id of this.selectedItems) {
-        const item = this.mediaItems.find((i) => i.id === id);
+    const deleteMediaFn = firebase.functions().httpsCallable("deleteMedia");
+    const idsToDelete = Array.from(this.selectedItems);
 
-        // Delete from Storage
-        if (item.storagePath) {
-          deletePromises.push(storage.ref(item.storagePath).delete());
-        }
+    console.log(`[deleteSelected] Inizio cancellazione di ${count} elementi...`);
 
-        // Delete from Firestore
-        deletePromises.push(db.collection("wedding-media").doc(id).delete());
+    const results = await Promise.allSettled(
+      idsToDelete.map(id =>
+        deleteMediaFn({ documentId: id, password })
+          .then(result => ({ id, success: result.data.success }))
+      )
+    );
+
+    const succeeded = [];
+    const failed = [];
+    results.forEach((result, idx) => {
+      if (result.status === "fulfilled" && result.value.success) {
+        succeeded.push(idsToDelete[idx]);
+      } else {
+        failed.push({
+          id: idsToDelete[idx],
+          error: result.reason?.message || "Errore sconosciuto",
+        });
+        console.error(`[deleteSelected] Fallito ${idsToDelete[idx]}:`, result.reason);
       }
+    });
 
-      await Promise.all(deletePromises);
+    this.mediaItems = this.mediaItems.filter(item => !succeeded.includes(item.id));
+    this.selectedItems.clear();
+    this.updateStats();
+    this.applyFilters();
+    this.populateUploaderFilter();
+    this.updateSelectionUI();
 
-      // Update UI
-      this.mediaItems = this.mediaItems.filter((i) => !this.selectedItems.has(i.id));
-      this.selectedItems.clear();
-      this.updateStats();
-      this.applyFilters();
-      this.updateSelectionUI();
-
-      alert("File eliminati con successo!");
-    } catch (error) {
-      console.error("Errore nell'eliminazione:", error);
-      alert("Errore nell'eliminazione dei file.");
+    if (failed.length === 0) {
+      alert(`${succeeded.length} elementi eliminati con successo!`);
+    } else if (succeeded.length === 0) {
+      alert(`Errore: nessun elemento eliminato. Controlla la console.`);
+    } else {
+      alert(`${succeeded.length} elementi eliminati, ${failed.length} falliti. Controlla la console per dettagli.`);
     }
   }
 
