@@ -334,6 +334,33 @@ exports.checkRateLimit = functions.https.onCall(async (data, context) => {
   }
 });
 
+// Cerca documento Firestore con backoff esponenziale per gestire race condition
+// tra Storage finalize trigger (immediato) e client write Firestore (poco dopo).
+async function findDocWithRetry(db, filePath, maxAttempts = 4) {
+  const delays = [500, 1000, 2000, 4000]; // ms: 0.5s, 1s, 2s, 4s
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const querySnapshot = await db.collection("wedding-media")
+      .where("storagePath", "==", filePath)
+      .limit(1)
+      .get();
+
+    if (!querySnapshot.empty) {
+      if (attempt > 0) {
+        console.log(`Documento trovato al tentativo ${attempt + 1} (dopo ${delays.slice(0, attempt).reduce((a, b) => a + b, 0)}ms)`);
+      }
+      return querySnapshot;
+    }
+
+    if (attempt < maxAttempts - 1) {
+      console.log(`Tentativo ${attempt + 1} fallito, aspetto ${delays[attempt]}ms prima di riprovare...`);
+      await new Promise(resolve => setTimeout(resolve, delays[attempt]));
+    }
+  }
+
+  return null;
+}
+
 /**
  * generateThumbnails - Cloud Function event-driven
  *
@@ -416,13 +443,10 @@ exports.generateThumbnails = onObjectFinalized({
   const thumbUrl = `https://firebasestorage.googleapis.com/v0/b/${fileBucket}/o/${encodeURIComponent(thumbDestination)}?alt=media`;
 
   const db = admin.firestore();
-  const querySnapshot = await db.collection("wedding-media")
-    .where("storagePath", "==", filePath)
-    .limit(1)
-    .get();
+  const querySnapshot = await findDocWithRetry(db, filePath);
 
-  if (querySnapshot.empty) {
-    console.warn(`Nessun documento Firestore trovato per ${filePath}`);
+  if (!querySnapshot) {
+    console.error(`Nessun documento Firestore trovato per ${filePath} dopo 4 tentativi (7.5s totali). Client potrebbe aver fallito write Firestore.`);
   } else {
     const docRef = querySnapshot.docs[0].ref;
     await docRef.update({
