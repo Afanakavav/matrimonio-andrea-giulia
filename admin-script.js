@@ -33,6 +33,7 @@ class AdminPanel {
     this.filterType = document.getElementById("filterType");
     this.filterSort = document.getElementById("filterSort");
     this.uploaderFilter = 'all';
+    this.statusFilter = 'all';
 
     // Gallery
     this.adminGallery = document.getElementById("adminGallery");
@@ -100,6 +101,14 @@ class AdminPanel {
     if (uploaderSelect) {
       uploaderSelect.addEventListener('change', (e) => {
         this.uploaderFilter = e.target.value;
+        this.applyFilters();
+      });
+    }
+
+    const statusSelect = document.getElementById('statusFilter');
+    if (statusSelect) {
+      statusSelect.addEventListener('change', (e) => {
+        this.statusFilter = e.target.value;
         this.applyFilters();
       });
     }
@@ -254,6 +263,13 @@ class AdminPanel {
       );
     }
 
+    // Filter by status
+    if (this.statusFilter !== 'all') {
+      filteredItems = filteredItems.filter(item =>
+        (item.status || 'pending') === this.statusFilter
+      );
+    }
+
     // Sort
     const sortFilter = this.filterSort.value;
     filteredItems.sort((a, b) => {
@@ -290,6 +306,9 @@ class AdminPanel {
 
       mediaItem.innerHTML = `
                 <input type="checkbox" class="media-checkbox" data-id="${item.id}">
+                <span class="status-badge status-${item.status || 'pending'}">
+                  ${item.status === 'approved' ? '✓' : item.status === 'rejected' ? '✗' : '🕐'}
+                </span>
                 <button class="favorite-btn ${item.favorite ? "active" : ""}" data-id="${item.id}">
                     <i class="fas fa-star"></i>
                 </button>
@@ -303,6 +322,12 @@ class AdminPanel {
                     </button>
                     <button class="action-btn download-btn" data-id="${item.id}" title="Scarica">
                         <i class="fas fa-download"></i>
+                    </button>
+                    <button class="action-btn approve-btn" data-id="${item.id}" title="Approva">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="action-btn reject-btn" data-id="${item.id}" title="Rifiuta">
+                        <i class="fas fa-times"></i>
                     </button>
                     <button class="action-btn delete" data-id="${item.id}" title="Elimina">
                         <i class="fas fa-trash"></i>
@@ -336,6 +361,18 @@ class AdminPanel {
 
       const deleteBtn = mediaItem.querySelector(".delete");
       deleteBtn.addEventListener("click", () => this.deleteSingle(item.id));
+
+      const approveBtn = mediaItem.querySelector('.approve-btn');
+      approveBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await this.moderateMedia(item.id, 'approve', e.currentTarget);
+      });
+
+      const rejectBtn = mediaItem.querySelector('.reject-btn');
+      rejectBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await this.moderateMedia(item.id, 'reject', e.currentTarget);
+      });
 
       this.adminGallery.appendChild(mediaItem);
     });
@@ -725,6 +762,40 @@ class AdminPanel {
       hour: "2-digit",
       minute: "2-digit",
     });
+  }
+
+  async moderateMedia(documentId, action, btnElement) {
+    const password = sessionStorage.getItem('adminPassword');
+    if (!password) {
+      alert('Sessione admin scaduta, fai login di nuovo');
+      return;
+    }
+
+    btnElement.disabled = true;
+    const originalHTML = btnElement.innerHTML;
+    btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    try {
+      const moderateMediaFn = firebase.functions().httpsCallable('moderateMedia');
+      const result = await moderateMediaFn({ documentId, action, password });
+
+      if (result.data && result.data.success) {
+        const item = this.mediaItems.find(m => m.id === documentId);
+        if (item) {
+          item.status = result.data.newStatus;
+        }
+        this.applyFilters();
+      } else {
+        alert('Moderazione fallita');
+        btnElement.innerHTML = originalHTML;
+      }
+    } catch (err) {
+      console.error('moderateMedia error:', err);
+      alert('Errore: ' + (err.message || 'sconosciuto'));
+      btnElement.innerHTML = originalHTML;
+    } finally {
+      btnElement.disabled = false;
+    }
   }
 }
 
