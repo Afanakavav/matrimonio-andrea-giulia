@@ -604,3 +604,65 @@ exports.toggleFavorite = functions
 
     return { success: true, documentId, newValue };
   });
+
+/**
+ * Cloud Function: Moderazione media (approve/reject) — solo admin
+ * Bypassa Firestore rules (allow update: if false) tramite Admin SDK.
+ */
+exports.moderateMedia = functions
+  .runWith({ memory: "256MB" })
+  .https.onCall(async (data, context) => {
+    const { documentId, action, password } = data;
+
+    if (!documentId || typeof documentId !== "string") {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "documentId richiesto"
+      );
+    }
+    if (!action || !["approve", "reject"].includes(action)) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "action deve essere 'approve' o 'reject'"
+      );
+    }
+    if (!password) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "password richiesta"
+      );
+    }
+    if (password !== process.env.ADMIN_PASSWORD) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "Password admin non valida"
+      );
+    }
+
+    const newStatus = action === "approve" ? "approved" : "rejected";
+
+    const docRef = admin
+      .firestore()
+      .collection("wedding-media")
+      .doc(documentId);
+
+    const docSnap = await docRef.get();
+    if (!docSnap.exists) {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "Documento media non trovato"
+      );
+    }
+
+    await docRef.update({
+      status: newStatus,
+      moderated_at: admin.firestore.FieldValue.serverTimestamp(),
+      moderated_by: "admin",
+    });
+
+    return {
+      success: true,
+      documentId,
+      newStatus,
+    };
+  });
