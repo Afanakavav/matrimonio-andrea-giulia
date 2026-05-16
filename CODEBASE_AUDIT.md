@@ -1023,6 +1023,100 @@ project = matrimonio-andrea-giulia-2026
 
 ---
 
+## AGGIORNAMENTO 2026-05-16 — Settimana 3 Giorno 2 (sabato sera) ✅
+
+### Sessione 19:25-22:00 — Moderazione admin completa (v3.0-moderation)
+
+**Status: COMPLETATO ✅ — Tag v3.0-moderation**
+
+### Decisioni architetturali
+
+- **A1** (confermata): nuovi upload nascono con `status: 'pending'`
+- **B1-bis** (scelta su B1): `status` enum a 3 valori (`pending | approved | rejected`) + riuso campo `favorite` esistente come "featured". Più semplice e meno bug-prone di un enum a 4 valori.
+- **C1**: indice composito Firestore deployato insieme al codice
+
+### Cosa è stato fatto
+
+**Task 1 — CF moderateMedia**
+- functions/index.js: nuova CF `moderateMedia` callable v1 (azioni: `approve`, `reject`, password admin via env)
+- Pattern: identico a `toggleFavorite` — Admin SDK bypassa `allow update: if false` in firestore.rules
+- Schema doc esteso: `status`, `moderated_at` (serverTimestamp), `moderated_by` (hardcoded "admin")
+- Commit: edb1fbb
+
+**Task 2 — Admin UI moderazione**
+- admin-script.js: property `this.statusFilter = 'all'` + listener `statusFilter`
+- admin-script.js: filtro status in `applyFilters()` (client-side)
+- admin-script.js: 2 bottoni `approve-btn` / `reject-btn` nel template card
+- admin-script.js: badge `status-badge` (🕐 pending / ✓ approved / ✗ rejected) per ogni card
+- admin-script.js: metodo `moderateMedia()` chiama CF + aggiorna `item.status` in locale senza refetch
+- admin.html: 4° filter-group `<select id="statusFilter">`
+- admin-styles.css: stili `.approve-btn`, `.reject-btn`, `.action-btn:disabled`, `.status-badge.*`
+- Commit: 26a118b
+
+**Task 3 — Indice composito Firestore**
+- firestore.indexes.json: creato da zero con indice `wedding-media (status ASC, uploadDate DESC)`
+- firebase.json: aggiunta entry `"indexes": "firestore.indexes.json"` nella sezione firestore
+- Deploy: firebase deploy --only firestore:indexes (Successful, stato Enabled verificato in Console)
+- Commit: 6b2a4dd
+
+**Task 4 — Galleria pubblica filtro approved + featured-first**
+- gallery-script.js: query aggiornata con `.where("status", "==", "approved")`
+- gallery-script.js: sort client-side `favorite=true` in cima dopo fetch
+- gallery-script.js: badge "⭐ In evidenza" via DOM API (`createElement`) su card featured
+- gallery-styles.css: stile `.featured-badge` (gradient oro, position absolute top-right)
+- Commit: ec253db
+
+### Cloud Functions live (8 totali)
+1. verifyRecaptcha
+2. submitRSVP
+3. checkRateLimit
+4. generateThumbnails (retry race condition fix)
+5. deleteRSVP
+6. deleteMedia
+7. toggleFavorite
+8. moderateMedia ⭐ NUOVA
+
+### Smoke test produzione: 8/8 ✅
+- Galleria vuota inizialmente (0 media approved) → empty state OK
+- Approve media via admin → appare in galleria pubblica OK
+- Reject media via admin → scompare da galleria pubblica OK
+- Filtro status admin: pending/approved/rejected OK
+- Sort featured-first: favorite=true in cima OK
+- Upload nuovo media → status pending, non visibile in galleria OK
+- Badge colorato nelle card admin OK
+- Badge "⭐ In evidenza" nella galleria pubblica OK
+
+### Tech debt residuo aggiornato
+1. **reCAPTCHA V2/V3 mismatch architetturale**: V2 prod, V3 dev
+2. **compressImage() dead code in upload-flow.js** (Strategia A delega tutto a CF generateThumbnails) — cleanup 30 min
+3. **Password admin "RindiFusi" hardcoded** in 3 posti: migrare a Firebase Auth + custom claims
+4. ~~**gallery-script.js status filter**~~ ✅ RISOLTO in questa sessione
+5. **Merge commit "A A A" cosmetico** in git history main
+6. 🟡 `firestore.indexes.json` contiene 1 indice composito (status+uploadDate); future query composite richiederanno estensione
+7. 🟡 Filtro status admin è client-side (`loadMedia` carica tutto + filtra in JS). OK per ~hundreds di media. Se collection cresce >1000 doc serve paginazione + query server-side.
+8. 🟡 `moderated_by: "admin"` hardcoded nella CF moderateMedia — diventerà UID reale quando migreremo a Firebase Auth + custom claims
+
+### Note metodologiche
+- Patto operativo rispettato: stop a 5 task, niente AI scoring stasera nonostante margine temporale
+- Deploy in serata contro raccomandazione PM, autorizzato dall'utente con caveat espliciti (rollback plan + stop su bug + no extra task) — tutti i caveat rispettati
+- Errore PM percezione tempo: pensavo fossero le 21:00 ma erano le 20:00. Annotato per prossime sessioni.
+- Errore logico nel piano deploy: finestra "galleria vuota" (0 media approved) non anticipata. Soluzione pragmatica accettata (finestra ~2-3 min trascurabile).
+
+### Roadmap aggiornata
+- ✅ Sett 1: DONE (tag v1.0-foundations)
+- ✅ Sett 2: DONE (tag v2.0-upload-redesign, 15 maggio)
+- 🟢 Sett 3: IN CORSO (tag v3.0-moderation per Giorno 2)
+  - ✅ Giorno 1 sabato 16 mag: uploader_name + deleteSelected + race condition fix
+  - ✅ Giorno 2 sabato 16 mag (sera): Moderazione admin completa
+  - 📋 Giorno 3+: AI scoring (Claude Vision — CF `aiPhotoCurator`) — stima 4-5h
+  - 📋 Giorno 3+: Notifiche email moderation per Andrea/Giulia — stima 1-2h
+  - 📋 Giorno 3+: Cleanup `compressImage()` dead code — stima 30 min
+- 📋 Sett 4-5 (compressed): live page + AI Storyteller
+- 🎯 1 giugno: MVP COMPLETO TESTATO INTERNAMENTE
+- 🎉 5 luglio: matrimonio
+
+---
+
 ## AGGIORNAMENTO 2026-05-16 — Settimana 3 Giorno 1 (sabato sera)
 
 ### Sessione 18:05-19:00 — 3 task chiusi con disciplina di scope
