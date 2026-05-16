@@ -825,3 +825,21 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Week 3 - uploader_name card + filtro dropdown */
+.media-uploader {
+  color: var(--text-muted, #6c757d);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+.media-uploader i {
+  margin-right: 0.3rem;
+}
+.filter-select {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--separator, #dde);
+  border-radius: 6px;
+  background: white;
+  font-size: 0.9rem;
+  margin-left: 0.5rem;
+}

@@ -32,6 +32,7 @@ class AdminPanel {
     // Filters
     this.filterType = document.getElementById("filterType");
     this.filterSort = document.getElementById("filterSort");
+    this.uploaderFilter = 'all';
 
     // Gallery
     this.adminGallery = document.getElementById("adminGallery");
@@ -94,6 +95,14 @@ class AdminPanel {
     // Filters
     this.filterType.addEventListener("change", () => this.applyFilters());
     this.filterSort.addEventListener("change", () => this.applyFilters());
+
+    const uploaderSelect = document.getElementById('uploaderFilter');
+    if (uploaderSelect) {
+      uploaderSelect.addEventListener('change', (e) => {
+        this.uploaderFilter = e.target.value;
+        this.applyFilters();
+      });
+    }
 
     // Preview Modal
     this.previewClose.addEventListener("click", () => this.closePreview());
@@ -180,6 +189,7 @@ class AdminPanel {
       }));
 
       this.updateStats();
+      this.populateUploaderFilter();
       this.applyFilters();
 
       this.adminLoading.style.display = "none";
@@ -235,6 +245,13 @@ class AdminPanel {
       );
     } else if (typeFilter === "favorites") {
       filteredItems = filteredItems.filter((item) => item.favorite);
+    }
+
+    // Filter by uploader
+    if (this.uploaderFilter !== 'all') {
+      filteredItems = filteredItems.filter(item =>
+        (item.uploader_name || 'Anonimo') === this.uploaderFilter
+      );
     }
 
     // Sort
@@ -294,6 +311,7 @@ class AdminPanel {
                 <div class="media-info">
                     <p><strong>${this.formatFileSize(item.fileSize || 0)}</strong></p>
                     <p>${this.formatDate(item.uploadDate)}</p>
+                    <p class="media-uploader"><i class="fas fa-user"></i> ${this.escapeHtml(item.uploader_name || 'Anonimo')}</p>
                 </div>
             `;
 
@@ -628,6 +646,41 @@ class AdminPanel {
     this.previewModal.classList.remove("show");
     this.previewVideo.pause();
     document.body.style.overflow = "auto";
+  }
+
+  populateUploaderFilter() {
+    const select = document.getElementById('uploaderFilter');
+    if (!select) return;
+
+    const uniqueUploaders = [...new Set(
+      this.mediaItems
+        .map(item => item.uploader_name || 'Anonimo')
+        .filter(name => name)
+    )].sort();
+
+    const currentValue = select.value;
+
+    select.innerHTML = '<option value="all">Tutti gli uploader</option>';
+    uniqueUploaders.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
+    });
+
+    if (currentValue && [...select.options].some(o => o.value === currentValue)) {
+      select.value = currentValue;
+    }
+  }
+
+  escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   formatFileSize(bytes) {
