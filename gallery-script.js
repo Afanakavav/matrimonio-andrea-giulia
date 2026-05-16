@@ -57,6 +57,7 @@ class Gallery {
     try {
       const snapshot = await db
         .collection("wedding-media")
+        .where("status", "==", "approved")
         .orderBy("uploadDate", "desc")
         .limit(100)
         .get();
@@ -72,6 +73,13 @@ class Gallery {
       snapshot.forEach((doc) => {
         const data = doc.data();
         this.mediaItems.push({ id: doc.id, ...data });
+      });
+
+      this.mediaItems.sort((a, b) => {
+        const aFav = a.favorite === true ? 1 : 0;
+        const bFav = b.favorite === true ? 1 : 0;
+        if (aFav !== bFav) return bFav - aFav;
+        return 0; // mantieni ordine server (uploadDate desc)
       });
 
       this.renderGallery();
@@ -117,6 +125,13 @@ class Gallery {
       playIcon.className = "play-icon";
       playIcon.innerHTML = '<i class="fas fa-play"></i>';
       mediaItem.appendChild(playIcon);
+    }
+
+    if (item.favorite === true) {
+      const badge = document.createElement("span");
+      badge.className = "featured-badge";
+      badge.textContent = "⭐ In evidenza";
+      mediaItem.appendChild(badge);
     }
 
     mediaItem.addEventListener("click", () => this.openModal(item));
