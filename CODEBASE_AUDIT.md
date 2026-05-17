@@ -1021,6 +1021,83 @@ project = matrimonio-andrea-giulia-2026
 - 📋 2 giugno - 4 luglio: Test reali con amici + polish finale
 - 🎉 5 luglio: matrimonio Andrea & Giulia
 
+## AGGIORNAMENTO 2026-05-17 — Settimana 3 Giorno 3 (domenica mattina) ✅
+
+**Sessione:** 09:45 → ~11:00 (~1h15 lavoro tecnico effettivo)
+**Tag:** `v3.1-ai-scoring`
+**Deploy:** CF aiPhotoCurator + hosting
+
+**Decisioni architetturali:**
+- Trigger CF: Firestore `onDocumentUpdated` v2 su `wedding-media/{id}`, guard interna su `display_url: null → string` (= post generateThumbnails)
+- Servizio AI: chiamata diretta a `api.anthropic.com/v1/messages` via axios (no SDK aggiuntivo)
+- Model: `claude-sonnet-4-5` con vision (image base64)
+- Failure mode: graceful degradation — errori loggati, doc resta moderabile manualmente
+- Solo nuovi upload (no scoring retroattivo dei media pre-deploy)
+- Vocabolario tags fisso (12 valori): ritratto, gruppo, dettaglio, cerimonia, ricevimento, ballo, cibo, decorazioni, paesaggio, emotivo, divertente, formale
+
+**Implementato:**
+- ✅ CF `aiPhotoCurator` (functions v2, 512MiB, timeout 60s)
+- ✅ 4 guard: display_url changed + idempotenza ai_scored_at + file_type image + API key presente
+- ✅ Parser JSON robusto con fallback regex (per risposte API con preamble)
+- ✅ Validazione output: score 1-10 intero, tags array max 4, description max 200 chars
+- ✅ Schema doc esteso: `ai_score`, `ai_tags`, `ai_description`, `ai_scored_at`
+- ✅ Admin UI: blocco display sotto card con score colorato (low/medium/good/excellent), tags separati da bullet, description corsivo
+- ✅ Stato "in attesa" giallo per media senza ai_score
+- ✅ Galleria pubblica: nessuna modifica (AI info solo per admin)
+
+**Commit della sessione (2):**
+- `ca91987` feat(week3): CF aiPhotoCurator scoring immagini con Claude Vision API
+- `25ed81b` feat(week3): admin UI display AI scoring (score + tags + description)
+
+**Test produzione (E2E):**
+- Test 1 "Bacio 2" (foto buona): score 9, tags [ritratto, paesaggio, emotivo, formale], description toscana coerente
+- Test 2 "Cuore verde" (foto mediocre): score 2, tags [dettaglio, decorazioni], description critica
+- Discriminazione 7 punti delta → prompt funzionante al primo colpo, nessuna iterazione necessaria
+- Test post-deploy: nuovo upload → pipeline completa upload → thumbnails → AI scoring → admin display in ~30 secondi
+
+**Costo API stimato:**
+- ~$0.007 per foto (claude-sonnet-4-5 vision, ~1500 token input + ~150 token output)
+- Stima totale matrimonio ~150 foto = ~$1 totali (trascurabile)
+
+**Note metodologiche:**
+- Patto operativo rispettato: 1 macro-task chiuso senza scope creep
+- Stop pre-deadline (~11:00 vs stop dichiarato 12:45): ottima velocità grazie a diagnostica accurata
+- Decisione PM: rinviata email moderation e cleanup tech debt (Strategia 3 invece di 2 originale)
+- Mente fresca domenica mattina = strategia giusta per task strategico con prompt engineering
+
+### Tech debt residuo aggiornato
+1. **reCAPTCHA V2/V3 mismatch architetturale**: V2 prod, V3 dev
+2. **compressImage() dead code in upload-flow.js** (Strategia A delega tutto a CF generateThumbnails) — cleanup 30 min
+3. **Password admin "RindiFusi" hardcoded** in 3 posti: migrare a Firebase Auth + custom claims
+4. ~~**gallery-script.js status filter**~~ ✅ RISOLTO Giorno 2
+5. **Merge commit "A A A" cosmetico** in git history main
+6. 🟡 `firestore.indexes.json` contiene 1 indice composito (status+uploadDate); future query composite richiederanno estensione
+7. 🟡 Filtro status admin è client-side (`loadMedia` carica tutto + filtra in JS). OK per ~hundreds di media. Se collection cresce >1000 doc serve paginazione + query server-side.
+8. 🟡 `moderated_by: "admin"` hardcoded nella CF moderateMedia — diventerà UID reale quando migreremo a Firebase Auth + custom claims
+9. 🟡 Scoring retroattivo dei media uploadati prima del deploy CF (17 mag ~10:00) non implementato. Mostrano "🤖 In attesa di analisi AI…" in admin. Possibile task futuro: CF callable `aiScoreRetroactive` che processa doc con `ai_score: null` in batch. Stima 1h.
+10. 🟡 Nessun rate-limiting esplicito sulla CF aiPhotoCurator. Per ~150 ospiti × 1-3 foto = max ~500 chiamate API durante matrimonio. Limite Anthropic default 50 req/min, ampio margine. Da monitorare durante evento.
+11. 🟡 Tags AI sono solo display, no filtro admin per tag (es. "mostra solo cerimonia"). Possibile feature futura.
+12. 🟡 Nessun re-scoring on demand (es. bottone "ri-analizza" in admin). Se score sbagliato, decisione solo manuale.
+13. 🟢 Node.js 20 deprecation notice (decommission 30 ott 2026): NON urgente, 5+ mesi di buffer dopo matrimonio. Da fare in sessione dedicata 1-2h dopo settembre 2026.
+
+### Prossimi task (Sett 3 Giorno 4+)
+1. Email moderation per Andrea/Giulia (stima 1-2h) — rinviato da oggi
+2. Cleanup `compressImage()` dead code in upload-flow.js (stima 30 min) — rinviato da oggi
+3. (Settimane 4-5, compressed): live page cinematografica, AI Storyteller, Director layout, Janitor, archive.html, Stage Mode
+
+### Roadmap aggiornata
+- ✅ Sett 1: DONE (tag v1.0-foundations)
+- ✅ Sett 2: DONE (tag v2.0-upload-redesign, 15 maggio)
+- 🟢 Sett 3: IN CORSO
+  - ✅ Giorno 1 sabato 16 mag: uploader_name + deleteSelected + race condition fix
+  - ✅ Giorno 2 sabato 16 mag (sera): Moderazione admin completa (tag v3.0-moderation)
+  - ✅ Giorno 3 dom 17 mag: AI scoring Claude Vision (tag v3.1-ai-scoring)
+  - 📋 Giorno 4+: Email moderation per Andrea/Giulia — stima 1-2h
+  - 📋 Giorno 4+: Cleanup `compressImage()` dead code — stima 30 min
+- 📋 Sett 4-5 (compressed): live page + AI Storyteller + Director layout + Janitor + archive.html + Stage Mode
+- 🎯 1 giugno: MVP COMPLETO TESTATO INTERNAMENTE
+- 🎉 5 luglio: matrimonio
+
 ---
 
 ## AGGIORNAMENTO 2026-05-16 — Settimana 3 Giorno 2 (sabato sera) ✅
