@@ -1,6 +1,6 @@
 // ══════════════════════════════════════════════════════════════
 // upload-flow.js — Logica 4-step per /upload.html
-// Dipendenze: firebase-config.js (db, storage, firebase), imageCompression (CDN)
+// Dipendenze: firebase-config.js (db, storage, firebase)
 // ══════════════════════════════════════════════════════════════
 
 (function () {
@@ -353,27 +353,6 @@
     if (state.failCount === 0) {
       setTimeout(() => onAllComplete(), 400);
     }
-  }
-
-  // ══════════════════════════════════════════════════════════════
-  // COMPRESSIONE IMMAGINI
-  // ══════════════════════════════════════════════════════════════
-  async function compressImage(file) {
-    const [display, thumb] = await Promise.all([
-      imageCompression(file, {
-        maxSizeMB:        0.8,
-        maxWidthOrHeight: 2560,
-        useWebWorker:     true,
-        fileType:         'image/jpeg',
-      }),
-      imageCompression(file, {
-        maxSizeMB:        0.1,
-        maxWidthOrHeight: 600,
-        useWebWorker:     true,
-        fileType:         'image/jpeg',
-      }),
-    ]);
-    return { display, thumb };
   }
 
   // ══════════════════════════════════════════════════════════════
