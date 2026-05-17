@@ -304,6 +304,35 @@ class AdminPanel {
         thumbnailHTML = `<video src="${item.display_url || item.original_url}" class="media-thumbnail"></video>`;
       }
 
+      const aiBlock = (() => {
+        if (typeof item.ai_score !== 'number') {
+          return '<div class="ai-curator-block ai-pending">🤖 In attesa di analisi AI…</div>';
+        }
+        const score = item.ai_score;
+        let scoreClass = 'ai-score-medium';
+        if (score <= 3) scoreClass = 'ai-score-low';
+        else if (score >= 9) scoreClass = 'ai-score-excellent';
+        else if (score >= 7) scoreClass = 'ai-score-good';
+
+        const tags = Array.isArray(item.ai_tags) && item.ai_tags.length > 0
+          ? item.ai_tags.map(t => this.escapeHtml(t)).join(' • ')
+          : '';
+        const description = item.ai_description
+          ? this.escapeHtml(item.ai_description)
+          : '';
+
+        return `
+          <div class="ai-curator-block">
+            <div class="ai-curator-line1">
+              <span class="ai-label">🤖</span>
+              <span class="ai-score ${scoreClass}">${score}/10</span>
+              ${tags ? `<span class="ai-tags">${tags}</span>` : ''}
+            </div>
+            ${description ? `<div class="ai-description">"${description}"</div>` : ''}
+          </div>
+        `;
+      })();
+
       mediaItem.innerHTML = `
                 <input type="checkbox" class="media-checkbox" data-id="${item.id}">
                 <span class="status-badge status-${item.status || 'pending'}">
@@ -337,6 +366,7 @@ class AdminPanel {
                     <p><strong>${this.formatFileSize(item.fileSize || 0)}</strong></p>
                     <p>${this.formatDate(item.uploadDate)}</p>
                     <p class="media-uploader"><i class="fas fa-user"></i> ${this.escapeHtml(item.uploader_name || 'Anonimo')}</p>
+                    ${aiBlock}
                 </div>
             `;
 
