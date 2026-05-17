@@ -8,6 +8,7 @@
 
 const functions = require("firebase-functions");
 const { onObjectFinalized } = require("firebase-functions/v2/storage");
+const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
 const axios = require("axios");
 const nodemailer = require("nodemailer");
@@ -666,3 +667,169 @@ exports.moderateMedia = functions
       newStatus,
     };
   });
+
+/**
+ * Cloud Function: AI scoring immagini con Claude Vision API
+ *
+ * Triggered: Firestore onDocumentUpdated su wedding-media/{mediaId}
+ * Scatta quando display_url passa da null/undefined → stringa (post generateThumbnails).
+ * Assegna ai_score (1-10), ai_tags, ai_description al documento.
+ */
+exports.aiPhotoCurator = onDocumentUpdated({
+  region: "us-central1",
+  memory: "512MiB",
+  timeoutSeconds: 60,
+  document: "wedding-media/{mediaId}",
+}, async (event) => {
+  const before = event.data.before.data();
+  const after = event.data.after.data();
+  const mediaId = event.params.mediaId;
+
+  // Guard 1: scatta solo quando display_url passa da null/undefined → valore stringa
+  const displayUrlBefore = before?.display_url;
+  const displayUrlAfter = after?.display_url;
+  if (!displayUrlAfter || displayUrlBefore === displayUrlAfter) {
+    console.log(`[aiPhotoCurator] ${mediaId}: skip (display_url non cambiato o vuoto)`);
+    return null;
+  }
+
+  // Guard 2: idempotenza — se già scorato, return
+  if (after.ai_scored_at) {
+    console.log(`[aiPhotoCurator] ${mediaId}: skip (già scorato in passato)`);
+    return null;
+  }
+
+  // Guard 3: solo immagini (i video non passano da Vision)
+  if (after.file_type !== "image") {
+    console.log(`[aiPhotoCurator] ${mediaId}: skip (non immagine, è ${after.file_type})`);
+    return null;
+  }
+
+  // Guard 4: API key presente
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    console.error(`[aiPhotoCurator] ${mediaId}: ANTHROPIC_API_KEY mancante in env`);
+    return null;
+  }
+
+  try {
+    console.log(`[aiPhotoCurator] ${mediaId}: download immagine da ${displayUrlAfter.substring(0, 80)}...`);
+
+    // Scarica immagine come buffer
+    const imageResponse = await axios.get(displayUrlAfter, {
+      responseType: "arraybuffer",
+      timeout: 15000,
+    });
+    const imageBuffer = Buffer.from(imageResponse.data);
+    const imageBase64 = imageBuffer.toString("base64");
+    const mediaType = imageResponse.headers["content-type"] || "image/jpeg";
+
+    console.log(`[aiPhotoCurator] ${mediaId}: immagine scaricata (${Math.round(imageBuffer.length/1024)}KB), invio a Claude Vision...`);
+
+    // Chiamata Claude Vision API
+    const promptText = `Sei un curatore fotografico per matrimoni italiani. Valuta questa foto/video frame di matrimonio.
+
+Restituisci SOLO un oggetto JSON valido (niente preamble, niente markdown, niente code fence) con questa struttura ESATTA:
+
+{
+  "score": <numero intero 1-10>,
+  "tags": [<array di 2-4 stringhe>],
+  "description": "<una frase italiana max 100 caratteri>"
+}
+
+Criteri SCORE 1-10:
+- 1-3: foto sfocata, mal inquadrata, senza valore narrativo
+- 4-6: foto accettabile, soggetto chiaro ma composizione media
+- 7-8: foto buona, momento significativo, buona luce/composizione
+- 9-10: foto eccezionale, momento iconico, qualità da album
+
+VOCABOLARIO TAGS (scegli 2-4, SOLO da questa lista):
+ritratto, gruppo, dettaglio, cerimonia, ricevimento, ballo, cibo, decorazioni, paesaggio, emotivo, divertente, formale
+
+DESCRIPTION: una frase italiana che riassume cosa rappresenta (max 100 caratteri).`;
+
+    const apiResponse = await axios.post(
+      "https://api.anthropic.com/v1/messages",
+      {
+        model: "claude-sonnet-4-5",
+        max_tokens: 300,
+        messages: [{
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: mediaType,
+                data: imageBase64,
+              },
+            },
+            {
+              type: "text",
+              text: promptText,
+            },
+          ],
+        }],
+      },
+      {
+        headers: {
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        timeout: 30000,
+      }
+    );
+
+    // Parse risposta
+    const responseText = apiResponse.data?.content?.[0]?.text || "";
+    console.log(`[aiPhotoCurator] ${mediaId}: risposta API ricevuta (${responseText.length} chars)`);
+
+    // Parser robusto: estrai JSON anche se c'è preamble/code fence
+    let parsedData;
+    try {
+      parsedData = JSON.parse(responseText);
+    } catch (e) {
+      // Fallback: cerca JSON dentro la stringa
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsedData = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error("Risposta API non contiene JSON valido");
+      }
+    }
+
+    // Validazione minima
+    const score = Number.isInteger(parsedData.score) && parsedData.score >= 1 && parsedData.score <= 10
+      ? parsedData.score
+      : null;
+    const tags = Array.isArray(parsedData.tags) ? parsedData.tags.slice(0, 4) : [];
+    const description = typeof parsedData.description === "string"
+      ? parsedData.description.substring(0, 200)
+      : "";
+
+    if (score === null) {
+      console.error(`[aiPhotoCurator] ${mediaId}: score non valido nella risposta`, parsedData);
+      return null;
+    }
+
+    // Update Firestore
+    await event.data.after.ref.update({
+      ai_score: score,
+      ai_tags: tags,
+      ai_description: description,
+      ai_scored_at: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    console.log(`[aiPhotoCurator] ${mediaId}: success — score=${score}, tags=[${tags.join(",")}]`);
+    return null;
+
+  } catch (error) {
+    // Log errore ma non rilancio: doc resta senza score, moderabile manualmente
+    console.error(`[aiPhotoCurator] ${mediaId}: errore`, error.message);
+    if (error.response) {
+      console.error(`[aiPhotoCurator] ${mediaId}: API status ${error.response.status}`, error.response.data);
+    }
+    return null;
+  }
+});
