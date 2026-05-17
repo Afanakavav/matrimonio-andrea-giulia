@@ -1021,6 +1021,89 @@ project = matrimonio-andrea-giulia-2026
 - 📋 2 giugno - 4 luglio: Test reali con amici + polish finale
 - 🎉 5 luglio: matrimonio Andrea & Giulia
 
+## AGGIORNAMENTO 2026-05-17 — Settimana 3 Giorno 3 (domenica sera) ✅
+
+**Sessione:** 19:00 → ~21:00 (~2h lavoro tecnico effettivo)
+**Tag:** `v3.2-telegram-notifications`
+**Deploy:** CF notifyNewMedia (hosting NON deployato — solo cleanup client locale + push)
+
+**Decisioni architetturali:**
+- Notifica scelta: **Telegram bot** (al posto di email originariamente pianificata)
+- Setup A3 (chat privata bot↔Francesco) — da estendere a A1 (gruppo con sposi) prima del matrimonio
+- Trigger CF: Firestore `onDocumentUpdated` v2, guard `ai_scored_at` null→timestamp (= post aiPhotoCurator)
+- Contenuto B2: thumbnail inline + caption ricca con AI info + bottone link admin
+- Failure mode: graceful degradation — errore Telegram non blocca workflow moderazione web
+- Solo foto (i video non passano da aiPhotoCurator → non triggerano notifica, tech debt)
+
+**Implementato:**
+- ✅ Bot Telegram `@andreagiulia_mod_bot` creato via @BotFather
+- ✅ TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID in `functions/.env`
+- ✅ CF `notifyNewMedia` (functions v2, 256MiB, timeout 30s)
+- ✅ Helper escape MarkdownV2 per caratteri speciali Telegram
+- ✅ Caption italiana con emoji semaforo per score (🔴 1-3, 🟡 4-6, 🟢 7-8, ⭐ 9-10)
+- ✅ sendPhoto con thumb_url inline + reply_markup inline_keyboard
+- ✅ Fallback sendMessage testuale per media senza thumbnail
+- ✅ Idempotenza via campo `telegram_notified_at`
+- ✅ Schema doc esteso: `telegram_notified_at` (timestamp)
+- ✅ Cleanup `compressImage()` dead code in `upload-flow.js` (−21 righe)
+
+**Commit della sessione (2):**
+- `5c686ae` feat(week3): CF notifyNewMedia notifica Telegram con thumb + AI score + link admin
+- `8d059b3` chore(week3): rimozione compressImage dead code (Strategia A delega a CF)
+
+**Test produzione (E2E):**
+- Upload foto → catena completa (generateThumbnails → aiPhotoCurator → notifyNewMedia) → notifica Telegram ricevuta in ~20 secondi
+- Thumbnail inline + caption + bottone "Apri admin" funzionanti
+- 0 errori
+
+**CF live totali: 10**
+
+**Note metodologiche:**
+- Decisione product-driven: Francesco ha messo in discussione la mia raccomandazione (email), ho analizzato 6 alternative, Telegram è oggettivamente superiore per il caso d'uso
+- Patto operativo rispettato: scope chiuso (Telegram + cleanup upload-flow), stop su scope creep (upload-modal.js dead code investigation NON eseguito stasera)
+- Scoperta inattesa durante cleanup: upload-modal.js ha compressImage attiva separata, scope creep dichiarato declinato → audit-only
+
+### Tech debt residuo aggiornato
+1. **reCAPTCHA V2/V3 mismatch architetturale**: V2 prod, V3 dev
+2. ~~**compressImage() dead code in upload-flow.js**~~ ✅ RISOLTO Giorno 3 sera
+3. **Password admin "RindiFusi" hardcoded** in 3 posti: migrare a Firebase Auth + custom claims
+4. ~~**gallery-script.js status filter**~~ ✅ RISOLTO Giorno 2
+5. **Merge commit "A A A" cosmetico** in git history main
+6. 🟡 `firestore.indexes.json` contiene 1 indice composito (status+uploadDate); future query composite richiederanno estensione
+7. 🟡 Filtro status admin è client-side (`loadMedia` carica tutto + filtra in JS). OK per ~hundreds di media. Se collection cresce >1000 doc serve paginazione + query server-side.
+8. 🟡 `moderated_by: "admin"` hardcoded nella CF moderateMedia — diventerà UID reale quando migreremo a Firebase Auth + custom claims
+9. 🟡 Scoring retroattivo dei media uploadati prima del deploy CF (17 mag ~10:00) non implementato. Mostrano "🤖 In attesa di analisi AI…" in admin. Possibile task futuro: CF callable `aiScoreRetroactive` che processa doc con `ai_score: null` in batch. Stima 1h.
+10. 🟡 Nessun rate-limiting esplicito sulla CF aiPhotoCurator. Per ~150 ospiti × 1-3 foto = max ~500 chiamate API durante matrimonio. Limite Anthropic default 50 req/min, ampio margine. Da monitorare durante evento.
+11. 🟡 Tags AI sono solo display, no filtro admin per tag (es. "mostra solo cerimonia"). Possibile feature futura.
+12. 🟡 Nessun re-scoring on demand (es. bottone "ri-analizza" in admin). Se score sbagliato, decisione solo manuale.
+13. 🟢 Node.js 20 deprecation notice (decommission 30 ott 2026): NON urgente, 5+ mesi di buffer dopo matrimonio. Da fare in sessione dedicata 1-2h dopo settembre 2026.
+14. 🔴 **ALTO — upload-modal.js usa imageCompression CDN client-side**: in contrasto con Strategia A applicata a upload-flow.js. Da investigare: chi importa/instanzia upload-modal.js? Se dead code → rimuovere intero file. Se attivo → allineare a Strategia A. Stima diagnostica: 15-20 min. Stima fix: 30-45 min. **Priorità: prima del matrimonio (5 luglio).**
+15. 🔴 **ALTO — Setup Telegram attualmente A3 (solo Francesco)**: deve essere migrato a A1 (gruppo con Andrea + Giulia) **almeno 1 settimana prima del matrimonio**. Steps: creare gruppo Telegram, aggiungere bot come membro, recuperare chat_id del gruppo, aggiornare TELEGRAM_CHAT_ID in functions/.env, rideploy notifyNewMedia. Stima: 15-20 min. **Senza questo, valore della feature non si manifesta.**
+16. 🔴 **ALTO — Telegram bot B3 (bottoni interattivi approve/reject in chat)**: obiettivo dichiarato Francesco per il matrimonio. Richiede CF webhook Telegram in entrata + verifica firma + gestione callback_query. Stima: 2-3h sessione dedicata. **Priorità: prima del matrimonio (5 luglio).**
+17. 🟡 Video non triggerano notifyNewMedia (perché non passano da aiPhotoCurator). Caso edge da gestire: trigger separato su display_url per file_type=video, con notifica senza AI score. Stima: 30-45 min. Priorità: media.
+18. 🟡 Hosting non deployato stasera: `upload-flow.js` modificato (compressImage rimossa) ma in produzione contiene ancora il dead code. Verrà deployato alla prossima feature visibile. Priorità: bassa (cleanup non cambia comportamento utente).
+
+### Prossimi task (Sett 3 Giorno 4+)
+1. **Upload-modal.js investigation + fix** (diagnostica + eventuale rimozione/allineamento Strategia A) — stima 45-60 min
+2. **Telegram setup A1 + Telegram B3 (bottoni interattivi approve/reject)** — obiettivi matrimonio, stima 2-3h sessione
+3. **Live page cinematografica** (Sett 4, sessione mezza giornata)
+4. Janitor batch, archive.html, Stage Mode (Sett 4-5)
+
+### Roadmap aggiornata
+- ✅ Sett 1: DONE (tag v1.0-foundations)
+- ✅ Sett 2: DONE (tag v2.0-upload-redesign, 15 maggio)
+- 🟢 Sett 3: IN CORSO
+  - ✅ Giorno 1 sabato 16 mag: uploader_name + deleteSelected + race condition fix
+  - ✅ Giorno 2 sabato 16 mag (sera): Moderazione admin completa (tag v3.0-moderation)
+  - ✅ Giorno 3 dom 17 mag (mattina): AI scoring Claude Vision (tag v3.1-ai-scoring)
+  - ✅ Giorno 3 dom 17 mag (sera): Telegram notifications + cleanup (tag v3.2-telegram-notifications)
+  - 📋 Giorno 4+: upload-modal.js investigation + Telegram A1 setup + Telegram B3 bottoni
+- 📋 Sett 4-5 (compressed): live page + AI Storyteller + Director layout + Janitor + archive.html + Stage Mode
+- 🎯 1 giugno: MVP COMPLETO TESTATO INTERNAMENTE
+- 🎉 5 luglio: matrimonio
+
+---
+
 ## AGGIORNAMENTO 2026-05-17 — Settimana 3 Giorno 3 (domenica mattina) ✅
 
 **Sessione:** 09:45 → ~11:00 (~1h15 lavoro tecnico effettivo)
