@@ -833,3 +833,133 @@ DESCRIPTION: una frase italiana che riassume cosa rappresenta (max 100 caratteri
     return null;
   }
 });
+
+// =====================================
+// CF notifyNewMedia — notifica Telegram
+// =====================================
+exports.notifyNewMedia = onDocumentUpdated({
+  region: "us-central1",
+  memory: "256MiB",
+  timeoutSeconds: 30,
+  document: "wedding-media/{mediaId}",
+}, async (event) => {
+  const before = event.data.before.data();
+  const after = event.data.after.data();
+  const mediaId = event.params.mediaId;
+
+  // Guard 1: scatta solo quando ai_scored_at passa da null/undefined → valore
+  const aiScoredBefore = before?.ai_scored_at;
+  const aiScoredAfter = after?.ai_scored_at;
+  if (!aiScoredAfter || aiScoredBefore) {
+    return null;
+  }
+
+  // Guard 2: idempotenza — se già notificato, return
+  if (after.telegram_notified_at) {
+    console.log(`[notifyNewMedia] ${mediaId}: skip (già notificato)`);
+    return null;
+  }
+
+  // Guard 3: credenziali Telegram presenti
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!botToken || !chatId) {
+    console.error(`[notifyNewMedia] ${mediaId}: TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID mancanti in env`);
+    return null;
+  }
+
+  // Helper: escape caratteri speciali MarkdownV2
+  const escapeMd = (str) => {
+    if (typeof str !== "string") return "";
+    return str.replace(/[_*\[\]()~`>#+\-=|{}.!\\]/g, "\\$&");
+  };
+
+  try {
+    // Costruisci caption
+    const uploaderName = escapeMd(after.uploader_name || "Anonimo");
+    const fileType = after.file_type === "image" ? "📷 Foto" : "🎥 Video";
+    const score = typeof after.ai_score === "number" ? after.ai_score : null;
+    const tags = Array.isArray(after.ai_tags) ? after.ai_tags.join(", ") : "";
+    const description = after.ai_description || "";
+
+    let scoreEmoji = "";
+    if (score !== null) {
+      if (score <= 3) scoreEmoji = "🔴";
+      else if (score <= 6) scoreEmoji = "🟡";
+      else if (score <= 8) scoreEmoji = "🟢";
+      else scoreEmoji = "⭐";
+    }
+
+    const caption =
+      `📸 *Nuovo media in attesa*\n\n` +
+      `*Da:* ${uploaderName}\n` +
+      `*Tipo:* ${escapeMd(fileType)}\n` +
+      (score !== null
+        ? `*🤖 AI Score:* ${scoreEmoji} ${score}/10` +
+          (tags ? ` _\\(${escapeMd(tags)}\\)_` : "") +
+          `\n`
+        : "") +
+      (description
+        ? `\n_"${escapeMd(description)}"_\n`
+        : "");
+
+    // Bottone link admin
+    const adminUrl = "https://andreagiulia5luglio26.it/admin.html";
+    const inlineKeyboard = {
+      inline_keyboard: [
+        [{ text: "📲 Apri admin", url: adminUrl }],
+      ],
+    };
+
+    // Decidi se mandare con foto o solo testo (foto solo se file_type=image E thumb_url disponibile)
+    const hasThumb = after.file_type === "image" && after.thumb_url;
+
+    let telegramResponse;
+    if (hasThumb) {
+      // sendPhoto con thumbnail
+      console.log(`[notifyNewMedia] ${mediaId}: sendPhoto con thumb ${after.thumb_url.substring(0, 60)}...`);
+      telegramResponse = await axios.post(
+        `https://api.telegram.org/bot${botToken}/sendPhoto`,
+        {
+          chat_id: chatId,
+          photo: after.thumb_url,
+          caption: caption,
+          parse_mode: "MarkdownV2",
+          reply_markup: inlineKeyboard,
+        },
+        { timeout: 15000 }
+      );
+    } else {
+      // sendMessage solo testo
+      console.log(`[notifyNewMedia] ${mediaId}: sendMessage solo testo`);
+      telegramResponse = await axios.post(
+        `https://api.telegram.org/bot${botToken}/sendMessage`,
+        {
+          chat_id: chatId,
+          text: caption,
+          parse_mode: "MarkdownV2",
+          reply_markup: inlineKeyboard,
+        },
+        { timeout: 15000 }
+      );
+    }
+
+    if (telegramResponse.data?.ok) {
+      console.log(`[notifyNewMedia] ${mediaId}: messaggio inviato (id ${telegramResponse.data.result.message_id})`);
+      // Marca come notificato per idempotenza
+      await event.data.after.ref.update({
+        telegram_notified_at: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    } else {
+      console.error(`[notifyNewMedia] ${mediaId}: Telegram API risposta inattesa`, telegramResponse.data);
+    }
+
+    return null;
+  } catch (error) {
+    console.error(`[notifyNewMedia] ${mediaId}: errore`, error.message);
+    if (error.response) {
+      console.error(`[notifyNewMedia] ${mediaId}: API status ${error.response.status}`, JSON.stringify(error.response.data));
+    }
+    return null;
+  }
+});
