@@ -501,3 +501,20 @@
     flex-direction: row;
   }
 }
+
+/* ── Step status (before/after periodo matrimonio) ── */
+.upload-status-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  line-height: 1;
+}
+
+#step-status h2 {
+  margin-bottom: 12px;
+  color: #333;
+}
+
+#step-status p {
+  color: #666;
+  margin-bottom: 24px;
+}

@@ -47,7 +47,7 @@
           <li><a href="#reception" class="nav-link">Ricevimento</a></li>
           <li><a href="#rsvp" class="nav-link">R.S.V.P.</a></li>
           <li><a href="#gifts" class="nav-link">Lista Nozze</a></li>
-          <li><a href="javascript:void(0)" class="nav-link" id="uploadBtn">📸 Carica</a></li>
+          <li><a href="/upload.html" class="nav-link">📸 Carica</a></li>
           <li><a href="gallery.html" class="nav-link">🖼️ Galleria</a></li>
         </ul>
         <div class="hamburger">
@@ -483,65 +483,6 @@
       </div>
     </footer>
 
-    <!-- Upload Status Modal (prima/dopo periodo matrimonio) -->
-    <div id="uploadStatusModal" class="upload-soon-overlay" style="display:none">
-      <div class="upload-soon-card">
-        <button class="upload-soon-close" id="uploadStatusClose" aria-label="Chiudi">&times;</button>
-        <div class="upload-soon-icon" id="uploadStatusIcon"></div>
-        <h3 class="upload-soon-title" id="uploadStatusTitle"></h3>
-        <p class="upload-soon-text" id="uploadStatusText"></p>
-        <div class="upload-soon-actions" id="uploadStatusActions"></div>
-      </div>
-    </div>
-
-    <!-- Upload Modal -->
-    <div id="uploadModal" class="upload-modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Carica Foto &amp; Video</h2>
-          <span class="close-modal">&times;</span>
-        </div>
-        <div class="modal-body">
-          <div class="upload-area" id="uploadArea">
-            <div class="upload-icon">
-              <i class="fas fa-cloud-upload-alt"></i>
-            </div>
-            <h3>Trascina qui le tue foto e video</h3>
-            <p>oppure <span class="click-to-browse">clicca per selezionare</span></p>
-            <input
-              type="file"
-              id="fileInput"
-              multiple
-              accept="image/*,video/*"
-              style="display: none"
-            />
-            <div class="upload-info">
-              <small>Formati supportati: JPG, PNG, MP4, MOV (max 100MB per file)</small>
-            </div>
-          </div>
-
-          <div class="upload-progress" id="uploadProgress" style="display: none">
-            <div class="progress-bar">
-              <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div class="progress-text" id="progressText">Caricamento...</div>
-          </div>
-
-          <div class="upload-preview" id="uploadPreview" style="display: none">
-            <h4>Anteprima:</h4>
-            <div class="preview-grid" id="previewGrid"></div>
-          </div>
-
-          <div class="upload-actions">
-            <button id="uploadBtn" class="btn-upload" disabled>
-              <i class="fas fa-upload"></i> Carica
-            </button>
-            <button id="cancelBtn" class="btn-cancel">Annulla</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Firebase SDK -->
     <!-- Load config.local.js FIRST (if exists, otherwise uses placeholder from firebase-config.js) -->
     <script src="config.local.js"></script>
@@ -554,8 +495,7 @@
 
     <script src="firebase-config.js?v=2"></script>
     <script src="script.js?v=2"></script>
-    <script src="upload-modal.js?v=2"></script>
-    <script src="video-handler.js?v=2"></script>
+<script src="video-handler.js?v=2"></script>
     <script src="rsvp-handler.js?v=2"></script>
 
   </body>

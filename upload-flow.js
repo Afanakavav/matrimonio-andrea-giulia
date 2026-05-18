@@ -438,5 +438,24 @@
   }
 
   // ── Bootstrap ───────────────────────────────────────────────
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', () => {
+    const status = getUploadStatus();
+    if (status !== 'open') {
+      showStep('step-status');
+      const icon  = document.getElementById('uploadStatusIcon');
+      const title = document.getElementById('uploadStatusTitle');
+      const text  = document.getElementById('uploadStatusText');
+      if (status === 'before') {
+        if (icon)  icon.textContent  = '✨';
+        if (title) title.textContent = 'La galleria si attiverà presto!';
+        if (text)  text.textContent  = 'Potrai caricare foto e video dal giorno del matrimonio. Torna presto!';
+      } else {
+        if (icon)  icon.textContent  = '🎉';
+        if (title) title.textContent = 'Galleria chiusa';
+        if (text)  text.textContent  = 'Il matrimonio è finito! Grazie per aver condiviso i tuoi ricordi.';
+      }
+      return;
+    }
+    init();
+  });
 })();
