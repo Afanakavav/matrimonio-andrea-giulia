@@ -1023,6 +1023,45 @@ project = matrimonio-andrea-giulia-2026
 
 ---
 
+## AGGIORNAMENTO 2026-05-18 — Sessione bonus diagnostica upload-modal.js ✅
+
+**Sessione:** 22:40 → ~23:00 (~20 min solo diagnostica, nessun codice toccato)
+**Scope:** rispondere a "upload-modal.js è dead code o attivo?"
+
+**Verdetto: DEAD CODE in finestra matrimonio (con sfumature)**
+
+**Evidenza:**
+- `upload-modal.js` linkato SOLO in `index.html` (riga 557 `<script src=...>`)
+- Nessun altro JS in root fa riferimento a `UploadModal`/`uploadModal`
+- Istanziato a DOMContentLoaded MA `uploadFiles()` e `compressImage()` mai chiamate
+- Motivo: `handleUploadClick()` riga 7 → `window.location.href = '/upload.html'` + `return` → redirect immediato durante stato "open" (finestra matrimonio attiva)
+- Doppia evidenza che è rotto anche se attivato: Storage path mancante `/originals/`, schema Firestore vecchio (`fileType` vs `file_type`), no Anonymous Auth
+
+**Sfumatura: cosa NON è dead code**
+- Funzione `handleUploadClick()` ha rami `before` / `after` che mostrano modal informativi pre/post matrimonio usando il div HTML `#uploadModal` (index.html riga 498). Quei rami non chiamano `uploadFiles()` ma testi statici. Da decidere se sono ancora desiderati.
+
+**Storia git:** ultimo commit sostanziale = `3d0f5f6` (Settimana 2, creazione `/upload.html` con redirect). Da allora è residuo non rimosso.
+
+**Piano fix proposto per prossima sessione (~45-50 min):**
+
+1. **Decisione architetturale (5 min discussione):** i rami `before`/`after` di `handleUploadClick()` sono ancora desiderati?
+   - Se sì: logica spostata altrove (es. `script.js`)
+   - Se no: semplificazione a redirect diretto puro
+
+2. **Modifiche codice (15-20 min):**
+   - `index.html`: rimuovere riga 557 `<script src="upload-modal.js">`
+   - `index.html` riga 498: decidere su `<div id="uploadModal">` (tenere/rimuovere)
+   - `script.js`: spostare `handleUploadClick()` se necessario
+   - `upload-modal.js`: `git rm` (rimozione totale file, 338 righe morte)
+
+3. **Deploy + smoke test (15 min):** verificare che click su upload da `index.html` apra ancora correttamente `/upload.html`
+
+4. **Tag opzionale `v3.4-cleanup` + audit doc (10 min)**
+
+**Decisione da prendere a mente fresca:** rami before/after sì o no?
+
+---
+
 ## AGGIORNAMENTO 2026-05-18 — Settimana 3 Giorno 4 (lunedì sera) ✅
 
 **Sessione:** 21:15 → ~22:25 (~1h10 lavoro tecnico effettivo)
@@ -1082,7 +1121,7 @@ project = matrimonio-andrea-giulia-2026
 11. 🟡 Tags AI sono solo display, no filtro admin per tag. Possibile feature futura.
 12. 🟡 Nessun re-scoring on demand (es. bottone "ri-analizza" in admin). Se score sbagliato, decisione solo manuale.
 13. 🟢 Node.js 20 deprecation notice (decommission 30 ott 2026): NON urgente. Da fare in sessione dedicata 1-2h dopo settembre 2026.
-14. 🔴 **ALTO — upload-modal.js usa imageCompression CDN client-side**: in contrasto con Strategia A applicata a upload-flow.js. Da investigare: chi importa/instanzia upload-modal.js? Stima diagnostica: 15-20 min. Stima fix: 30-45 min. **Priorità: prima del matrimonio (5 luglio).**
+14. 🔴 **MEDIO — upload-modal.js è DEAD CODE in finestra matrimonio** (diagnosi 18 mag). Pronto per rimozione totale, richiede decisione architetturale su rami before/after di handleUploadClick(). Stima fix: 45-50 min.
 15. 🔴 **ALTO — Setup Telegram A3→A1 (gruppo sposi)**: deve essere migrato a A1 (gruppo con Andrea + Giulia) **almeno 1 settimana prima del matrimonio**. Steps: creare gruppo Telegram, aggiungere bot come membro, recuperare chat_id, aggiornare TELEGRAM_CHAT_ID in functions/.env, rideploy notifyNewMedia. Stima: 15-20 min.
 16. ~~🔴 **ALTO — Telegram bot B3 (bottoni interattivi approve/reject in chat)**~~ ✅ CHIUSO Giorno 4 (18 mag)
 17. 🟡 Video non triggerano notifyNewMedia (perché non passano da aiPhotoCurator). Caso edge da gestire: trigger separato su display_url per file_type=video. Stima: 30-45 min. Priorità: media.
