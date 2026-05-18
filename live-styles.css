@@ -1,0 +1,196 @@
+/* ══════════════════════════════════════════════════════════════
+   live-styles.css — Galleria live cinematografica
+   Tema scuro verde/oro. Usato solo da live.html.
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  --live-bg-start: #1a2620;
+  --live-bg-end:   #0d1310;
+  --live-gold:     #d4af7a;
+  --live-gold-dim: rgba(212, 175, 122, 0.35);
+  --live-white:    #f5f0e8;
+  --slot-gap:      3px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.live-body {
+  background: linear-gradient(135deg, var(--live-bg-start), var(--live-bg-end));
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* ── Grid principale ───────────────────────────────────────── */
+.live-grid {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  gap: var(--slot-gap);
+
+  /* Default: 3 colonne × 2 righe */
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows:    repeat(2, 1fr);
+}
+
+/* ── Slot ──────────────────────────────────────────────────── */
+.live-slot {
+  position: relative;
+  overflow: hidden;
+  background: #0a0f0d;
+}
+
+.live-slot-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* ── Media wrapper (immagine o video dentro lo slot) ───────── */
+.media-wrapper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.media-wrapper img,
+.media-wrapper video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Ken Burns — foto ──────────────────────────────────────── */
+.media-wrapper.kb-photo img {
+  animation: kenBurns 12s ease-in-out infinite alternate;
+  transform-origin: var(--kb-x, 50%) var(--kb-y, 50%);
+}
+
+/* ── Ken Burns — featured (leggermente più lento) ──────────── */
+.media-wrapper.kb-featured img {
+  animation: kenBurnsFeatured 14s ease-in-out infinite alternate;
+  transform-origin: var(--kb-x, 50%) var(--kb-y, 50%);
+}
+
+@keyframes kenBurns {
+  from { transform: scale(1);    }
+  to   { transform: scale(1.12); }
+}
+
+@keyframes kenBurnsFeatured {
+  from { transform: scale(1);    }
+  to   { transform: scale(1.08); }
+}
+
+/* ── Video: nessun Ken Burns ───────────────────────────────── */
+.media-wrapper.kb-video video {
+  /* fermo, solo object-fit cover */
+}
+
+/* ── Fade-in del wrapper al mount ──────────────────────────── */
+.media-wrapper {
+  animation: wrapperFadeIn 0.6s ease both;
+}
+
+@keyframes wrapperFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Glow gold per nuovo upload ────────────────────────────── */
+.live-slot.new-upload {
+  animation: newUploadGlow 1.5s ease-out forwards;
+}
+
+@keyframes newUploadGlow {
+  0%   { box-shadow: 0 0 0   rgba(212, 175, 122, 0);   }
+  30%  { box-shadow: 0 0 50px rgba(212, 175, 122, 0.8),
+                     0 0 100px rgba(212, 175, 122, 0.4); }
+  100% { box-shadow: 0 0 0   rgba(212, 175, 122, 0);   }
+}
+
+/* ── Placeholder vuoto ─────────────────────────────────────── */
+.empty-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity 0.8s ease;
+}
+
+.empty-placeholder.hidden {
+  opacity: 0;
+}
+
+.monogram {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(4rem, 12vw, 10rem);
+  font-weight: 400;
+  color: var(--live-gold);
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-shadow: 0 2px 40px rgba(212, 175, 122, 0.5);
+  animation: gentlePulse 4s ease-in-out infinite;
+}
+
+.monogram-date {
+  margin-top: 1rem;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(0.9rem, 2vw, 1.4rem);
+  color: var(--live-gold-dim);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+@keyframes gentlePulse {
+  0%, 100% { opacity: 0.85; transform: scale(1);    }
+  50%       { opacity: 1;    transform: scale(1.03); }
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+
+/* Tablet: 2 colonne × 2 righe — slot 4 e 5 nascosti */
+@media (max-width: 900px) {
+  .live-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows:    repeat(2, 1fr);
+  }
+
+  .live-slot[data-slot-id="4"],
+  .live-slot[data-slot-id="5"] {
+    display: none;
+  }
+}
+
+/* Mobile: 1 colonna × 2 righe — slot 2-5 nascosti */
+@media (max-width: 500px) {
+  .live-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows:    repeat(2, 1fr);
+  }
+
+  .live-slot[data-slot-id="2"],
+  .live-slot[data-slot-id="3"],
+  .live-slot[data-slot-id="4"],
+  .live-slot[data-slot-id="5"] {
+    display: none;
+  }
+}

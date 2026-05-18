@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net;
+      worker-src 'self' blob:;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
+      img-src 'self' data: blob: https://firebasestorage.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+      connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com https://*.cloudfunctions.net https://firebasestorage.googleapis.com;
+      media-src 'self' blob: https://firebasestorage.googleapis.com;
+      object-src 'none';
+      base-uri 'self';
+    "
+    />
+    <title>Galleria Live — Andrea &amp; Giulia</title>
+    <link rel="icon" type="image/png" href="images/Logo-QR-code.png" />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="live-styles.css" />
+
+    <!-- Firebase SDK 9.23.0 compat -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  </head>
+  <body class="live-body">
+
+    <div id="liveContainer" class="live-grid">
+      <div class="live-slot" data-slot-id="0">
+        <div class="live-slot-inner"></div>
+      </div>
+      <div class="live-slot" data-slot-id="1">
+        <div class="live-slot-inner"></div>
+      </div>
+      <div class="live-slot" data-slot-id="2">
+        <div class="live-slot-inner"></div>
+      </div>
+      <div class="live-slot" data-slot-id="3">
+        <div class="live-slot-inner"></div>
+      </div>
+      <div class="live-slot" data-slot-id="4">
+        <div class="live-slot-inner"></div>
+      </div>
+      <div class="live-slot" data-slot-id="5">
+        <div class="live-slot-inner"></div>
+      </div>
+    </div>
+
+    <!-- Placeholder visibile finché il pool è vuoto -->
+    <div id="emptyPlaceholder" class="empty-placeholder">
+      <div class="monogram">A &amp; G</div>
+      <p class="monogram-date">5 · VII · MMXXVI</p>
+    </div>
+
+    <!-- Config locale (sovrascrive config prod per sviluppo) -->
+    <script src="config.local.js" onerror="this.remove()"></script>
+    <!-- Config Firebase -->
+    <script src="firebase-config.js"></script>
+    <!-- Logica galleria live -->
+    <script src="live-script.js"></script>
+  </body>
+</html>
