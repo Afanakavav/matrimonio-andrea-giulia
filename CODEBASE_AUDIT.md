@@ -1021,6 +1021,98 @@ project = matrimonio-andrea-giulia-2026
 - 📋 2 giugno - 4 luglio: Test reali con amici + polish finale
 - 🎉 5 luglio: matrimonio Andrea & Giulia
 
+---
+
+## AGGIORNAMENTO 2026-05-18 — Settimana 3 Giorno 4 (lunedì sera) ✅
+
+**Sessione:** 21:15 → ~22:25 (~1h10 lavoro tecnico effettivo)
+**Tag:** `v3.3-telegram-interactive`
+**Deploy:** CF telegramWebhook (nuova) + notifyNewMedia (update)
+
+**Decisione product-driven:**
+- B3 (bottoni interattivi approve/reject in chat Telegram) era tech debt 🔴 ALTO obiettivo matrimonio. Chiuso oggi.
+- Setup A3 mantenuto (chat privata Francesco). Migrazione ad A1 (gruppo sposi) resta tech debt 🔴 da fare 1 settimana prima del matrimonio.
+
+**Decisioni architetturali:**
+- Trigger: HTTP `onRequest` v2 (`firebase-functions/v2/https`), endpoint pubblico `https://us-central1-{project}.cloudfunctions.net/telegramWebhook`
+- Sicurezza: verifica `X-Telegram-Bot-Api-Secret-Token` con `crypto.timingSafeEqual`. Secret 32 chars random in `functions/.env` come `TELEGRAM_WEBHOOK_SECRET`. Separato da `ADMIN_PASSWORD` (semanticamente diverso).
+- `allowed_updates: ["callback_query"]` su `setWebhook` → Telegram notifica SOLO callback bottoni, niente messaggi normali. Riduce rumore e superficie di attacco.
+- `callback_data` formato compatto: `"a:mediaId"` / `"r:mediaId"` (22 byte, ben sotto limite Telegram 64 byte)
+- UX post-tap: `editMessageReplyMarkup` rimuove bottoni callback, lascia solo "Apri admin" come audit trail
+- `moderated_by`: formato `"telegram:@username"` per distinguere da `"admin"` (moderazione web)
+- Failure mode: errori loggati, `answerCallbackQuery` sempre chiamato (anche su errore) per evitare retry loop Telegram
+
+**Implementato:**
+- ✅ `TELEGRAM_WEBHOOK_SECRET` (32 chars random) in `functions/.env`
+- ✅ Import `onRequest` da `firebase-functions/v2/https`
+- ✅ CF `telegramWebhook` (185 righe): metodo POST only, verifica firma, parsing callback_query, idempotenza, update Firestore, answerCallbackQuery, editMessageReplyMarkup
+- ✅ Helper `answerCallback()` e `editReplyMarkupKeepAdminLink()`
+- ✅ Modifica `notifyNewMedia`: inline_keyboard ora ha 3 bottoni (Approva + Rifiuta callback, Apri admin URL)
+- ✅ `setWebhook` su Telegram configurato con secret + allowed_updates
+- ✅ Verifica sicurezza: 403 confermato per richieste senza secret + secret invalido
+
+**Commit della sessione (1):**
+- `88abd67` feat(week4): CF telegramWebhook bottoni interattivi approve/reject + notifyNewMedia callback_data
+
+**Test produzione (E2E):**
+- Upload nuovo media → notifica Telegram con thumbnail + AI score + 3 bottoni (~20 sec)
+- Tap "✅ Approva" → toast `✅ Approvato` + bottoni callback rimossi + Firestore status=approved + moderated_by=telegram:@xxx
+- Tap "❌ Rifiuta" → simmetrico, status=rejected
+- Galleria pubblica mostra media approvati via Telegram identici a quelli approvati via admin web
+- Pre-test sicurezza: 403 Forbidden senza secret + 403 con secret sbagliato
+
+**CF live totali: 11**
+
+**Note metodologiche:**
+- Pre-sessione: PM ha dichiarato "no #1" su deploy serale (regola handover originale). Utente ha chiarito **vincolo strutturale** di disponibilità (solo serale possibile, non scelta). PM ha accettato e applicato 3 disciplinari aggiuntivi (verifica firma obbligatoria, no deploy senza test sicurezza, hard stop autonomo dell'utente).
+- Disciplinari rispettati al 100%
+- Velocità: sotto stima realistica di ~1h25 (1h10 vs 2h45-3h20 stimato). Diagnostica accurata + decisioni nette su trade-off (B1 verifica firma vs B2 HMAC, D1 editMessage vs D2 lascia bottoni).
+
+### Tech debt residuo aggiornato
+1. **reCAPTCHA V2/V3 mismatch architetturale**: V2 prod, V3 dev
+2. ~~**compressImage() dead code in upload-flow.js**~~ ✅ RISOLTO Giorno 3 sera
+3. **Password admin "RindiFusi" hardcoded** in 3 posti: migrare a Firebase Auth + custom claims
+4. ~~**gallery-script.js status filter**~~ ✅ RISOLTO Giorno 2
+5. **Merge commit "A A A" cosmetico** in git history main
+6. 🟡 `firestore.indexes.json` contiene 1 indice composito (status+uploadDate); future query composite richiederanno estensione
+7. 🟡 Filtro status admin è client-side (`loadMedia` carica tutto + filtra in JS). OK per ~hundreds di media. Se collection cresce >1000 doc serve paginazione + query server-side.
+8. 🟡 `moderated_by: "admin"` hardcoded nella CF moderateMedia — diventerà UID reale quando migreremo a Firebase Auth + custom claims
+9. 🟡 Scoring retroattivo dei media uploadati prima del deploy CF (17 mag ~10:00) non implementato. Mostrano "🤖 In attesa di analisi AI…" in admin. Possibile task futuro: CF callable `aiScoreRetroactive`. Stima 1h.
+10. 🟡 Nessun rate-limiting esplicito sulla CF aiPhotoCurator. Per ~150 ospiti × 1-3 foto = max ~500 chiamate API durante matrimonio. Limite Anthropic default 50 req/min, ampio margine. Da monitorare durante evento.
+11. 🟡 Tags AI sono solo display, no filtro admin per tag. Possibile feature futura.
+12. 🟡 Nessun re-scoring on demand (es. bottone "ri-analizza" in admin). Se score sbagliato, decisione solo manuale.
+13. 🟢 Node.js 20 deprecation notice (decommission 30 ott 2026): NON urgente. Da fare in sessione dedicata 1-2h dopo settembre 2026.
+14. 🔴 **ALTO — upload-modal.js usa imageCompression CDN client-side**: in contrasto con Strategia A applicata a upload-flow.js. Da investigare: chi importa/instanzia upload-modal.js? Stima diagnostica: 15-20 min. Stima fix: 30-45 min. **Priorità: prima del matrimonio (5 luglio).**
+15. 🔴 **ALTO — Setup Telegram A3→A1 (gruppo sposi)**: deve essere migrato a A1 (gruppo con Andrea + Giulia) **almeno 1 settimana prima del matrimonio**. Steps: creare gruppo Telegram, aggiungere bot come membro, recuperare chat_id, aggiornare TELEGRAM_CHAT_ID in functions/.env, rideploy notifyNewMedia. Stima: 15-20 min.
+16. ~~🔴 **ALTO — Telegram bot B3 (bottoni interattivi approve/reject in chat)**~~ ✅ CHIUSO Giorno 4 (18 mag)
+17. 🟡 Video non triggerano notifyNewMedia (perché non passano da aiPhotoCurator). Caso edge da gestire: trigger separato su display_url per file_type=video. Stima: 30-45 min. Priorità: media.
+18. 🟡 Hosting non deployato (upload-flow.js modificato in Giorno 3 ma prod ha ancora dead code). Verrà deployato alla prossima feature visibile. Priorità: bassa.
+19. 🟡 Admin UI non mostra campo `moderated_by`. Utile per audit ("approvato via Telegram da Andrea" vs "via web admin"). Stima: 15 min. Priorità: bassa.
+20. 🟡 `telegramWebhook` non ha rate limiting esplicito. Stima realistica matrimonio: max 500 callback in 6h = sicuramente OK. Da monitorare durante evento.
+21. 🟡 Nessun controllo identità utente su bottoni Telegram: chiunque sia nella chat può cliccare. Per setup A1 (gruppo sposi) è il comportamento voluto. Audit log via `moderated_by` permette tracciare.
+
+### Prossimi task (Sett 3 Giorno 5+)
+1. **upload-modal.js investigation** (~15-20 min diagnostica + 30-45 min fix)
+2. **Telegram setup A1 — gruppo sposi** (1 settimana prima matrimonio)
+3. **Live page cinematografica** (sessione mezza giornata)
+4. Janitor batch, archive.html, Stage Mode (Sett 4-5)
+
+### Roadmap aggiornata
+- ✅ Sett 1: DONE (tag v1.0-foundations)
+- ✅ Sett 2: DONE (tag v2.0-upload-redesign, 15 maggio)
+- 🟢 Sett 3: IN CORSO
+  - ✅ Giorno 1 sabato 16 mag: uploader_name + deleteSelected + race condition fix
+  - ✅ Giorno 2 sabato 16 mag (sera): Moderazione admin completa (tag v3.0-moderation)
+  - ✅ Giorno 3 dom 17 mag (mattina): AI scoring Claude Vision (tag v3.1-ai-scoring)
+  - ✅ Giorno 3 dom 17 mag (sera): Telegram notifications + cleanup (tag v3.2-telegram-notifications)
+  - ✅ Giorno 4 lun 18 mag (sera): Telegram bottoni interattivi B3 (tag v3.3-telegram-interactive)
+  - 📋 Giorno 5+: upload-modal.js investigation + Telegram A1 setup
+- 📋 Sett 4-5 (compressed): live page + AI Storyteller + Director layout + Janitor + archive.html + Stage Mode
+- 🎯 1 giugno: MVP COMPLETO TESTATO INTERNAMENTE
+- 🎉 5 luglio: matrimonio Andrea & Giulia
+
+---
+
 ## AGGIORNAMENTO 2026-05-17 — Settimana 3 Giorno 3 (domenica sera) ✅
 
 **Sessione:** 19:00 → ~21:00 (~2h lavoro tecnico effettivo)
