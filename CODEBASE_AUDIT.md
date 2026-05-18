@@ -1023,6 +1023,70 @@ project = matrimonio-andrea-giulia-2026
 
 ---
 
+## AGGIORNAMENTO 2026-05-19 — Settimana 3 Giorno 5 (martedì mattina) ✅
+
+**Sessione:** 09:00 → ~11:40 (~2h40 lavoro tecnico effettivo)
+**Tag:** `v3.4-live-page` (unico tag per Task A + Task B)
+**Deploy:** hosting (2 deploy: iniziale + re-deploy fix schema)
+
+**2 task completati:**
+
+### Task A — Cleanup upload-modal.js (Opzione A1.4)
+- **Strategia:** redirect nativo da index.html + before/after logic dentro upload.html (no più modal in-place)
+- **Decisione architetturale risolta:** rami before/after preservati ma logica centralizzata in upload-flow.js
+- **Diagnostica pre-fix (3 scoperte critiche):**
+  - ID duplicato `uploadBtn` in index.html (nav link L50 + bottone modal morto L536)
+  - 2 modal distinti: `#uploadStatusModal` (vivo) + `#uploadModal` (morto) — entrambi rimossi
+  - Sub-strategia 1: `getUploadStatus()` già globale in firebase-config.js, riuso diretto (no duplicazioni)
+- **File modificati (5):** index.html, upload.html, upload-flow.js, upload-styles.css, gallery.html
+- **File eliminati (1):** upload-modal.js
+- **Bilancio:** -352 righe nette (49+ / 401-)
+- **Commit:** `89ec6b8`
+
+### Task B — Live page cinematografica (live.html)
+- **Decisioni branding:** sfondo scuro elegante (gradiente verde scurissimo `#1a2620` → `#0d1310`) + accenti oro `#d4af7a`. Font Playfair + Dancing Script per coerenza tema sito.
+- **Decisioni layout:** grid responsive 3x2 desktop / 2x2 tablet / 1x2 mobile
+- **Decisioni rotation:** 12s normale, 14s featured, staggered partenze (no cambio sincronizzato)
+- **Decisioni pool:** 150 ultime approved, random pesato featured 3x
+- **Decisioni new upload:** animazione slide-from-top + glow oro 1.5s, NO nome autore, NO badge featured visibile
+- **Architettura:** Firestore `onSnapshot` con `docChanges()` per update chirurgici, pool gestito come `Map<id, doc>` in IIFE
+- **Failure mode pool vuoto:** placeholder elegante 'A & G — In attesa dei vostri ricordi…'
+- **File nuovi (3):** live.html (73 righe), live-styles.css (196 righe), live-script.js (227 righe)
+- **Commit:** `e8ab632` + fix `cf51721`
+
+**Bug critico scoperto e risolto in produzione (Task B):**
+- **Sintomo:** 6 slot tutti neri, `img.src` = URL pagina corrente
+- **Root cause:** Claude Code, dopo Conversation compacted durante scrittura, ha inventato nomi camelCase non esistenti nello schema Firestore reale:
+  - `d.thumbnailUrl || d.url || d.downloadURL` → corretto: `d.display_url || d.original_url`
+  - `d.mediaType` → corretto: `d.file_type`
+  - `d.featured` → corretto: `d.favorite`
+- **Diagnostica:** verifica console DevTools (`imgSrc: "https://andreagiulia5luglio26.it/live.html"`) + interrogazione Firestore diretta dal browser per confermare schema reale
+- **Fix:** 3 sostituzioni mirate in `normalizeDoc` (chiavi oggetto preservate per zero impatto a valle)
+- **Lesson learned (procedural):** dopo Conversation compacted, code review obbligatoria PRIMA del deploy. Pattern Strada 2 (verifica veloce) replicato con successo.
+
+**Smoke test produzione (8 test):**
+- Test 1: regression upload nav link OK
+- Test 2: pipeline E2E upload→AI→Telegram funzionante
+- Test 3: live.html accessibile (post-fix)
+- Test 4: Ken Burns 12s visibile
+- Test 5: featured 14s + animazione lenta
+- Test 6: new upload glow oro visibile
+- Test 7: responsive desktop/tablet/mobile
+- Test 8: fullscreen F11 pulito
+
+**Commit della sessione (3):**
+- `89ec6b8` refactor(week4): cleanup upload-modal.js dead code, redirect diretto + before/after in upload.html
+- `e8ab632` feat(week3): Live page cinematografica (grid 6 slot, onSnapshot, random pesato 3x featured)
+- `cf51721` fix(week3): live-script.js schema Firestore (display_url, file_type, favorite)
+
+**Note metodologiche:**
+- Patto operativo rispettato: 2 task come da scope, niente AI Storyteller / Director / Stage Mode (rimandati Sett 4-5)
+- Velocità: leggermente sopra stima (~2h40 vs 3h45-4h30 stimato) — un bug critico recuperato senza intaccare scope
+- Conversation compacted in Claude Code introduce **un nuovo rischio** da gestire: code review post-compaction NON più opzionale
+- Pausa di metà sessione tra Task A e B effettivamente presa (~10 min)
+
+---
+
 ## AGGIORNAMENTO 2026-05-18 — Sessione bonus diagnostica upload-modal.js ✅
 
 **Sessione:** 22:40 → ~23:00 (~20 min solo diagnostica, nessun codice toccato)
@@ -1121,32 +1185,36 @@ project = matrimonio-andrea-giulia-2026
 11. 🟡 Tags AI sono solo display, no filtro admin per tag. Possibile feature futura.
 12. 🟡 Nessun re-scoring on demand (es. bottone "ri-analizza" in admin). Se score sbagliato, decisione solo manuale.
 13. 🟢 Node.js 20 deprecation notice (decommission 30 ott 2026): NON urgente. Da fare in sessione dedicata 1-2h dopo settembre 2026.
-14. 🔴 **MEDIO — upload-modal.js è DEAD CODE in finestra matrimonio** (diagnosi 18 mag). Pronto per rimozione totale, richiede decisione architetturale su rami before/after di handleUploadClick(). Stima fix: 45-50 min.
+14. ~~🔴 **MEDIO — upload-modal.js è DEAD CODE in finestra matrimonio**~~ ✅ CHIUSO Giorno 5 (19 mag)
 15. 🔴 **ALTO — Setup Telegram A3→A1 (gruppo sposi)**: deve essere migrato a A1 (gruppo con Andrea + Giulia) **almeno 1 settimana prima del matrimonio**. Steps: creare gruppo Telegram, aggiungere bot come membro, recuperare chat_id, aggiornare TELEGRAM_CHAT_ID in functions/.env, rideploy notifyNewMedia. Stima: 15-20 min.
 16. ~~🔴 **ALTO — Telegram bot B3 (bottoni interattivi approve/reject in chat)**~~ ✅ CHIUSO Giorno 4 (18 mag)
 17. 🟡 Video non triggerano notifyNewMedia (perché non passano da aiPhotoCurator). Caso edge da gestire: trigger separato su display_url per file_type=video. Stima: 30-45 min. Priorità: media.
-18. 🟡 Hosting non deployato (upload-flow.js modificato in Giorno 3 ma prod ha ancora dead code). Verrà deployato alla prossima feature visibile. Priorità: bassa.
+18. ~~🟡 Hosting non deployato (upload-flow.js modificato in Giorno 3 ma prod ha ancora dead code)~~. ✅ CHIUSO Giorno 5 (19 mag)
 19. 🟡 Admin UI non mostra campo `moderated_by`. Utile per audit ("approvato via Telegram da Andrea" vs "via web admin"). Stima: 15 min. Priorità: bassa.
 20. 🟡 `telegramWebhook` non ha rate limiting esplicito. Stima realistica matrimonio: max 500 callback in 6h = sicuramente OK. Da monitorare durante evento.
 21. 🟡 Nessun controllo identità utente su bottoni Telegram: chiunque sia nella chat può cliccare. Per setup A1 (gruppo sposi) è il comportamento voluto. Audit log via `moderated_by` permette tracciare.
+22. 🟡 `live-script.js` gestisce pool fino a 150 doc. Se durante matrimonio approved > 150, le più vecchie escono dal pool. Per ~150 ospiti × 3 foto = max ~450 approved attese. Considerare aumentare a 200-250 durante test pre-matrimonio. Stima: 2 min modifica.
+23. 🟡 `live-script.js` NON gestisce caso "pool < 6 distinct media": stesso media può apparire in 2 slot simultanei. Comportamento accettato al primo deploy ma da rifinire se desiderato.
+24. 🟡 **Procedural:** dopo Conversation compacted di Claude Code, code review pre-deploy è obbligatoria. Schema Firestore inventato camelCase invece di snake_case — bug critico in produzione rilevato e risolto con 1 re-deploy. Pattern da applicare sistematicamente.
 
-### Prossimi task (Sett 3 Giorno 5+)
-1. **upload-modal.js investigation** (~15-20 min diagnostica + 30-45 min fix)
-2. **Telegram setup A1 — gruppo sposi** (1 settimana prima matrimonio)
-3. **Live page cinematografica** (sessione mezza giornata)
-4. Janitor batch, archive.html, Stage Mode (Sett 4-5)
+### Prossimi task (Sett 4)
+1. **Setup Telegram A1 — gruppo sposi** (1 settimana prima matrimonio)
+2. **AI Storyteller** (CF genera narrazione giornata, ~2h30)
+3. **Director Layout** (vista regista per Andrea/Giulia, ~2h)
+4. **Stage Mode** (proiettore con score AI ≥8, ~1h30)
+5. Janitor batch, archive.html (Sett 4-5)
 
 ### Roadmap aggiornata
 - ✅ Sett 1: DONE (tag v1.0-foundations)
 - ✅ Sett 2: DONE (tag v2.0-upload-redesign, 15 maggio)
-- 🟢 Sett 3: IN CORSO
+- ✅ Sett 3: COMPLETATA
   - ✅ Giorno 1 sabato 16 mag: uploader_name + deleteSelected + race condition fix
   - ✅ Giorno 2 sabato 16 mag (sera): Moderazione admin completa (tag v3.0-moderation)
   - ✅ Giorno 3 dom 17 mag (mattina): AI scoring Claude Vision (tag v3.1-ai-scoring)
   - ✅ Giorno 3 dom 17 mag (sera): Telegram notifications + cleanup (tag v3.2-telegram-notifications)
   - ✅ Giorno 4 lun 18 mag (sera): Telegram bottoni interattivi B3 (tag v3.3-telegram-interactive)
-  - 📋 Giorno 5+: upload-modal.js investigation + Telegram A1 setup
-- 📋 Sett 4-5 (compressed): live page + AI Storyteller + Director layout + Janitor + archive.html + Stage Mode
+  - ✅ Giorno 5 mar 19 mag (mattina): cleanup upload-modal.js + live page cinematografica (tag v3.4-live-page)
+- 📋 Sett 4-5 (compressed): AI Storyteller + Director layout + Janitor + archive.html + Stage Mode
 - 🎯 1 giugno: MVP COMPLETO TESTATO INTERNAMENTE
 - 🎉 5 luglio: matrimonio Andrea & Giulia
 
