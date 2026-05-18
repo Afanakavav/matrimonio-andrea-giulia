@@ -9,6 +9,7 @@
 const functions = require("firebase-functions");
 const { onObjectFinalized } = require("firebase-functions/v2/storage");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const axios = require("axios");
 const nodemailer = require("nodemailer");
@@ -907,6 +908,10 @@ exports.notifyNewMedia = onDocumentUpdated({
     const adminUrl = "https://andreagiulia5luglio26.it/admin.html";
     const inlineKeyboard = {
       inline_keyboard: [
+        [
+          { text: "✅ Approva", callback_data: `a:${mediaId}` },
+          { text: "❌ Rifiuta", callback_data: `r:${mediaId}` },
+        ],
         [{ text: "📲 Apri admin", url: adminUrl }],
       ],
     };
@@ -963,3 +968,183 @@ exports.notifyNewMedia = onDocumentUpdated({
     return null;
   }
 });
+
+// =====================================
+// CF telegramWebhook — gestisce callback bottoni Telegram
+// =====================================
+exports.telegramWebhook = onRequest({
+  region: "us-central1",
+  memory: "256MiB",
+  timeoutSeconds: 30,
+  cors: false,
+}, async (req, res) => {
+  // ============== 1. METODO HTTP ==============
+  if (req.method !== "POST") {
+    console.warn(`[telegramWebhook] metodo non POST: ${req.method}`);
+    return res.status(405).send("Method Not Allowed");
+  }
+
+  // ============== 2. VERIFICA FIRMA ==============
+  const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (!expectedSecret) {
+    console.error("[telegramWebhook] TELEGRAM_WEBHOOK_SECRET mancante in env");
+    return res.status(500).send("Server Misconfigured");
+  }
+
+  const receivedSecret = req.headers["x-telegram-bot-api-secret-token"];
+  if (!receivedSecret) {
+    console.warn("[telegramWebhook] header secret mancante");
+    return res.status(403).send("Forbidden");
+  }
+
+  try {
+    const expectedBuf = Buffer.from(expectedSecret, "utf-8");
+    const receivedBuf = Buffer.from(receivedSecret, "utf-8");
+    if (expectedBuf.length !== receivedBuf.length ||
+        !crypto.timingSafeEqual(expectedBuf, receivedBuf)) {
+      console.warn("[telegramWebhook] secret mismatch");
+      return res.status(403).send("Forbidden");
+    }
+  } catch (e) {
+    console.error("[telegramWebhook] errore verifica firma", e.message);
+    return res.status(403).send("Forbidden");
+  }
+
+  // ============== 3. PARSING UPDATE TELEGRAM ==============
+  const update = req.body;
+  if (!update || !update.callback_query) {
+    // Update non-callback (es. message normale) → ignoriamo
+    console.log("[telegramWebhook] update non callback_query, skip");
+    return res.status(200).send("OK");
+  }
+
+  const callbackQuery = update.callback_query;
+  const callbackId = callbackQuery.id;
+  const callbackData = callbackQuery.data || "";
+  const fromUser = callbackQuery.from || {};
+  const username = fromUser.username
+    ? `@${fromUser.username}`
+    : `${fromUser.first_name || "Anonimo"} ${fromUser.last_name || ""}`.trim();
+  const message = callbackQuery.message || {};
+  const chatId = message.chat?.id;
+  const messageId = message.message_id;
+
+  console.log(`[telegramWebhook] callback ricevuto: data=${callbackData}, from=${username}`);
+
+  // ============== 4. PARSE callback_data ==============
+  const match = callbackData.match(/^([ar]):(.+)$/);
+  if (!match) {
+    console.warn(`[telegramWebhook] callback_data invalido: ${callbackData}`);
+    await answerCallback(callbackId, "Comando non valido", true);
+    return res.status(200).send("OK");
+  }
+
+  const actionCode = match[1];
+  const mediaId = match[2];
+  const action = actionCode === "a" ? "approve" : "reject";
+  const newStatus = action === "approve" ? "approved" : "rejected";
+  const actionLabel = action === "approve" ? "approvato" : "rifiutato";
+
+  // ============== 5. FETCH DOC + IDEMPOTENZA ==============
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  if (!botToken) {
+    console.error("[telegramWebhook] TELEGRAM_BOT_TOKEN mancante");
+    await answerCallback(callbackId, "Errore server", true).catch(() => {});
+    return res.status(500).send("Server Misconfigured");
+  }
+
+  let docSnap;
+  try {
+    const docRef = admin.firestore().collection("wedding-media").doc(mediaId);
+    docSnap = await docRef.get();
+  } catch (e) {
+    console.error(`[telegramWebhook] errore fetch doc ${mediaId}`, e.message);
+    await answerCallback(callbackId, "Errore lettura", true).catch(() => {});
+    return res.status(200).send("OK");
+  }
+
+  if (!docSnap.exists) {
+    console.warn(`[telegramWebhook] doc ${mediaId} non trovato`);
+    await answerCallback(callbackId, "Media non trovato", true).catch(() => {});
+    return res.status(200).send("OK");
+  }
+
+  const docData = docSnap.data();
+  const currentStatus = docData.status;
+
+  // Idempotenza: già moderato
+  if (currentStatus !== "pending") {
+    const alreadyLabel = currentStatus === "approved" ? "approvato" : "rifiutato";
+    console.log(`[telegramWebhook] ${mediaId} già ${alreadyLabel}`);
+    await answerCallback(callbackId, `Già ${alreadyLabel}`, false).catch(() => {});
+    // Rimuovi comunque i bottoni se ancora presenti
+    if (chatId && messageId) {
+      await editReplyMarkupKeepAdminLink(chatId, messageId).catch(() => {});
+    }
+    return res.status(200).send("OK");
+  }
+
+  // ============== 6. UPDATE FIRESTORE ==============
+  try {
+    await docSnap.ref.update({
+      status: newStatus,
+      moderated_at: admin.firestore.FieldValue.serverTimestamp(),
+      moderated_by: `telegram:${username}`,
+    });
+    console.log(`[telegramWebhook] ${mediaId} → ${newStatus} by ${username}`);
+  } catch (e) {
+    console.error(`[telegramWebhook] errore update ${mediaId}`, e.message);
+    await answerCallback(callbackId, "Errore aggiornamento", true).catch(() => {});
+    return res.status(200).send("OK");
+  }
+
+  // ============== 7. RISPOSTE A TELEGRAM ==============
+  const toastEmoji = action === "approve" ? "✅" : "❌";
+  await answerCallback(
+    callbackId,
+    `${toastEmoji} ${actionLabel.charAt(0).toUpperCase() + actionLabel.slice(1)}`,
+    false
+  ).catch((e) => console.error("answerCallback fail (non bloccante)", e.message));
+
+  // Rimuovi bottoni callback (lascia solo Apri admin)
+  if (chatId && messageId) {
+    await editReplyMarkupKeepAdminLink(chatId, messageId).catch((e) =>
+      console.error("editReplyMarkup fail (non bloccante)", e.message)
+    );
+  }
+
+  return res.status(200).send("OK");
+});
+
+// ============== HELPER: answerCallbackQuery ==============
+async function answerCallback(callbackQueryId, text, showAlert) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  return axios.post(
+    `https://api.telegram.org/bot${botToken}/answerCallbackQuery`,
+    {
+      callback_query_id: callbackQueryId,
+      text: text,
+      show_alert: !!showAlert,
+    },
+    { timeout: 8000 }
+  );
+}
+
+// ============== HELPER: editMessageReplyMarkup (rimuove bottoni callback) ==============
+async function editReplyMarkupKeepAdminLink(chatId, messageId) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const adminUrl = "https://andreagiulia5luglio26.it/admin.html";
+  return axios.post(
+    `https://api.telegram.org/bot${botToken}/editMessageReplyMarkup`,
+    {
+      chat_id: chatId,
+      message_id: messageId,
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "📲 Apri admin", url: adminUrl }],
+        ],
+      },
+    },
+    { timeout: 8000 }
+  );
+}
