@@ -81,9 +81,9 @@
     const d = doc.data();
     return {
       id:        doc.id,
-      url:       d.thumbnailUrl || d.url || d.downloadURL || "",
-      mediaType: d.mediaType || "photo",
-      featured:  d.featured === true,
+      url:       d.display_url || d.original_url || "",
+      mediaType: d.file_type || "photo",
+      featured:  d.favorite === true,
       uploadDate: d.uploadDate,
     };
   }
