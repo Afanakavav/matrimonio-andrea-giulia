@@ -1,0 +1,207 @@
+/* ============================================
+   Live Cinema — Andrea & Giulia 5 luglio 2026
+   Foundation styles + Pattern A: Petali + Frames
+   ============================================ */
+
+:root {
+  --cinema-bg-start:    #faf5ed;   /* avorio caldo */
+  --cinema-bg-end:      #f0e6d2;   /* avorio scuro */
+  --cinema-gold:        #c9a76a;
+  --cinema-gold-soft:   rgba(201, 167, 106, 0.5);
+  --cinema-rose:        #d4a5a5;
+  --cinema-rose-soft:   #f4dada;
+  --cinema-text:        #4a3a2a;
+  --cinema-shadow:      0 8px 30px rgba(0, 0, 0, 0.15);
+  --frame-radius:       4px;
+  --new-glow:           0 0 40px rgba(201, 167, 106, 0.8),
+                        0 0 80px rgba(201, 167, 106, 0.4);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, var(--cinema-bg-start), var(--cinema-bg-end));
+  font-family: "Playfair Display", serif;
+  color: var(--cinema-text);
+}
+
+.cinema-stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2;
+}
+
+.petals-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.mode-indicator {
+  position: fixed;
+  bottom: 10px;
+  right: 14px;
+  font-family: "Open Sans", sans-serif;
+  font-size: 11px;
+  color: var(--cinema-gold-soft);
+  background: rgba(255,255,255,0.4);
+  padding: 4px 10px;
+  border-radius: 12px;
+  z-index: 100;
+  opacity: 0.5;
+}
+.mode-indicator:hover { opacity: 1; }
+
+/* ============================================
+   Pattern A: PETALI + FRAMES
+   ============================================ */
+
+.cinema-stage.pattern-petali {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 40px;
+  padding: 60px 80px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1199px) and (min-width: 768px) {
+  .cinema-stage.pattern-petali {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 24px;
+    padding: 30px 40px;
+  }
+}
+
+@media (max-width: 767px) {
+  .cinema-stage.pattern-petali {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 20px;
+    padding: 20px;
+  }
+  .cinema-stage.pattern-petali .petali-frame[data-frame-index="2"],
+  .cinema-stage.pattern-petali .petali-frame[data-frame-index="3"] { display: none; }
+}
+
+.petali-frame {
+  position: relative;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 12px 12px 36px 12px;     /* polaroid look: più bordo basso */
+  border-radius: var(--frame-radius);
+  box-shadow: var(--cinema-shadow);
+  overflow: hidden;
+  transition: box-shadow 0.5s ease, transform 0.5s ease;
+}
+
+.petali-frame.new-upload-glow {
+  box-shadow: var(--new-glow);
+  animation: framePulse 1.5s ease-out;
+}
+
+@keyframes framePulse {
+  0%   { box-shadow: var(--new-glow); transform: scale(1.02); }
+  100% { box-shadow: var(--cinema-shadow); transform: scale(1); }
+}
+
+.petali-wrapper {
+  position: absolute;
+  inset: 12px 12px 36px 12px;
+  opacity: 0;
+  transform: rotate(var(--rot, 0deg)) scale(var(--scale, 1));
+  transition: opacity 0.7s ease, transform 0.7s ease;
+  will-change: opacity, transform;
+}
+
+.petali-wrapper.visible {
+  opacity: 1;
+}
+
+.petali-wrapper.exiting {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.petali-wrapper img,
+.petali-wrapper video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 2px;
+}
+
+/* Ken Burns direzioni */
+.petali-wrapper[data-kenburns="zoom-in"] img    { animation: kbZoomIn 14s ease-in-out forwards; }
+.petali-wrapper[data-kenburns="zoom-out"] img   { animation: kbZoomOut 14s ease-in-out forwards; }
+.petali-wrapper[data-kenburns="pan-left"] img   { animation: kbPanLeft 14s ease-in-out forwards; }
+.petali-wrapper[data-kenburns="pan-right"] img  { animation: kbPanRight 14s ease-in-out forwards; }
+.petali-wrapper[data-kenburns="diagonal-ne"] img{ animation: kbDiagonalNE 14s ease-in-out forwards; }
+.petali-wrapper[data-kenburns="diagonal-sw"] img{ animation: kbDiagonalSW 14s ease-in-out forwards; }
+
+@keyframes kbZoomIn   { 0% { transform: scale(1.0); } 100% { transform: scale(1.10); } }
+@keyframes kbZoomOut  { 0% { transform: scale(1.10); } 100% { transform: scale(1.0); } }
+@keyframes kbPanLeft  { 0% { transform: scale(1.06) translate(2%, 0); } 100% { transform: scale(1.06) translate(-2%, 0); } }
+@keyframes kbPanRight { 0% { transform: scale(1.06) translate(-2%, 0); } 100% { transform: scale(1.06) translate(2%, 0); } }
+@keyframes kbDiagonalNE { 0% { transform: scale(1.06) translate(-1%, 1%); } 100% { transform: scale(1.06) translate(1%, -1%); } }
+@keyframes kbDiagonalSW { 0% { transform: scale(1.06) translate(1%, -1%); } 100% { transform: scale(1.06) translate(-1%, 1%); } }
+
+/* Filtri tint */
+.petali-wrapper.tint-warm img    { filter: sepia(0.15) saturate(1.1); }
+.petali-wrapper.tint-cool img    { filter: hue-rotate(-10deg) saturate(0.95); }
+.petali-wrapper.tint-vintage img { filter: sepia(0.3) contrast(0.95) brightness(1.05); }
+.petali-wrapper.tint-none img    { filter: none; }
+
+/* Entrance animations */
+.petali-wrapper.entrance-fade.visible       { animation: entFade 0.7s ease both; }
+.petali-wrapper.entrance-slide-up.visible   { animation: entSlideUp 0.7s ease both; }
+.petali-wrapper.entrance-slide-down.visible { animation: entSlideDown 0.7s ease both; }
+.petali-wrapper.entrance-scale-in.visible   { animation: entScaleIn 0.7s ease both; }
+.petali-wrapper.entrance-rotate-in.visible  { animation: entRotateIn 0.7s ease both; }
+
+@keyframes entFade       { 0% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes entSlideUp    { 0% { opacity: 0; transform: rotate(var(--rot)) scale(var(--scale)) translateY(20%); } 100% { opacity: 1; transform: rotate(var(--rot)) scale(var(--scale)) translateY(0); } }
+@keyframes entSlideDown  { 0% { opacity: 0; transform: rotate(var(--rot)) scale(var(--scale)) translateY(-20%); } 100% { opacity: 1; transform: rotate(var(--rot)) scale(var(--scale)) translateY(0); } }
+@keyframes entScaleIn    { 0% { opacity: 0; transform: rotate(var(--rot)) scale(0.7); } 100% { opacity: 1; transform: rotate(var(--rot)) scale(var(--scale)); } }
+@keyframes entRotateIn   { 0% { opacity: 0; transform: rotate(calc(var(--rot) - 8deg)) scale(var(--scale)); } 100% { opacity: 1; transform: rotate(var(--rot)) scale(var(--scale)); } }
+
+/* ============================================
+   Petali (sfondo decorativo)
+   ============================================ */
+
+.petals-layer.active .petal {
+  position: absolute;
+  top: -30px;
+  width: var(--petal-size, 12px);
+  height: var(--petal-size, 12px);
+  background: radial-gradient(ellipse at 30% 30%, var(--cinema-rose-soft), var(--cinema-rose));
+  border-radius: 50% 0 50% 0;
+  opacity: var(--petal-opacity, 0.6);
+  animation: petalFall var(--fall-duration, 10s) linear forwards,
+             petalRotate var(--rotation-speed, 3s) linear infinite,
+             petalSway var(--fall-duration, 10s) ease-in-out forwards;
+  will-change: transform, top;
+}
+
+@keyframes petalFall {
+  0%   { top: -30px; }
+  100% { top: 105vh; }
+}
+
+@keyframes petalRotate {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes petalSway {
+  0%   { margin-left: 0; }
+  50%  { margin-left: var(--sway-amount, 40px); }
+  100% { margin-left: 0; }
+}
