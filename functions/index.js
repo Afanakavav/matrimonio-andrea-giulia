@@ -1012,9 +1012,18 @@ exports.telegramWebhook = onRequest({
 
   // ============== 3. PARSING UPDATE TELEGRAM ==============
   const update = req.body;
-  if (!update || !update.callback_query) {
-    // Update non-callback (es. message normale) → ignoriamo
-    console.log("[telegramWebhook] update non callback_query, skip");
+  if (!update) {
+    return res.status(200).send("OK");
+  }
+
+  // ============== BRANCH MESSAGE (comandi testuali) ==============
+  if (update.message && update.message.text) {
+    return handleTextCommand(update.message, res);
+  }
+
+  // ============== BRANCH CALLBACK_QUERY (bottoni - logica esistente) ==============
+  if (!update.callback_query) {
+    console.log("[telegramWebhook] update senza message né callback_query, skip");
     return res.status(200).send("OK");
   }
 
@@ -1115,6 +1124,134 @@ exports.telegramWebhook = onRequest({
 
   return res.status(200).send("OK");
 });
+
+// ============== HELPER: handleTextCommand (/mode commands) ==============
+async function handleTextCommand(message, res) {
+  const text = (message.text || "").trim();
+  const fromUser = message.from || {};
+  const chatId = message.chat?.id;
+  const userId = fromUser.id;
+  const username = fromUser.username
+    ? `@${fromUser.username}`
+    : `${fromUser.first_name || "Anonimo"}`;
+
+  // Comando deve iniziare con /mode (anche senza argomenti)
+  if (!text.startsWith("/mode") && !text.startsWith("/status")) {
+    console.log(`[telegramWebhook] comando non /mode da ${username}: ${text.substring(0, 30)}`);
+    return res.status(200).send("OK");
+  }
+
+  // Verifica autorizzazione: userId deve essere in whitelist
+  const adminIdsRaw = process.env.TELEGRAM_ADMIN_CHAT_IDS || "";
+  const adminIds = adminIdsRaw.split(",").map(s => Number(s.trim())).filter(n => !isNaN(n) && n > 0);
+
+  if (!adminIds.includes(userId)) {
+    console.warn(`[telegramWebhook] /mode tentato da non-admin: ${username} (id ${userId})`);
+    await sendTelegramMessage(chatId, "⛔ Non sei autorizzato a cambiare modalità\\.").catch(() => {});
+    return res.status(200).send("OK");
+  }
+
+  // Lista pattern validi (hardcoded server-side, da espandere in Fase 2/3)
+  const VALID_MODES = ["petali"];   // Fase 1: solo Petali. Espanderemo in Fase 2.
+
+  // Parse argomenti dopo /mode
+  const parts = text.split(/\s+/);
+  const command = parts[0];                   // /mode o /status
+  const arg = (parts[1] || "").toLowerCase();  // nome mode o "help" o ""
+
+  // /status, /mode, /mode help → mostra info
+  if (command === "/status" || !arg || arg === "help") {
+    return sendModeInfo(chatId, res);
+  }
+
+  // /mode <name> → cambia mode
+  if (!VALID_MODES.includes(arg)) {
+    const validList = VALID_MODES.join(", ");
+    await sendTelegramMessage(
+      chatId,
+      `❌ Mode *${escapeMdV2(arg)}* sconosciuto\\.\n\nMode disponibili: *${escapeMdV2(validList)}*`
+    ).catch(() => {});
+    return res.status(200).send("OK");
+  }
+
+  // Scrivi su Firestore app-state/live
+  try {
+    await admin.firestore().collection("app-state").doc("live").set({
+      mode: arg,
+      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+      updated_by: username,
+    }, { merge: true });
+
+    console.log(`[telegramWebhook] mode → ${arg} by ${username}`);
+
+    await sendTelegramMessage(
+      chatId,
+      `✅ Mode cambiato a *${escapeMdV2(arg)}* da ${escapeMdV2(username)}`
+    ).catch(() => {});
+
+  } catch (err) {
+    console.error(`[telegramWebhook] errore update app-state/live:`, err.message);
+    await sendTelegramMessage(chatId, "❌ Errore nel salvataggio della modalità\\.").catch(() => {});
+  }
+
+  return res.status(200).send("OK");
+}
+
+// ============== HELPER: sendModeInfo (info comando /mode) ==============
+async function sendModeInfo(chatId, res) {
+  try {
+    const liveDoc = await admin.firestore().collection("app-state").doc("live").get();
+    const data = liveDoc.exists ? liveDoc.data() : {};
+    const currentMode = data.mode || "petali";
+    const updatedBy = data.updated_by || "seed";
+    const updatedAtMs = data.updated_at?.toMillis?.() || Date.now();
+    const updatedAtStr = new Date(updatedAtMs).toLocaleString("it-IT", {
+      timeZone: "Europe/Rome",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const VALID_MODES_DESC = [
+      ["petali", "Pattern romantico con petali rosa"],
+    ];
+    const modeList = VALID_MODES_DESC.map(([n, d]) => `• \`${n}\` — ${escapeMdV2(d)}`).join("\n");
+
+    const msg =
+      `🎬 *Live Cinema*\n\n` +
+      `Mode attuale: *${escapeMdV2(currentMode)}* \\(da ${escapeMdV2(updatedBy)}, ${escapeMdV2(updatedAtStr)}\\)\n\n` +
+      `Mode disponibili:\n${modeList}\n\n` +
+      `Comandi:\n` +
+      `\`/mode <nome>\` — cambia mode\n` +
+      `\`/mode help\` — questa lista\n` +
+      `\`/status\` — alias di /mode help`;
+
+    await sendTelegramMessage(chatId, msg).catch(() => {});
+  } catch (err) {
+    console.error("[telegramWebhook] errore sendModeInfo:", err.message);
+    await sendTelegramMessage(chatId, "❌ Errore nel recupero dello stato\\.").catch(() => {});
+  }
+  return res.status(200).send("OK");
+}
+
+// ============== HELPER: sendTelegramMessage (testo MarkdownV2) ==============
+async function sendTelegramMessage(chatId, text) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  return axios.post(
+    `https://api.telegram.org/bot${botToken}/sendMessage`,
+    {
+      chat_id: chatId,
+      text: text,
+      parse_mode: "MarkdownV2",
+    },
+    { timeout: 8000 }
+  );
+}
+
+// ============== HELPER: escapeMdV2 (MarkdownV2 escape) ==============
+function escapeMdV2(str) {
+  if (typeof str !== "string") return "";
+  return str.replace(/[_*\[\]()~`>#+\-=|{}.!\\]/g, "\\$&");
+}
 
 // ============== HELPER: answerCallbackQuery ==============
 async function answerCallback(callbackQueryId, text, showAlert) {
