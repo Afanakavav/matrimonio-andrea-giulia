@@ -1023,6 +1023,96 @@ project = matrimonio-andrea-giulia-2026
 
 ---
 
+## AGGIORNAMENTO 2026-05-26 — Settimana 4 Giorno 1 (martedì pomeriggio) ✅
+
+**Sessione:** 15:50 → ~19:30 (~3h40 lavoro tecnico effettivo)
+**Tag:** `v3.5-cinema-foundation` (chiude Fase 1 — Foundation + Pattern A)
+**Deploy:** firestore.rules + telegramWebhook (2 volte per rotazione credenziali) + redeploy completo 10/11 functions (fix env post-rotazione)
+
+**Decisione strategica chiave presa OGGI:**
+Piano "live cinema" in 4 fasi (~51-62h totali stimati):
+- FASE 1 — Foundation + Pattern A Petali (completata oggi)
+- FASE 2 — Pattern B Polaroids, C Cinema, E Scrapbook (~15-18h)
+- FASE 3 — Pattern D Particle Burst + polish + stress test (~10-12h)
+- FASE 4 — archive.html + setup Telegram A1 sposi (~8-10h)
+
+**5 pattern definitivi** (tutti resilienti a pool piccolo, vincolo dichiarato utente):
+A — Petali + Frames (romantico calmo) ✅ implementato oggi
+B — Floating Polaroids (intimo/conviviale)
+C — Cinema Letterbox + Caption Crawl (cinema d'autore, usa AI Storyteller)
+D — Particle Burst Mosaic (epico, momenti chiave)
+E — Scrapbook Vivente (nostalgico)
+
+Pattern eliminato post-analisi: Tetris (non resiliente a pool piccolo, 16 tile uguali con 1 foto).
+
+**Programmazione giornata matrimonio definita:**
+15:30-16:30 Cerimonia (solo telefoni) → mode petali
+18:30-20:00 Aperitivo (monitor+telefoni) → mode polaroid
+20:00-22:00 Cena (tel principalmente) → mode cinema (AI Storyteller)
+22:00-23:00 Momenti chiave (monitor+tel) → mode burst
+23:00-02:00 Festa (monitor+tel) → mode polaroid (versione veloce)
+02:00-03:00 Epilogo (monitor+tel) → mode scrapbook
+
+**LAVORO COMPLETATO OGGI (Task Fase 1):**
+
+### Task 1.1 — Diagnostica architetturale live.html
+Lettura completa pattern esistenti (normalizeDoc, IIFE, listener Firestore, glow new upload). Confermato:
+- Schema reale Firestore: display_url, file_type, favorite (lezione 19 mag internalizzata)
+- Indice composito esistente: status ASC + uploadDate DESC (riusabile)
+- 11 CF in produzione, lista mappata
+
+### Task 1.2 — Creazione 3 file nuovi (commit 1026e4b)
+- `live-cinema.html` (34 righe): markup base, container generico #cinemaStage, #petalsLayer, #modeIndicator, data-mode="petali"
+- `live-cinema-engine.js` (243 righe): IIFE pulita con pattern registry, variation engine (6 dimensioni: kenBurnsDirection, duration, tintFilter, entranceAnimation, rotation, scale), pool Map, normalizeDoc allineato schema reale, Pattern A registrato
+- `live-cinema-styles.css` (197 righe): palette avorio/oro (#faf5ed→#f0e6d2, --cinema-gold:#c9a76a, --cinema-rose:#d4a5a5), Ken Burns 6 direzioni, 4 tint, 5 entrance animations, petalFall/petalRotate/petalSway
+- Code review post-compaction OK: schema Firestore corretto, no smell orfani
+- Caveat #1 rispettato: live.html / live-script.js / live-styles.css NON toccati
+
+### Task 1.3 — Test locale + fix rules
+- Firebase Hosting emulator avviato (http://127.0.0.1:5000)
+- Pattern A test in browser: 4 test OK (variazioni visibili, petali fluidi, featured boost percepito, responsive)
+- Bug minore: errore console "Missing or insufficient permissions" su app-state/live
+- Fix: aggiornato firestore.rules con `match /app-state/{stateId}: allow read (pubblico), allow write false` (commit 58da90c)
+- Doc seed `app-state/live = {mode: "petali", updated_at: ..., updated_by: "seed"}` creato manualmente da Firebase Console
+
+### Task 1.4 — Mode switcher via Telegram (commit 5501b94)
+- Esteso `telegramWebhook` con branch update.message SOPRA il branch callback_query esistente (B3 NON rotto)
+- Helper aggiunti: handleTextCommand, sendModeInfo, sendTelegramMessage, escapeMdV2
+- TELEGRAM_ADMIN_CHAT_IDS=566187447 aggiunto in .env
+- VALID_MODES = ['petali'] (espanderemo Fase 2)
+- Deploy CF + setWebhook con allowed_updates=['callback_query', 'message']
+- **Rotazione credenziali Telegram (doppia)**:
+  - Causa: leak token + secret in chat (2 volte, durante proposta comando setWebhook)
+  - Soluzione: BotFather /revoke + nuovo secret PowerShell random + Read-Host per setWebhook
+  - Risultato: 2 rotation in 1 pomeriggio, lezione internalizzata
+
+### Bug critico in-session — notifyNewMedia 401 Unauthorized
+- **Sintomo:** dopo rotazione bot token, upload nuovo media → notifica Telegram NON arriva
+- **Diagnosi tramite Cloud Run logs:** "API status 401, Unauthorized"
+- **Root cause:** `firebase deploy --only functions:telegramWebhook` aggiorna SOLO quella CF. Le altre CF (notifyNewMedia, helper, ecc.) hanno snapshot del .env del loro proprio deploy → token vecchio in cache
+- **Fix:** `firebase deploy --only functions` redeploy completo 10/11 CF (telegramWebhook skip giustamente)
+- **Test post-fix:** upload media OK, notifica Telegram arrivata, 3 bottoni visibili, B3 funzionante
+- **Lesson learned procedurale:** dopo rotazione credenziali ENV, redeploy COMPLETO functions, non selettivo
+
+**Test E2E completi al termine sessione (8 test totali):**
+- Pattern A locale: 4 test (variazioni, petali, featured, responsive) ✅
+- /mode help / petali / burst: 3 test ✅
+- Firestore verification: 1 test ✅
+- B3 regression check: 1 test ✅
+
+**Commit della sessione (3):**
+- `1026e4b` feat(week4): Live Cinema foundation + Pattern A Petali (live-cinema.html nuovo)
+- `58da90c` feat(week4): firestore rules per app-state/live (lettura pubblica, write bloccato)
+- `5501b94` feat(week4): telegramWebhook gestisce comandi /mode (mode switcher live cinema)
+
+**Note metodologiche:**
+- Patto operativo rispettato: scope Fase 1 + Pattern A, niente AI Storyteller (rimandato Fase 2)
+- Velocità: ~3h40 vs stima 4h15-5h15 — sotto stima nonostante 2 bug critici risolti in-session
+- Pausa di metà sessione presa
+- Lesson learned procedurali consolidati (rotazione env → deploy completo, code review post-compaction)
+
+---
+
 ## AGGIORNAMENTO 2026-05-19 — Settimana 3 Giorno 5 (martedì mattina) ✅
 
 **Sessione:** 09:00 → ~11:40 (~2h40 lavoro tecnico effettivo)
