@@ -85,5 +85,11 @@ service cloud.firestore {
       // Delete bloccato per evitare vandalismo. Usa Firebase Admin SDK / Cloud Functions.
       allow delete: if false;
     }
+
+    // Stato applicazione live (mode switcher Telegram)
+    match /app-state/{stateId} {
+      allow read: if true;                  // pubblico (live-cinema legge mode)
+      allow write: if false;                // solo Admin SDK / Cloud Functions
+    }
   }
 }
