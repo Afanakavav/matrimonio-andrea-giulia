@@ -1086,6 +1086,16 @@ Lettura completa pattern esistenti (normalizeDoc, IIFE, listener Firestore, glow
   - Soluzione: BotFather /revoke + nuovo secret PowerShell random + Read-Host per setWebhook
   - Risultato: 2 rotation in 1 pomeriggio, lezione internalizzata
 
+### Task 1.5 — Deploy hosting + chiusura sessione (post-audit, commit aa1d671 già esistente)
+- Deploy hosting: `firebase deploy --only hosting`
+- 3 file uploadati: live-cinema.html, live-cinema-engine.js, live-cinema-styles.css
+- Pattern A LIVE in produzione: https://andreagiulia5luglio26.it/live-cinema.html
+- 3 test smoke post-deploy OK:
+  - live-cinema.html accessibile ✓
+  - Nessun errore "Missing or insufficient permissions" (rules deployate OK) ✓
+  - Mode switcher E2E (Telegram → CF → Firestore → onSnapshot → live-cinema): pipeline completa funzionante ✓
+- Process omission rilevata: deploy hosting NON era nel checklist iniziale di chiusura sessione, è stato fatto come "addendum" dopo domanda dell'utente. Lezione consolidata sotto.
+
 ### Bug critico in-session — notifyNewMedia 401 Unauthorized
 - **Sintomo:** dopo rotazione bot token, upload nuovo media → notifica Telegram NON arriva
 - **Diagnosi tramite Cloud Run logs:** "API status 401, Unauthorized"
@@ -1110,6 +1120,7 @@ Lettura completa pattern esistenti (normalizeDoc, IIFE, listener Firestore, glow
 - Velocità: ~3h40 vs stima 4h15-5h15 — sotto stima nonostante 2 bug critici risolti in-session
 - Pausa di metà sessione presa
 - Lesson learned procedurali consolidati (rotazione env → deploy completo, code review post-compaction)
+- Process learning: **checklist completa di chiusura sessione include hosting/functions deploy** se ci sono modifiche front-end/CF. NON limitarsi a tag + audit + push GitHub. Pattern formalizzato: prima di tag, verificare che lo stato deployato in produzione corrisponda a quello su GitHub.
 
 ---
 
