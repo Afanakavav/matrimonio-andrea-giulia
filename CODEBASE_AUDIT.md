@@ -1023,6 +1023,108 @@ project = matrimonio-andrea-giulia-2026
 
 ---
 
+## AGGIORNAMENTO 2026-05-27 — Settimana 4 Giorno 2 (mercoledì mattina) ✅
+
+**Sessione:** 12:25 → ~14:15 (~1h50 lavoro tecnico effettivo)
+**Tag:** `v3.6-cinema-pattern-b` (Fase 2 Step 1 — Pattern B Floating Polaroids)
+**Deploy:** functions:telegramWebhook + hosting
+
+**Pre-task:** mini-update audit con addendum entry 2026-05-26 (deploy hosting Pattern A + checklist chiusura sessione)
+- Commit `8381906`: docs(week4): addendum entry 2026-05-26
+
+**LAVORO COMPLETATO OGGI (Task Fase 2 Step 1):**
+
+### Task 2.1 — Diagnostica interfaccia Pattern A
+- Confermata interfaccia `{init, cleanup}` di Pattern A
+- Mappato context oggetto passato a patternFactory.create() — 5 proprietà disponibili 1:1 per Pattern B
+- Identificate 6 dimensioni variation engine (riusabili)
+- CSS strategy: `.cinema-stage.pattern-XXX` (classe sul stage, NON body[data-mode])
+- 3 insight architetturali per Pattern B:
+  1. NON modificare generateVariation engine (Pattern B implementa sub-variation interno)
+  2. Cleanup gestisce Set dinamico (non array fisso come Pattern A)
+  3. Confirm pattern naming: `.pattern-polaroid`
+
+### Task 2.2 — Implementazione Pattern B (commit 5344ea6)
+- **live-cinema-styles.css:** +135 righe in append (Pattern A intatto)
+  - 3 keyframes: polaroidLifecycle, polaroidFloat, polaroidNewUploadPop
+  - Tint filters riusati da Pattern A
+  - Media query mobile (max-width: 767px) → 4 polaroid max
+- **live-cinema-engine.js:** +130 righe TRA Pattern A e BOOTSTRAP
+  - registerPattern("polaroid", {create(context){...}})
+  - MAX_POLAROIDS=7, SPAWN_INTERVAL_MS=1800
+  - Set tracker (activeTimers, activePolaroids) per cleanup symmetric
+  - Slide-in dal bordo random (4 direzioni)
+  - Drift exit verso direzione random
+  - Rotation ±15° (più ampia di Pattern A che era ±3°)
+  - Featured boost: scale 1.08 fisso, shadow più marcata, 15s vs 12s
+  - New upload pop: polaroidNewUploadPop animation (scale 1.18→1.04→1.0)
+- **functions/index.js:** VALID_MODES = ["petali", "polaroid"], VALID_MODES_DESC esteso
+- 4 verifiche post-compaction OK: Pattern A intatto, Pattern B aggiunto, no smell Firestore, safety-net non toccato
+
+### Task 2.3 — Deploy + Smoke test E2E (6/6 PASS)
+- Deploy functions:telegramWebhook (VALID_MODES esteso)
+- Deploy hosting (2 file: live-cinema-engine.js, live-cinema-styles.css)
+- **Test 1:** setup live-cinema in incognito, Pattern A attivo da default ✓
+- **Test 2:** /mode polaroid via Telegram → switch visivo a Pattern B confermato ✓
+- **Test 3:** Pattern B variazioni 30 sec (slide-in, drift, rotation diverse, featured più grandi) ✓
+- **Test 4:** /mode petali ritorno → polaroid spariscono completamente, petali ripartono (cleanup pulito, no leak) ✓
+- **Test 5:** /mode help mostra entrambi i mode con descrizione ✓
+- **Test 6:** B3 regression (upload + approve via Telegram) ✓
+- **Test 7 (bonus):** New upload pop visivo confermato ✓
+
+**Decisioni di design Pattern B (dichiarate prima del codice):**
+1. Sfondo: avorio caldo continuità Pattern A (1A)
+2. Densità: 7 polaroid simultanee (2B)
+3. Stile: polaroid classica con padding inferiore largo (3A)
+4. Ingresso: slide-in dal bordo random (4A)
+5. New upload: glow + pop scale (5B)
+
+**Commit della sessione (2):**
+- `8381906` docs(week4): addendum entry 2026-05-26 con deploy hosting Pattern A + checklist chiusura
+- `5344ea6` feat(week4): Pattern B Floating Polaroids + VALID_MODES updated
+
+**Note metodologiche:**
+- Patto operativo rispettato: scope Pattern B only, niente AI Storyteller (rimandata sessione pomeriggio dichiarata fresh)
+- Velocità: ~1h50 vs stima 3h30-4h30 — molto sotto stima (architettura modulare ha pagato dividendi)
+- 4 verifiche post-compaction obbligatorie applicate, hanno funzionato
+- Pre-task audit (10 min) ha allineato stato prima di iniziare Pattern B
+- Pause prevista: 30-60 min prima di sessione pomeriggio separata
+
+**Tech debt — update:**
+
+CHIUSI oggi:
+- 🔴 ALTO — Pattern B Floating Polaroids → CHIUSO Fase 2 Step 1 ✅
+
+NUOVI tech debt:
+- 🟡 MEDIO — Quando si aggiungerà Pattern C (Cinema Letterbox), occorrerà CF aiStoryteller per popolare ai_story sui featured (prerequisito Pattern C)
+- 🟡 PROCEDURAL — Pattern B usa `media.favorite` (corretto) ma `scale` per featured è literal `1.08` invece di stringa `"1.080"` come gli altri (toFixed). Non bloccante, CSS variable interpreta uguale.
+
+MANTENUTI 🔴 ALTO (obiettivo matrimonio):
+- Pattern C Cinema Letterbox (Fase 2 Step 2) — ~5-6h (richiede AI Storyteller CF prima)
+- Pattern E Scrapbook Vivente (Fase 2 Step 3) — ~5-7h
+- Pattern D Particle Burst Mosaic (Fase 3) — ~6-8h
+- archive.html (Fase 4) — ~5-7h
+- Setup Telegram A1 sposi (Fase 4 finale) — ~15-20 min
+
+**Prossimi task (proposta priorità):**
+
+PRIORITÀ IMMEDIATA (Fase 2 prossimo step):
+1. **AI Storyteller CF** (~2-3h) — popola ai_story sui featured, prerequisito Pattern C
+2. **Pattern C Cinema Letterbox** (~5-6h) — usa AI Storyteller
+
+POI Fase 2 continua:
+3. **Pattern E Scrapbook Vivente** (~5-7h)
+
+POI Fase 3:
+4. **Pattern D Particle Burst** (~6-8h)
+5. **Polish + stress test**
+
+POI Fase 4:
+6. **archive.html** (~5-7h)
+7. **Setup Telegram A1 sposi** (~15-20 min, 1 sett pre-matrimonio)
+
+---
+
 ## AGGIORNAMENTO 2026-05-26 — Settimana 4 Giorno 1 (martedì pomeriggio) ✅
 
 **Sessione:** 15:50 → ~19:30 (~3h40 lavoro tecnico effettivo)
