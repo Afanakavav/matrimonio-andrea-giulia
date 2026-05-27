@@ -1023,6 +1023,103 @@ project = matrimonio-andrea-giulia-2026
 
 ---
 
+## AGGIORNAMENTO 2026-05-28 (mattina) — Settimana 4 Giorno 3 ✅
+
+**Sessione:** 06:00 → ~08:00 (~1h45 lavoro tecnico effettivo)
+**Tag:** `v3.8-cinema-pattern-c` (Fase 2 Step 3 — Pattern C Cinema Letterbox)
+**Deploy:** hosting + functions:telegramWebhook
+
+**LAVORO COMPLETATO OGGI MATTINA:**
+
+### Task 3.1 — Diagnostica pre-Pattern C
+- normalizeDoc esistente: ai_story NON ancora mappato (da aggiungere)
+- Pattern A/B cleanup: pattern simmetrico identificato
+- Schema Firestore ai_story verificato manualmente su doc reale: Array 5 stringhe ✓
+- CSS scope strategy confermata: .cinema-stage.pattern-XXX
+
+### Task 3.2 — Pattern C implementazione (commit 418f004)
+- **normalizeDoc:** +1 riga (aiStory = Array.isArray(d.ai_story) ? d.ai_story : [])
+- **live-cinema-engine.js:** +149 righe (registerPattern("cinema", {...}))
+  - Config: DURATION_NORMAL=16000, DURATION_FEATURED=20000, CAPTION_DURATION_RATIO=0.80
+  - 5 transizioni cinema: TRANSITIONS = ["fade", "slide-left", "dip-to-black", "iris-out", "crossfade"]
+  - Layout DOM: cinema-letterbox > cinema-bar top + cinema-frame + cinema-bar bottom (con cinema-caption)
+  - showNextFrame: pesca media + transition random + renderFrame + renderCaption
+  - renderCaption: pesca 1 frase random da media.aiStory[] solo se featured
+- **live-cinema-styles.css:** +194 righe (Pattern A/B intatti)
+  - .pattern-cinema con background nero + letterbox 16:9
+  - 10 @keyframes (5 enter + 5 exit per le 5 transizioni)
+  - .cinema-caption con cinemaCrawl animation, --caption-duration variabile
+  - Responsive mobile
+- 5 verifiche post-compaction OK
+
+### Task 3.3 — Deploy + smoke test E2E (8/8 PASS, commit 92c68e8)
+- VALID_MODES esteso: ["petali", "polaroid", "cinema"]
+- VALID_MODES_DESC: cinema description aggiunta
+- Deploy hosting (2 file: engine + CSS) + deploy functions:telegramWebhook
+- Test 1: setup live-cinema accessibile ✓
+- Test 2: /mode cinema → switch visivo (letterbox + foto fullscreen + caption) ✓
+- Test 3: transizioni diverse su 5-6 cambi consecutivi ✓
+- Test 4: caption AI scorre su featured ✓
+- Test 5: no caption su non-featured ✓
+- Test 6: /mode help include cinema ✓
+- Test 7: switch ritorno (cinema → polaroid) cleanup pulito, no leak ✓
+- Test 8: B3 regression OK ✓
+
+**Risultato strategico:** ai_story passa da "dato dormiente" a "esperienza visibile" per la prima volta. Pattern A → B → C tutti switchabili real-time via Telegram.
+
+**Commit della sessione (2):**
+- `418f004` feat(week4): Pattern C Cinema Letterbox + normalizeDoc espone aiStory
+- `92c68e8` feat(week4): VALID_MODES include cinema (Pattern C)
+
+**Note metodologiche:**
+- Patto operativo rispettato: Pattern C only, no Pattern E oggi
+- Velocità: ~1h45 vs stima 5-6h — sotto stima ~70% (record giornaliero)
+- Driver: architettura modulare + prompt sintetico (process learning Sett 4 Giorno 2 sera consolidato)
+- Verifiche post-compaction obbligatorie applicate, hanno funzionato
+
+### Tech debt — update
+
+CHIUSI:
+- 🔴 ALTO — Pattern C Cinema Letterbox (consuma ai_story) → CHIUSO Fase 2 Step 3 ✅
+
+NUOVI tech debt:
+- 🟡 MINORE — captionTimer dichiarato in Pattern C ma mai assegnato (renderCaption non lo usa, caption auto-conclude via CSS animation). clearTimeout(captionTimer) nel cleanup è no-op innocuo. Da rimuovere o collegare se si vorrà clear anticipato caption in futuro.
+
+MANTENUTI 🔴 ALTO (obiettivo matrimonio):
+- Pattern E Scrapbook Vivente (Fase 2 Step 4) — ~5-7h (ultimo pattern Fase 2)
+- Pattern D Particle Burst Mosaic (Fase 3) — ~6-8h
+- archive.html (Fase 4) — ~5-7h
+- Setup Telegram A1 sposi (Fase 4 finale) — ~15-20 min
+
+### Prossimi task
+
+PRIORITÀ ALTA — chiusura Fase 2:
+1. **Pattern E Scrapbook Vivente** (~5-7h) — ultimo pattern Fase 2
+2. (eventuale refinement prompt aiStoryteller per cliché drift — vedi sessione 28 mag 09:00-10:00)
+
+POI Fase 3:
+3. **Pattern D Particle Burst Mosaic** (~6-8h)
+4. **Polish + stress test pipeline produzione**
+
+POI Fase 4:
+5. **archive.html** (~5-7h)
+6. **Setup Telegram A1 sposi** (~15-20 min, 1 settimana pre-matrimonio)
+
+### Roadmap aggiornata
+- ✅ Sett 1: DONE (tag v1.0-foundations)
+- ✅ Sett 2: DONE (tag v2.0-upload-redesign)
+- ✅ Sett 3: DONE (tag v3.0 → v3.4)
+- 🟢 Sett 4: IN CORSO
+  - ✅ Giorno 1 mar 26 mag: Live Cinema foundation + Pattern A Petali (v3.5)
+  - ✅ Giorno 2 mer 27 mag: Pattern B Polaroid (v3.6) + AI Storyteller CF (v3.7)
+  - ✅ Giorno 3 gio 28 mag: Pattern C Cinema Letterbox (v3.8) ⭐ OGGI
+  - 📋 Giorno 4+: Pattern E Scrapbook Vivente (Fase 2 Step 4)
+- 📋 Sett 5: Pattern D Particle Burst + archive.html + Stage Mode
+- 🎯 1 giugno: MVP COMPLETO TESTATO INTERNAMENTE
+- 🎉 5 luglio: matrimonio Andrea & Giulia
+
+---
+
 ## AGGIORNAMENTO 2026-05-27 (sera) — Settimana 4 Giorno 2 sessione pomeriggio ✅
 
 **Sessione:** 18:00 → ~19:30 (~1h30 lavoro tecnico effettivo)
