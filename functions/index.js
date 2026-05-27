@@ -909,7 +909,7 @@ exports.aiStoryteller = onDocumentUpdated({
     const promptText = `Sei un poeta e sceneggiatore di film d'autore. Guarda questa fotografia di un evento speciale e scrivi cinque didascalie cinematografiche diverse.
 
 Regole OBBLIGATORIE:
-- Esattamente 5 frasi, numerate 1-5
+- Esattamente 5 frasi distinte
 - Ogni frase: 8-15 parole in italiano
 - Stile: lirico, evocativo, da sottotitolo di film d'autore
 - Ispirate al contenuto visivo specifico di questa foto
