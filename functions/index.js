@@ -835,6 +835,177 @@ DESCRIPTION: una frase italiana che riassume cosa rappresenta (max 100 caratteri
   }
 });
 
+// ============================================
+// CF aiStoryteller — caption cinematografiche
+// ============================================
+exports.aiStoryteller = onDocumentUpdated({
+  region: "us-central1",
+  memory: "512MiB",
+  timeoutSeconds: 60,
+  document: "wedding-media/{mediaId}",
+}, async (event) => {
+  const before = event.data.before.data();
+  const after = event.data.after.data();
+  const mediaId = event.params.mediaId;
+
+  // Guard 1: scatta solo quando favorite passa da non-true → true
+  if (after?.favorite !== true || before?.favorite === true) {
+    return null;
+  }
+
+  // Guard 2: favorite post-update deve essere true (defensive)
+  if (!after.favorite) {
+    return null;
+  }
+
+  // Guard 3: idempotenza — se già generato, return
+  if (after.ai_story_generated_at) {
+    console.log(`[aiStoryteller] ${mediaId}: skip (ai_story già presente)`);
+    return null;
+  }
+
+  // Guard 4: display_url richiesta per vision
+  const displayUrl = after.display_url;
+  if (!displayUrl) {
+    console.log(`[aiStoryteller] ${mediaId}: skip (display_url assente o vuoto)`);
+    return null;
+  }
+
+  // Guard 5: solo immagini (i video non passano da Vision)
+  if (after.file_type !== "image") {
+    console.log(`[aiStoryteller] ${mediaId}: skip (non immagine, è ${after.file_type})`);
+    return null;
+  }
+
+  // Guard 6: API key presente
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    console.error(`[aiStoryteller] ${mediaId}: ANTHROPIC_API_KEY mancante in env`);
+    return null;
+  }
+
+  try {
+    console.log(`[aiStoryteller] ${mediaId}: download immagine da ${displayUrl.substring(0, 80)}...`);
+
+    // Scarica immagine come buffer
+    const imageResponse = await axios.get(displayUrl, {
+      responseType: "arraybuffer",
+      timeout: 15000,
+    });
+    const imageBuffer = Buffer.from(imageResponse.data);
+    const imageBase64 = imageBuffer.toString("base64");
+    const mediaType = imageResponse.headers["content-type"] || "image/jpeg";
+
+    console.log(`[aiStoryteller] ${mediaId}: immagine scaricata (${Math.round(imageBuffer.length / 1024)}KB), invio a Claude Vision...`);
+
+    // Contesto opzionale da campi AI già presenti
+    const contextLines = [];
+    if (after.ai_description) contextLines.push(`Descrizione AI: ${after.ai_description}`);
+    if (Array.isArray(after.ai_tags) && after.ai_tags.length) contextLines.push(`Tag: ${after.ai_tags.join(", ")}`);
+    const contextBlock = contextLines.length
+      ? `\n\nContesto aggiuntivo:\n${contextLines.join("\n")}`
+      : "";
+
+    const promptText = `Sei un poeta e sceneggiatore di film d'autore. Guarda questa fotografia di un evento speciale e scrivi cinque didascalie cinematografiche diverse.
+
+Regole OBBLIGATORIE:
+- Esattamente 5 frasi, numerate 1-5
+- Ogni frase: 8-15 parole in italiano
+- Stile: lirico, evocativo, da sottotitolo di film d'autore
+- Ispirate al contenuto visivo specifico di questa foto
+- NON usare mai: "matrimonio", "sposi", "Andrea", "Giulia", "amore", "felicità"
+- Ogni frase deve essere diversa per tono (una intima, una epica, una malinconica, una leggera, una sospesa)${contextBlock}
+
+Restituisci SOLO un oggetto JSON valido, niente preamble né markdown:
+
+{
+  "stories": ["frase 1", "frase 2", "frase 3", "frase 4", "frase 5"]
+}`;
+
+    // Chiamata Claude Vision API
+    const apiResponse = await axios.post(
+      "https://api.anthropic.com/v1/messages",
+      {
+        model: "claude-sonnet-4-6",
+        max_tokens: 300,
+        messages: [{
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: mediaType,
+                data: imageBase64,
+              },
+            },
+            {
+              type: "text",
+              text: promptText,
+            },
+          ],
+        }],
+      },
+      {
+        headers: {
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        timeout: 30000,
+      }
+    );
+
+    // Parse risposta
+    const responseText = apiResponse.data?.content?.[0]?.text || "";
+    console.log(`[aiStoryteller] ${mediaId}: risposta API ricevuta (${responseText.length} chars)`);
+
+    // Parser robusto: estrai JSON anche se c'è preamble/code fence
+    let parsedData;
+    try {
+      parsedData = JSON.parse(responseText);
+    } catch (e) {
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsedData = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error("Risposta API non contiene JSON valido");
+      }
+    }
+
+    // Validazione e sanitizzazione
+    if (!Array.isArray(parsedData.stories) || parsedData.stories.length === 0) {
+      console.error(`[aiStoryteller] ${mediaId}: stories non valide nella risposta`, parsedData);
+      return null;
+    }
+
+    const stories = parsedData.stories
+      .filter((s) => typeof s === "string" && s.trim().length > 0)
+      .slice(0, 5);
+
+    if (stories.length === 0) {
+      console.error(`[aiStoryteller] ${mediaId}: nessuna storia valida estratta`);
+      return null;
+    }
+
+    // Update Firestore
+    await event.data.after.ref.update({
+      ai_story: stories,
+      ai_story_generated_at: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    console.log(`[aiStoryteller] ${mediaId}: success — ${stories.length} storie generate`);
+    return null;
+
+  } catch (error) {
+    console.error(`[aiStoryteller] ${mediaId}: errore`, error.message);
+    if (error.response) {
+      console.error(`[aiStoryteller] ${mediaId}: API status ${error.response.status}`, error.response.data);
+    }
+    return null;
+  }
+});
+
 // =====================================
 // CF notifyNewMedia — notifica Telegram
 // =====================================
