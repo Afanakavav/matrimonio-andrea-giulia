@@ -205,3 +205,135 @@ html, body {
   50%  { margin-left: var(--sway-amount, 40px); }
   100% { margin-left: 0; }
 }
+
+/* ============================================
+   Pattern B: FLOATING POLAROIDS
+   ============================================ */
+
+.cinema-stage.pattern-polaroid {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  /* Sfondo già da body, niente da aggiungere */
+}
+
+.polaroid-card {
+  position: absolute;
+  background: #fff;
+  padding: 14px 14px 50px 14px;   /* polaroid classica: padding inferiore largo */
+  border-radius: 4px;
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.12),
+    0 12px 32px rgba(0, 0, 0, 0.08);
+
+  /* Variabili custom riempite via JS */
+  --pr-rot: 0deg;
+  --pr-scale: 1;
+  --pr-x-start: 0px;
+  --pr-y-start: 0px;
+  --pr-x-end: 0px;
+  --pr-y-end: 0px;
+  --pr-float-duration: 4s;
+  --pr-float-delay: 0s;
+  --pr-life: 12s;
+
+  transform: translate(var(--pr-x-start), var(--pr-y-start)) rotate(var(--pr-rot)) scale(var(--pr-scale));
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/* Featured: ombra più marcata, leggermente più grande */
+.polaroid-card.featured {
+  box-shadow:
+    0 6px 12px rgba(201, 167, 106, 0.25),
+    0 18px 44px rgba(0, 0, 0, 0.12);
+}
+
+/* New upload: glow + pop scale (Decisione 5B) */
+.polaroid-card.new-upload {
+  animation: polaroidNewUploadPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+             polaroidFloat var(--pr-float-duration) ease-in-out infinite,
+             polaroidLifecycle var(--pr-life) linear forwards;
+  box-shadow:
+    0 0 40px rgba(201, 167, 106, 0.7),
+    0 0 80px rgba(201, 167, 106, 0.35),
+    0 12px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* Normale: solo float + lifecycle */
+.polaroid-card:not(.new-upload) {
+  animation: polaroidFloat var(--pr-float-duration) ease-in-out infinite,
+             polaroidLifecycle var(--pr-life) linear forwards;
+  animation-delay: var(--pr-float-delay), 0s;
+}
+
+.polaroid-card .polaroid-image {
+  width: 100%;
+  height: calc(100% - 36px);  /* lascia spazio per "didascalia" inferiore */
+  object-fit: cover;
+  display: block;
+  border-radius: 2px;
+}
+
+.polaroid-card video.polaroid-image {
+  background: #000;
+}
+
+/* Filtri tint sull'immagine (riusati da Pattern A) */
+.polaroid-card.tint-warm .polaroid-image    { filter: sepia(0.15) saturate(1.1); }
+.polaroid-card.tint-cool .polaroid-image    { filter: hue-rotate(-10deg) saturate(0.95); }
+.polaroid-card.tint-vintage .polaroid-image { filter: sepia(0.3) contrast(0.95) brightness(1.05); }
+
+/* Lifecycle: slide-in dal bordo random, lifecycle drift, slide-out */
+@keyframes polaroidLifecycle {
+  0% {
+    transform: translate(var(--pr-x-start), var(--pr-y-start)) rotate(var(--pr-rot)) scale(var(--pr-scale));
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  12% {
+    transform: translate(var(--pr-x-end), var(--pr-y-end)) rotate(var(--pr-rot)) scale(var(--pr-scale));
+  }
+  85% {
+    transform: translate(var(--pr-x-end), var(--pr-y-end)) rotate(var(--pr-rot)) scale(var(--pr-scale));
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(var(--pr-x-end) + var(--pr-drift-x, 80px)), calc(var(--pr-y-end) + var(--pr-drift-y, 40px))) rotate(calc(var(--pr-rot) + 8deg)) scale(var(--pr-scale));
+    opacity: 0;
+  }
+}
+
+/* Float idle: respiro Y + sway rotation */
+@keyframes polaroidFloat {
+  0%, 100% {
+    margin-top: 0;
+    --pr-sway: 0deg;
+  }
+  50% {
+    margin-top: -10px;
+  }
+}
+
+/* New upload pop */
+@keyframes polaroidNewUploadPop {
+  0% {
+    transform: translate(var(--pr-x-end), var(--pr-y-end)) rotate(var(--pr-rot)) scale(1.18);
+  }
+  60% {
+    transform: translate(var(--pr-x-end), var(--pr-y-end)) rotate(var(--pr-rot)) scale(1.04);
+  }
+  100% {
+    transform: translate(var(--pr-x-end), var(--pr-y-end)) rotate(var(--pr-rot)) scale(var(--pr-scale));
+  }
+}
+
+/* Mobile: meno polaroid simultanee (4 invece di 6-8) */
+@media (max-width: 767px) {
+  .cinema-stage.pattern-polaroid .polaroid-card:nth-child(n+5) {
+    display: none;
+  }
+}

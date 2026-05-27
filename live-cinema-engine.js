@@ -303,6 +303,162 @@
     }
   });
 
+  // ========== PATTERN B: FLOATING POLAROIDS ==========
+  registerPattern("polaroid", {
+    create(context) {
+      const { stage, pool, pickWeightedRandom, generateVariation, pendingNewUpload } = context;
+
+      const MAX_POLAROIDS = 7;          // 6-8 simultanee, fisso a 7
+      const SPAWN_INTERVAL_MS = 1800;   // nuova polaroid ogni ~1.8 sec
+      const LIFE_NORMAL_MS = 12000;
+      const LIFE_FEATURED_MS = 15000;
+
+      const activeTimers = new Set();   // timer despawn per ogni polaroid
+      let spawnTimer = null;
+      const activePolaroids = new Set();  // tracking elementi DOM attivi
+
+      function init() {
+        stage.classList.add("pattern-polaroid");
+        stage.innerHTML = "";
+        // Spawn iniziale: popola subito 3-4 polaroid con stagger
+        for (let i = 0; i < 4; i++) {
+          setTimeout(() => spawnPolaroid(), i * 700);
+        }
+        // Avvia loop spawn
+        scheduleNextSpawn();
+      }
+
+      function scheduleNextSpawn() {
+        spawnTimer = setTimeout(() => {
+          if (activePolaroids.size < MAX_POLAROIDS) {
+            spawnPolaroid();
+          }
+          scheduleNextSpawn();
+        }, SPAWN_INTERVAL_MS);
+      }
+
+      function spawnPolaroid() {
+        // Pesca media
+        let mediaId;
+        let isNewUpload = false;
+
+        if (pendingNewUpload.id && pool.has(pendingNewUpload.id)) {
+          mediaId = pendingNewUpload.id;
+          pendingNewUpload.id = null;
+          isNewUpload = true;
+        } else {
+          mediaId = pickWeightedRandom(null);  // null = no exclude
+        }
+
+        if (!mediaId) return;
+        const media = pool.get(mediaId);
+        if (!media) return;
+
+        const variation = generateVariation(mediaId);
+        const isFeatured = media.favorite;
+        const life = isFeatured ? LIFE_FEATURED_MS : LIFE_NORMAL_MS;
+
+        // Crea polaroid
+        const card = document.createElement("div");
+        card.className = `polaroid-card tint-${variation.tintFilter}`;
+        if (isFeatured) card.classList.add("featured");
+        if (isNewUpload) card.classList.add("new-upload");
+
+        // Posizione end: random dentro viewport (con margine sicurezza 10%)
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+        const xEnd = (W * 0.10) + Math.random() * (W * 0.80) - 150;
+        const yEnd = (H * 0.10) + Math.random() * (H * 0.80) - 100;
+
+        // Posizione start: dal bordo random (Decisione 4A - slide-in)
+        const side = Math.floor(Math.random() * 4);  // 0=top, 1=right, 2=bottom, 3=left
+        let xStart, yStart;
+        switch(side) {
+          case 0: xStart = xEnd; yStart = -300; break;
+          case 1: xStart = W + 300; yStart = yEnd; break;
+          case 2: xStart = xEnd; yStart = H + 300; break;
+          case 3: xStart = -300; yStart = yEnd; break;
+        }
+
+        // Drift exit: direzione random per uscita
+        const driftX = (Math.random() - 0.5) * 200;  // -100 .. +100
+        const driftY = (Math.random() - 0.5) * 200;
+
+        // Rotation polaroid (±15° come da Decisione 2)
+        const rotation = (Math.random() * 30 - 15).toFixed(1) + "deg";
+
+        // Scale
+        const scale = isFeatured ? 1.08 : (0.92 + Math.random() * 0.12).toFixed(3);
+
+        // Float duration + delay random (per phase distinte)
+        const floatDuration = (3 + Math.random() * 2).toFixed(1) + "s";  // 3-5 sec
+        const floatDelay = (Math.random() * 2).toFixed(1) + "s";          // 0-2 sec
+
+        // Dimensioni polaroid (random, range medio)
+        const cardWidth = 240 + Math.random() * 100;   // 240-340 px
+        const cardHeight = cardWidth * 1.25;            // ratio polaroid
+
+        // Set CSS variables
+        card.style.cssText = `
+          width: ${cardWidth}px;
+          height: ${cardHeight}px;
+          --pr-rot: ${rotation};
+          --pr-scale: ${scale};
+          --pr-x-start: ${xStart}px;
+          --pr-y-start: ${yStart}px;
+          --pr-x-end: ${xEnd}px;
+          --pr-y-end: ${yEnd}px;
+          --pr-drift-x: ${driftX}px;
+          --pr-drift-y: ${driftY}px;
+          --pr-float-duration: ${floatDuration};
+          --pr-float-delay: ${floatDelay};
+          --pr-life: ${life}ms;
+          z-index: ${Math.floor(Math.random() * 100)};
+        `;
+
+        // Media element (img o video)
+        if (media.fileType === "video") {
+          const video = document.createElement("video");
+          video.className = "polaroid-image";
+          video.src = media.url;
+          video.autoplay = true;
+          video.muted = true;
+          video.loop = true;
+          video.playsInline = true;
+          card.appendChild(video);
+        } else {
+          const img = document.createElement("img");
+          img.className = "polaroid-image";
+          img.src = media.url;
+          img.alt = "";
+          card.appendChild(img);
+        }
+
+        stage.appendChild(card);
+        activePolaroids.add(card);
+
+        // Despawn dopo lifecycle
+        const despawnTimer = setTimeout(() => {
+          if (card.parentNode) card.remove();
+          activePolaroids.delete(card);
+          activeTimers.delete(despawnTimer);
+        }, life);
+        activeTimers.add(despawnTimer);
+      }
+
+      function cleanup() {
+        if (spawnTimer) clearTimeout(spawnTimer);
+        activeTimers.forEach(t => clearTimeout(t));
+        activeTimers.clear();
+        activePolaroids.clear();
+        stage.classList.remove("pattern-polaroid");
+        stage.innerHTML = "";
+      }
+
+      return { init, cleanup };
+    }
+  });
+
   // ========== BOOTSTRAP ==========
   document.addEventListener("DOMContentLoaded", () => {
     subscribeToMedia();
