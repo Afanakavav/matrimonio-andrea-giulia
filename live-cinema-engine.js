@@ -32,7 +32,8 @@
       aiDescription: d.ai_description || "",   // usato da pattern Cinema in Fase 2
       aiTags: Array.isArray(d.ai_tags) ? d.ai_tags : [],
       aiScore: typeof d.ai_score === "number" ? d.ai_score : null,
-      uploaderName: d.uploader_name || "Anonimo"
+      uploaderName: d.uploader_name || "Anonimo",
+      aiStory: Array.isArray(d.ai_story) ? d.ai_story : []
     };
   }
 
@@ -452,6 +453,154 @@
         activeTimers.clear();
         activePolaroids.clear();
         stage.classList.remove("pattern-polaroid");
+        stage.innerHTML = "";
+      }
+
+      return { init, cleanup };
+    }
+  });
+
+  // ========== PATTERN C: CINEMA LETTERBOX ==========
+  registerPattern("cinema", {
+    create(context) {
+      const { stage, pool, pickWeightedRandom, generateVariation, pendingNewUpload } = context;
+
+      // CONFIG
+      const DURATION_NORMAL = 16000;
+      const DURATION_FEATURED = 20000;
+      const CAPTION_DURATION_RATIO = 0.80;
+
+      const TRANSITIONS = ["fade", "slide-left", "dip-to-black", "iris-out", "crossfade"];
+
+      // STATE
+      let frameTimer = null;
+      let captionTimer = null;
+      let currentMediaId = null;
+      let isFirstFrame = true;
+
+      function init() {
+        stage.classList.add("pattern-cinema");
+        stage.innerHTML = "";
+
+        const letterbox = document.createElement("div");
+        letterbox.className = "cinema-letterbox";
+        letterbox.innerHTML = `
+          <div class="cinema-bar top"></div>
+          <div class="cinema-frame" id="cinemaFrame"></div>
+          <div class="cinema-bar bottom">
+            <div class="cinema-caption" id="cinemaCaption"></div>
+          </div>
+        `;
+        stage.appendChild(letterbox);
+
+        showNextFrame();
+      }
+
+      function showNextFrame() {
+        if (pool.size === 0) {
+          frameTimer = setTimeout(showNextFrame, 3000);
+          return;
+        }
+
+        let mediaId, isNewUpload = false;
+        if (pendingNewUpload.id && pool.has(pendingNewUpload.id) && pendingNewUpload.id !== currentMediaId) {
+          mediaId = pendingNewUpload.id;
+          pendingNewUpload.id = null;
+          isNewUpload = true;
+        } else {
+          mediaId = pickWeightedRandom(currentMediaId);
+        }
+
+        if (!mediaId) {
+          frameTimer = setTimeout(showNextFrame, 3000);
+          return;
+        }
+
+        const media = pool.get(mediaId);
+        if (!media) {
+          frameTimer = setTimeout(showNextFrame, 3000);
+          return;
+        }
+
+        currentMediaId = mediaId;
+        const isFeatured = media.favorite;
+        const duration = isFeatured ? DURATION_FEATURED : DURATION_NORMAL;
+
+        const transition = TRANSITIONS[Math.floor(Math.random() * TRANSITIONS.length)];
+
+        renderFrame(media, transition, isNewUpload, isFirstFrame);
+        renderCaption(media, duration);
+
+        isFirstFrame = false;
+
+        frameTimer = setTimeout(showNextFrame, duration);
+      }
+
+      function renderFrame(media, transition, isNewUpload, isFirst) {
+        const frame = document.getElementById("cinemaFrame");
+        if (!frame) return;
+
+        const oldWrapper = frame.querySelector(".cinema-media-wrapper");
+        if (oldWrapper && !isFirst) {
+          oldWrapper.classList.add(`exit-${transition}`);
+          setTimeout(() => oldWrapper.remove(), 800);
+        }
+
+        const wrapper = document.createElement("div");
+        wrapper.className = `cinema-media-wrapper enter-${transition}`;
+        if (isNewUpload) wrapper.classList.add("new-upload-glow");
+
+        if (media.fileType === "video") {
+          const video = document.createElement("video");
+          video.src = media.url;
+          video.autoplay = true;
+          video.muted = true;
+          video.loop = true;
+          video.playsInline = true;
+          wrapper.appendChild(video);
+        } else {
+          const img = document.createElement("img");
+          img.src = media.url;
+          img.alt = "";
+          wrapper.appendChild(img);
+        }
+
+        frame.appendChild(wrapper);
+
+        requestAnimationFrame(() => wrapper.classList.add("visible"));
+
+        if (isNewUpload) {
+          setTimeout(() => wrapper.classList.remove("new-upload-glow"), 1500);
+        }
+      }
+
+      function renderCaption(media, frameDuration) {
+        const captionEl = document.getElementById("cinemaCaption");
+        if (!captionEl) return;
+
+        if (captionTimer) clearTimeout(captionTimer);
+        captionEl.classList.remove("crawling");
+        captionEl.textContent = "";
+
+        if (!media.favorite || !Array.isArray(media.aiStory) || media.aiStory.length === 0) {
+          return;
+        }
+
+        const story = media.aiStory[Math.floor(Math.random() * media.aiStory.length)];
+        captionEl.textContent = story;
+
+        const captionDuration = Math.floor(frameDuration * CAPTION_DURATION_RATIO);
+        captionEl.style.setProperty("--caption-duration", `${captionDuration}ms`);
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => captionEl.classList.add("crawling"));
+        });
+      }
+
+      function cleanup() {
+        if (frameTimer) clearTimeout(frameTimer);
+        if (captionTimer) clearTimeout(captionTimer);
+        stage.classList.remove("pattern-cinema");
         stage.innerHTML = "";
       }
 

@@ -337,3 +337,197 @@ html, body {
     display: none;
   }
 }
+
+/* ============================================
+   Pattern C: CINEMA LETTERBOX
+   ============================================ */
+
+.cinema-stage.pattern-cinema {
+  background: #000;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.cinema-letterbox {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cinema-bar {
+  background: #000;
+  height: calc((100vh - (100vw * 9 / 16)) / 2);
+  flex-shrink: 0;
+  min-height: 60px;
+  position: relative;
+  z-index: 2;
+}
+
+.cinema-bar.top {
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.cinema-bar.bottom {
+  border-top: 1px solid #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.cinema-frame {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+
+.cinema-media-wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  z-index: 1;
+}
+
+.cinema-media-wrapper.visible {
+  opacity: 1;
+}
+
+.cinema-media-wrapper img,
+.cinema-media-wrapper video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* ============================================
+   Pattern C — Transizioni cinematografiche
+   ============================================ */
+
+.cinema-media-wrapper.enter-fade {
+  animation: cinemaFade 1.5s ease-out forwards;
+}
+.cinema-media-wrapper.exit-fade {
+  animation: cinemaFadeOut 0.8s ease-in forwards;
+}
+@keyframes cinemaFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cinemaFadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.cinema-media-wrapper.enter-slide-left {
+  animation: cinemaSlideLeftIn 1.2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+.cinema-media-wrapper.exit-slide-left {
+  animation: cinemaSlideLeftOut 0.8s ease-in forwards;
+}
+@keyframes cinemaSlideLeftIn {
+  from { opacity: 0; transform: translateX(8%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes cinemaSlideLeftOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-8%); }
+}
+
+.cinema-media-wrapper.enter-dip-to-black {
+  animation: cinemaDipIn 1.5s ease-out forwards;
+  animation-delay: 0.6s;
+}
+.cinema-media-wrapper.exit-dip-to-black {
+  animation: cinemaDipOut 0.6s ease-in forwards;
+}
+@keyframes cinemaDipIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cinemaDipOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.cinema-media-wrapper.enter-iris-out {
+  animation: cinemaIrisIn 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.cinema-media-wrapper.exit-iris-out {
+  animation: cinemaIrisOut 0.8s ease-in forwards;
+}
+@keyframes cinemaIrisIn {
+  from { opacity: 0; clip-path: circle(0% at 50% 50%); }
+  to   { opacity: 1; clip-path: circle(75% at 50% 50%); }
+}
+@keyframes cinemaIrisOut {
+  from { opacity: 1; clip-path: circle(75% at 50% 50%); }
+  to   { opacity: 0; clip-path: circle(0% at 50% 50%); }
+}
+
+.cinema-media-wrapper.enter-crossfade {
+  animation: cinemaCrossfadeIn 2.0s ease-out forwards;
+}
+.cinema-media-wrapper.exit-crossfade {
+  animation: cinemaCrossfadeOut 1.2s ease-in forwards;
+}
+@keyframes cinemaCrossfadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cinemaCrossfadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.cinema-media-wrapper.new-upload-glow {
+  box-shadow: 0 0 60px rgba(201, 167, 106, 0.7);
+}
+
+/* ============================================
+   Pattern C — Caption crawl
+   ============================================ */
+
+.cinema-caption {
+  font-family: "Playfair Display", serif;
+  font-style: italic;
+  font-size: clamp(18px, 2.2vw, 32px);
+  color: #c9a76a;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.02em;
+  transform: translateX(100vw);
+  opacity: 0;
+  --caption-duration: 12s;
+}
+
+.cinema-caption.crawling {
+  animation: cinemaCrawl var(--caption-duration) linear forwards;
+}
+
+@keyframes cinemaCrawl {
+  0%   { transform: translateX(100vw); opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { transform: translateX(-100%); opacity: 0; }
+}
+
+/* ============================================
+   Pattern C — Responsive
+   ============================================ */
+
+@media (max-width: 767px) {
+  .cinema-caption {
+    font-size: clamp(14px, 4vw, 20px);
+  }
+  .cinema-bar {
+    min-height: 40px;
+  }
+}
