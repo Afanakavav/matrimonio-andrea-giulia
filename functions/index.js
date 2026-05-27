@@ -916,10 +916,17 @@ Regole OBBLIGATORIE:
 - NON usare mai: "matrimonio", "sposi", "Andrea", "Giulia", "amore", "felicità"
 - Ogni frase deve essere diversa per tono (una intima, una epica, una malinconica, una leggera, una sospesa)${contextBlock}
 
-Restituisci SOLO un oggetto JSON valido, niente preamble né markdown:
+Restituisci SOLO un oggetto JSON valido, niente preamble né markdown.
+LE STRINGHE NON DEVONO CONTENERE NUMERI PROGRESSIVI (no "1.", "2.", "3." ecc.).
 
 {
-  "stories": ["frase 1", "frase 2", "frase 3", "frase 4", "frase 5"]
+  "stories": [
+    "...",
+    "...",
+    "...",
+    "...",
+    "..."
+  ]
 }`;
 
     // Chiamata Claude Vision API
