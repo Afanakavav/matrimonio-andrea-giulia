@@ -1023,6 +1023,81 @@ project = matrimonio-andrea-giulia-2026
 
 ---
 
+## AGGIORNAMENTO 2026-05-28 (refinement aiStoryteller) — Settimana 4 Giorno 3 sessione post-pausa ✅
+
+**Sessione:** 08:30 → ~09:35 (~1h05 lavoro tecnico effettivo)
+**Tag:** `v3.8.1-cinema-pattern-c-hotfix` (primo hotfix del progetto)
+**Deploy:** functions:aiStoryteller × 2 (1 per fix sintomo, 1 per root cause)
+
+**LAVORO COMPLETATO:**
+
+### Test diagnostico esteso (Opzione A)
+- Toggle favorite=true su 2 foto featured-able mai marcate
+- Generate 10 nuove frasi (5 per foto) via CF aiStoryteller
+- Bug scoperto: 50% delle frasi (2 foto su 4 contando ieri) contengono numerazione "1.", "2." dentro la stringa
+- Sample analysis: 15 frasi nuove oggi, 1 cliché vietato ("eternità") = 6.7% sotto soglia 10% → accettato
+
+### Fix #1 — Rimozione ambiguità placeholder JSON (commit 54c9231)
+- Modificato OUTPUT FORMATO JSON: "frase 1", "frase 2"... → "..."
+- Aggiunto safety net esplicito: "LE STRINGHE NON DEVONO CONTENERE NUMERI PROGRESSIVI"
+- Test validazione: 5/5 frasi pulite su 1 foto
+
+### Fix #2 — Rimozione causa radice (commit f846acf)
+- Diagnosi PM: 2 istruzioni contraddittorie nel prompt
+  - r.912: "Esattamente 5 frasi, numerate 1-5" (forzava numerazione)
+  - r.920: "LE STRINGHE NON DEVONO CONTENERE NUMERI" (vietava numerazione)
+- Modifica: "numerate 1-5" → "5 frasi distinte"
+- Test validazione: 5/5 frasi pulite su 1 foto + 0 cliché su sample
+- Prompt ora internamente coerente
+
+**Decisione PM strategica:**
+- Bug numerazione (50% drift): refinement obbligatorio ✓
+- Cliché vietati (6.7% drift): sotto soglia 10%, accettato (no refinement)
+
+**Commit della sessione (2):**
+- `54c9231` fix(week4): aiStoryteller prompt — rimuove ambiguita placeholder che causava numerazione
+- `f846acf` fix(week4): aiStoryteller prompt — rimuove causa radice (regola 'numerate 1-5' contraddittoria con safety net)
+
+**Note metodologiche:**
+- Patto operativo rispettato: refinement only, no Pattern E
+- Velocità: ~1h05 vs stima 55min-1h10 (in linea)
+- Process learning consolidato: LLM prompt — istruzioni contraddittorie si combinano in modo imprevedibile, fix richiede ambiguità rimossa + safety net (belt and suspenders)
+- Sample testing 15 frasi > test 1 foto sola: importante per scoprire pattern strutturali
+
+**Velocità totale giornata 2026-05-28 (Pattern C + refinement):**
+- Pattern C: 06:00 → 07:55 = ~1h45 (stima 5-6h, sotto stima 70%)
+- Refinement: 08:30 → 09:35 = ~1h05 (stima 55min-1h30, in linea)
+- **Totale giornata: ~2h50 per Pattern C + hotfix completi**
+
+### Tech debt — update
+
+CHIUSI:
+- 🟡 MINORE — Drift cliché aiStoryteller ("destino" in 1 frase su 5) → CHIUSO con decisione PM: sotto soglia 10%, accettato
+
+NUOVI tech debt:
+- 🟡 MINORE — Drift residuo cliché ~6.7% (es. "eternità"). Da monitorare se peggiora durante uso reale matrimonio. Threshold attuale: <10% accettato.
+
+MANTENUTI 🔴 ALTO (obiettivo matrimonio):
+- Pattern E Scrapbook Vivente (Fase 2 Step 4) — ~5-7h (ultimo pattern Fase 2)
+- Pattern D Particle Burst Mosaic (Fase 3) — ~6-8h
+- archive.html (Fase 4) — ~5-7h
+- Setup Telegram A1 sposi (Fase 4 finale) — ~15-20 min
+
+### Prossimi task (priorità invariata)
+
+PRIORITÀ ALTA — chiusura Fase 2:
+1. **Pattern E Scrapbook Vivente** (~5-7h) — ultimo pattern Fase 2
+
+POI Fase 3:
+2. **Pattern D Particle Burst Mosaic** (~6-8h)
+3. **Polish + stress test pipeline produzione**
+
+POI Fase 4:
+4. **archive.html** (~5-7h)
+5. **Setup Telegram A1 sposi** (~15-20 min, 1 settimana pre-matrimonio)
+
+---
+
 ## AGGIORNAMENTO 2026-05-28 (mattina) — Settimana 4 Giorno 3 ✅
 
 **Sessione:** 06:00 → ~08:00 (~1h45 lavoro tecnico effettivo)
