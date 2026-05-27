@@ -1023,6 +1023,110 @@ project = matrimonio-andrea-giulia-2026
 
 ---
 
+## AGGIORNAMENTO 2026-05-27 (sera) — Settimana 4 Giorno 2 sessione pomeriggio ✅
+
+**Sessione:** 18:00 → ~19:30 (~1h30 lavoro tecnico effettivo)
+**Tag:** `v3.7-cinema-ai-storyteller` (Fase 2 Step 2 — AI Storyteller CF)
+**Deploy:** functions:aiStoryteller (CF NUOVA #12)
+**Apertura:** sessione fresh (nuova chat post-pausa pranzo, Opzione 4 sessione mattina rispettata)
+
+**LAVORO COMPLETATO OGGI POMERIGGIO (Task Fase 2 Step 2):**
+
+### Task 2.0 — Diagnostica veloce stato post-pausa
+- Letto ultime 2 entry CODEBASE_AUDIT.md (mercoledì mattina + martedì)
+- Verificato stato git (HEAD 09b3222, 9 tag), 11 CF in produzione
+- Confermato che aiPhotoCurator usa claude-sonnet-4-5 via REST diretto axios (no SDK)
+
+### Brief decisioni AI Storyteller (5 decisioni "OK 1-5"):
+- 1B: claude-sonnet-4-6 (più recente di aiPhotoCurator)
+- 2A: trigger solo su favorite=true transition
+- 3B: idempotente (skip se ai_story già presente)
+- 4A: esattamente 5 frasi
+- 5A: solo italiano
+
+### Task 2.4 — Diagnostica aiPhotoCurator pattern (per riuso)
+- Pattern axios REST: GIA' presente, riusabile
+- Helper image download: inline (no helper riusabile separato), riproduco lo stesso pattern
+- ANTHROPIC_API_KEY in env: OK (lunghezza 108)
+- Package: axios ^1.6.0, no @anthropic-ai/sdk (REST diretto)
+- Pattern guard idempotenti: replicato
+- Modello: aiPhotoCurator usa claude-sonnet-4-5, aiStoryteller userà claude-sonnet-4-6
+
+### Task 2.5 — Implementazione aiStoryteller (commit 5a6ceed)
+- +171 righe in functions/index.js (tra aiPhotoCurator e notifyNewMedia)
+- 6 guard early-return (G1: favorite transit, G2: ai_story present, G3: display_url, G4: file_type, G5: API key)
+- Download immagine da display_url (axios arraybuffer + base64)
+- Chiamata claude-sonnet-4-6 Vision con prompt poetico strutturato
+- Vincoli prompt: 5 frasi 8-15 parole italiano lirico, no parole banali (matrimonio/sposi/amore/destino/eternità/magia), no nomi propri
+- Parser robusto: JSON.parse + regex fallback
+- Validazione: filter stringhe non vuote + slice(0,5), tollera 3-5 frasi
+- Update Firestore: ai_story[], ai_story_generated_at (serverTimestamp)
+- aiPhotoCurator INTATTA, no doppio require, schema snake_case (5 verifiche post-compaction OK)
+
+### Task 2.6 — Deploy + Smoke test E2E
+- Deploy `firebase deploy --only functions:aiStoryteller`
+- CF NUOVA creata (Successful create operation, 12 CF totali in produzione)
+- Smoke test su 1 foto reale prod:
+  - Toggle favorite=true via admin web
+  - Cloud Run logs aiStoryteller: download (142KB) + chiamata Claude + 5 storie generate (success)
+  - Firestore: ai_story array 5 stringhe + ai_story_generated_at timestamp
+- **5 frasi generate qualità ECCELLENTE:**
+  1. "I suoi occhi cercano i miei come fanno le radici con la terra."
+  2. "Il vento complice scompiglia i capelli e riscrive il destino."  ← contiene "destino" (cliché minore vietato)
+  3. "Chissà quanti autunni ancora ci resteranno da attraversare insieme."
+  4. "Lei ride e lui dimentica persino il nome delle sue paure."
+  5. "Qualcosa sta per accadere, o forse è già accaduto in silenzio."
+- 1 violazione minore (cliché "destino" in frase 2): accettata, raffinazione rimandata se drift si ripete
+
+**Commit della sessione (1):**
+- `5a6ceed` feat(week4): aiStoryteller CF (5 frasi poetiche per featured, claude-sonnet-4-6)
+
+**Note metodologiche:**
+- Patto operativo rispettato: scope AI Storyteller only, niente Pattern C oggi
+- Velocità: ~1h30 vs stima 2h35-3h15 — sotto stima ~50% (architettura modulare + pattern riuso aiPhotoCurator + prompt sintetico)
+- **Process learning nuovo:** prompt sintetici Claude Code (architettura definitiva, non implementazione prescrittiva) risparmiano 30-50% del tempo quando Claude Code ha già il contesto in flow. Da consolidare per prossime sessioni.
+- 5 verifiche post-compaction obbligatorie applicate, hanno funzionato
+- Sessione "fresh chat post-pausa pranzo" pattern operativo confermato vincente
+
+**Tech debt — update:**
+
+CHIUSI:
+- 🟡 MEDIO — AI Storyteller CF (prerequisito Pattern C) → CHIUSO Fase 2 Step 2 ✅
+
+NUOVI tech debt:
+- 🟡 MINORE — Prompt aiStoryteller può drift sui cliché vietati (es. "destino"). Da monitorare durante sviluppo Pattern C.
+- 🟡 MINORE — Modelli AI fra CF non allineati: aiPhotoCurator usa claude-sonnet-4-5, aiStoryteller usa claude-sonnet-4-6. Considerare upgrade aiPhotoCurator a 4-6 per consistenza (non bloccante, decisione futura).
+
+MANTENUTI 🔴 ALTO (obiettivo matrimonio):
+- Pattern C Cinema Letterbox (Fase 2 Step 3) — ~5-6h, integra ai_story
+- Pattern E Scrapbook Vivente (Fase 2 Step 4) — ~5-7h
+- Pattern D Particle Burst Mosaic (Fase 3) — ~6-8h
+- archive.html (Fase 4) — ~5-7h
+- Setup Telegram A1 sposi (Fase 4 finale) — ~15-20 min
+
+**Prossimi task:**
+
+PRIORITÀ ALTA (Fase 2 Step 3):
+1. **Pattern C Cinema Letterbox** (~5-6h)
+   - Layout: foto fullscreen + barre nere cinema 16:9
+   - Caption crawl: pesca 1 frase random da ai_story, scorre lentamente sotto foto
+   - Transizioni cinematografiche random (fade, slide, dip-to-black, iris-out, Ken Burns variation)
+   - Mood: cena (20:00-22:00)
+   - VALID_MODES estesi a ["petali", "polaroid", "cinema"]
+
+POI Fase 2 Step 4:
+2. **Pattern E Scrapbook Vivente** (~5-7h)
+
+POI Fase 3:
+3. **Pattern D Particle Burst** (~6-8h)
+4. **Polish + stress test**
+
+POI Fase 4:
+5. **archive.html** (~5-7h)
+6. **Setup Telegram A1 sposi** (~15-20 min, 1 settimana pre-matrimonio)
+
+---
+
 ## AGGIORNAMENTO 2026-05-27 — Settimana 4 Giorno 2 (mercoledì mattina) ✅
 
 **Sessione:** 12:25 → ~14:15 (~1h50 lavoro tecnico effettivo)
