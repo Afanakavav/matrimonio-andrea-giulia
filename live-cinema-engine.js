@@ -695,7 +695,7 @@
         if (!pageEl) return;
 
         const content = document.createElement("div");
-        content.className = "scrapbook-page-content fade-in";
+        content.className = "scrapbook-page-content";
 
         photos.forEach(media => {
           const rotation = (Math.random() * 2 - 1) * ROTATION_MAX;
