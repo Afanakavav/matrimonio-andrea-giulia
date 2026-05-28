@@ -608,6 +608,160 @@
     }
   });
 
+  // ========== PATTERN E: SCRAPBOOK VIVENTE ==========
+  registerPattern("scrapbook", {
+    create(context) {
+      const { stage, pool, pickWeightedRandom, generateVariation, pendingNewUpload } = context;
+
+      // CONFIG
+      const PAGE_DURATION = 35000;
+      const MIN_PHOTOS_PER_PAGE = 2;
+      const MAX_PHOTOS_PER_PAGE = 4;
+      const ROTATION_MAX = 10;
+      const TAPE_STYLES = ["tape", "pin", "corner"];
+
+      // STATE
+      let pageTimer = null;
+      let currentPageMediaIds = [];
+
+      function init() {
+        stage.classList.add("pattern-scrapbook");
+        stage.innerHTML = "";
+
+        const page = document.createElement("div");
+        page.className = "scrapbook-page";
+        stage.appendChild(page);
+
+        showNextPage();
+      }
+
+      function showNextPage() {
+        if (pool.size === 0) {
+          pageTimer = setTimeout(showNextPage, 3000);
+          return;
+        }
+
+        const count = Math.min(
+          MIN_PHOTOS_PER_PAGE + Math.floor(Math.random() * (MAX_PHOTOS_PER_PAGE - MIN_PHOTOS_PER_PAGE + 1)),
+          pool.size
+        );
+
+        const picked = new Set();
+        const photos = [];
+        let lastId = null;
+
+        for (let i = 0; i < count; i++) {
+          let id = null;
+
+          // pickWeightedRandom in loop: evita id già pescati questa pagina
+          for (let attempt = 0; attempt < 8; attempt++) {
+            const candidate = pickWeightedRandom(lastId);
+            if (candidate && !picked.has(candidate)) {
+              id = candidate;
+              break;
+            }
+          }
+
+          // Fallback: scan diretto preferendo foto non viste nella pagina precedente
+          if (!id) {
+            for (const [k] of pool) {
+              if (!picked.has(k) && !currentPageMediaIds.includes(k)) { id = k; break; }
+            }
+          }
+          // Fallback finale: qualsiasi foto non ancora pescata
+          if (!id) {
+            for (const [k] of pool) {
+              if (!picked.has(k)) { id = k; break; }
+            }
+          }
+
+          if (id) {
+            picked.add(id);
+            const media = pool.get(id);
+            if (media) { photos.push(media); lastId = id; }
+          }
+        }
+
+        currentPageMediaIds = [...picked];
+
+        const featured = photos.find(m => m.favorite && Array.isArray(m.aiStory) && m.aiStory.length > 0) || null;
+        composePage(photos, featured);
+
+        pageTimer = setTimeout(showNextPage, PAGE_DURATION);
+      }
+
+      function composePage(photos, featuredMedia) {
+        const pageEl = stage.querySelector(".scrapbook-page");
+        if (!pageEl) return;
+
+        const content = document.createElement("div");
+        content.className = "scrapbook-page-content fade-in";
+
+        photos.forEach(media => {
+          const rotation = (Math.random() * 2 - 1) * ROTATION_MAX;
+          const offsetX = ((Math.random() * 2 - 1) * 1.5).toFixed(2);
+          const offsetY = ((Math.random() * 2 - 1) * 1.5).toFixed(2);
+          const tapeStyle = TAPE_STYLES[Math.floor(Math.random() * TAPE_STYLES.length)];
+
+          const photoEl = document.createElement("div");
+          photoEl.className = `scrapbook-photo with-${tapeStyle}`;
+          photoEl.style.transform = `rotate(${rotation.toFixed(1)}deg) translate(${offsetX}vw, ${offsetY}vh)`;
+
+          if (media.fileType === "video") {
+            const video = document.createElement("video");
+            video.src = media.url;
+            video.muted = true;
+            video.autoplay = true;
+            video.loop = true;
+            video.playsInline = true;
+            photoEl.appendChild(video);
+          } else {
+            const img = document.createElement("img");
+            img.src = media.url;
+            img.alt = "";
+            photoEl.appendChild(img);
+          }
+
+          content.appendChild(photoEl);
+        });
+
+        if (featuredMedia && featuredMedia.aiStory.length > 0) {
+          const story = featuredMedia.aiStory[Math.floor(Math.random() * featuredMedia.aiStory.length)];
+          const caption = document.createElement("div");
+          caption.className = "scrapbook-caption";
+          caption.textContent = story;
+          content.appendChild(caption);
+        }
+
+        transitionToPage(content);
+      }
+
+      // PLACEHOLDER: fade semplice. Prossima sessione: sostituire con page-flip 3D.
+      function transitionToPage(newContent) {
+        const pageEl = stage.querySelector(".scrapbook-page");
+        if (!pageEl) return;
+
+        const old = pageEl.querySelector(".scrapbook-page-content");
+        if (old) {
+          old.style.opacity = "0";
+          old.style.transition = "opacity 0.6s ease";
+          setTimeout(() => old.remove(), 650);
+        }
+
+        pageEl.appendChild(newContent);
+        requestAnimationFrame(() => newContent.classList.add("visible"));
+      }
+
+      function cleanup() {
+        if (pageTimer) clearTimeout(pageTimer);
+        stage.classList.remove("pattern-scrapbook");
+        stage.innerHTML = "";
+      }
+
+      return { init, cleanup };
+    }
+  });
+
   // ========== BOOTSTRAP ==========
   document.addEventListener("DOMContentLoaded", () => {
     subscribeToMedia();
