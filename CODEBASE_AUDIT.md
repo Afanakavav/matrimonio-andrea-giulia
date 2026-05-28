@@ -1023,6 +1023,91 @@ project = matrimonio-andrea-giulia-2026
 
 ---
 
+## AGGIORNAMENTO 2026-05-28 (pomeriggio) — Settimana 4 Giorno 3 sessione Pattern E foundation 🟡 WIP
+
+**Sessione:** 16:00 → ~18:20 (~2h20 lavoro tecnico effettivo)
+**Commit:** d15bdb3 (foundation) + 2f10d7c (fix fade-in)
+**NO TAG:** Pattern E è FOUNDATION incompleta (page-flip 3D + deploy rimandati). Tag v3.9-cinema-pattern-e quando completo.
+**Deploy:** NESSUNO (foundation testata solo in locale via firebase serve)
+
+**LAVORO COMPLETATO (Pattern E Scrapbook Vivente — FOUNDATION):**
+
+### Decisioni di design (OK 1-7):
+- 1C: 2-4 foto random per pagina
+- 2C: mix fissaggio (scotch washi / puntine / angolini fotografici)
+- 3A: font handwriting Dancing Script
+- 4B: rotazione ±10°
+- 5B: 1 frase handwriting per pagina (dalla featured)
+- 6A: transizione fade placeholder (page-flip 3D rimandato a prossima sessione)
+- 7B: ~35 sec per pagina
+
+### Task 4.1 — Implementazione foundation (commit d15bdb3)
+- **live-cinema-engine.js:** +154 righe — registerPattern("scrapbook", {...})
+  - CONFIG: PAGE_DURATION=35000, MIN/MAX_PHOTOS_PER_PAGE=2/4, ROTATION_MAX=10, TAPE_STYLES mix
+  - showNextPage → composePage → transitionToPage (ISOLATA per sostituzione page-flip 3D futura)
+  - pick-N foto distinte via loop+retry (pickWeightedRandom accetta 1 solo excludeId)
+  - caption handwriting solo per featured con aiStory
+- **live-cinema-styles.css:** +122 righe — sfondo carta avorio, polaroid incollate (.with-tape/.with-pin/.with-corner), Dancing Script caption, rotazioni, responsive
+- Font Dancing Script già caricato in live-cinema.html L10 (no @import necessario)
+- normalizeDoc già esponeva aiStory (no modifica)
+- 5 verifiche post-compaction OK
+
+### Task 4.2-4.5 — Test visivo locale + bug trovato e fixato
+- Override temporaneo mode "scrapbook" per test locale (firebase serve), NON committato
+- **BUG TROVATO:** Pattern E mostrava solo sfondo, foto invisibili (opacity 0)
+- Diagnosi via log DEBUG: composePage riceveva foto correttamente (4 foto, featured OK), ma DOM invisibile
+- **ROOT CAUSE:** classe `.fade-in` confliggeva con `.visible` (identica specificità 0,2,0, source order: .fade-in dichiarata dopo → opacity:0 vinceva permanentemente)
+- **FIX (commit 2f10d7c):** rimossa classe "fade-in" da composePage className (la classe base .scrapbook-page-content ha già opacity:0 + transition, .fade-in era ridondante e conflittuale)
+- **Validazione visiva:** Pattern E renderizza correttamente — carta avorio, polaroid con puntina/angolini, rotazione, caption Dancing Script ("Lei ride e lui dimentica persino il nome delle sue paure")
+- Override scartato con git checkout (working tree pulito)
+
+**Nota cosmetica (non bug):** durante test con override, indicatore mode mostrava "petali" perché override bypassa switchMode (che aggiorna l'etichetta). In produzione switchMode girerà normalmente. Da ri-verificare nel test E2E reale.
+
+**Commit della sessione (2):**
+- `d15bdb3` wip(week4): Pattern E Scrapbook Vivente foundation (placeholder fade, page-flip 3D + deploy rimandati)
+- `2f10d7c` fix(week4): Pattern E foundation — rimuove classe fade-in che confliggeva con visible
+
+**Note metodologiche:**
+- Patto operativo: scope foundation only, NO page-flip 3D, NO deploy, NO tag — rispettato
+- Pausa 17:45 SALTATA (dentro debug) — lezione: fermarsi anche a metà debug
+- Confusione Pattern C vs E durante re-test (override non ri-aggiunto) — sintomo stanchezza ~6h lavoro, colta e corretta
+- Test visivo locale via firebase serve + override temporaneo: workflow utile per validare pattern senza deploy
+- Bug opacity da conflitto CSS source-order: classico bug senza errori console (CSS+JS validi, risultato sbagliato)
+
+### Tech debt — update
+
+NUOVI tech debt:
+- 🟡 MINORE — Pattern E: layout caption distante dalle foto (molto spazio vuoto verticale). Da stringere prossima sessione.
+- 🟡 MINORE — Pattern E: .scrapbook-photo.with-corner usa già ::before + ::after, no spazio per decoratori aggiuntivi futuri sullo stesso elemento.
+- 🟡 DA VERIFICARE — indicatore mode con Pattern E: confermare che mostri "scrapbook" in produzione (test con override mostrava "petali" per bypass switchMode).
+
+MANTENUTI 🔴 ALTO (obiettivo matrimonio):
+- Pattern E COMPLETAMENTO (page-flip 3D + VALID_MODES "scrapbook" + deploy + test E2E + polish) — ~3-4h rimanenti
+- Pattern D Particle Burst Mosaic (Fase 3) — ~6-8h
+- archive.html (Fase 4) — ~5-7h
+- Setup Telegram A1 sposi (Fase 4 finale) — ~15-20 min
+
+### Prossimi task (priorità invariata)
+
+PRIORITÀ ALTA — completamento Fase 2:
+1. **Pattern E COMPLETAMENTO** (~3-4h):
+   - Sostituire transitionToPage (fade) con page-flip 3D animation
+   - VALID_MODES += "scrapbook" + VALID_MODES_DESC
+   - Deploy hosting + functions:telegramWebhook
+   - Test E2E completo (/mode scrapbook, verifica indicatore, cleanup, B3 regression)
+   - Polish layout caption + decorazioni
+   - Tag v3.9-cinema-pattern-e → CHIUDE FASE 2
+
+POI Fase 3:
+2. **Pattern D Particle Burst Mosaic** (~6-8h)
+3. **Polish + stress test pipeline produzione**
+
+POI Fase 4:
+4. **archive.html** (~5-7h)
+5. **Setup Telegram A1 sposi** (~15-20 min, 1 settimana pre-matrimonio)
+
+---
+
 ## AGGIORNAMENTO 2026-05-28 (refinement aiStoryteller) — Settimana 4 Giorno 3 sessione post-pausa ✅
 
 **Sessione:** 08:30 → ~09:35 (~1h05 lavoro tecnico effettivo)
