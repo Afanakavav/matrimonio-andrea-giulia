@@ -736,20 +736,31 @@
         transitionToPage(content);
       }
 
-      // PLACEHOLDER: fade semplice. Prossima sessione: sostituire con page-flip 3D.
       function transitionToPage(newContent) {
         const pageEl = stage.querySelector(".scrapbook-page");
         if (!pageEl) return;
 
         const old = pageEl.querySelector(".scrapbook-page-content");
-        if (old) {
-          old.style.opacity = "0";
-          old.style.transition = "opacity 0.6s ease";
-          setTimeout(() => old.remove(), 650);
+
+        // PRIMA PAGINA: niente da sfogliare → fade semplice
+        if (!old) {
+          pageEl.appendChild(newContent);
+          requestAnimationFrame(() => newContent.classList.add("visible"));
+          return;
         }
 
+        // PAGINE SUCCESSIVE: page-flip 3D
+        // Fase 1: vecchia pagina ruota via (rotateY 0 → -100deg)
+        old.classList.add("flip-out");
+
+        // Fase 2: nuova pagina entra ruotando (rotateY 95 → 0deg), delay = durata fase 1
+        newContent.classList.add("flip-in");
         pageEl.appendChild(newContent);
-        requestAnimationFrame(() => newContent.classList.add("visible"));
+
+        // Rimuovi vecchia pagina al termine fase uscita (~900ms + margine)
+        setTimeout(() => {
+          if (old && old.parentNode) old.remove();
+        }, 950);
       }
 
       function cleanup() {

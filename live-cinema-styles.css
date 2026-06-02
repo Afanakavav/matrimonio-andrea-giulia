@@ -550,6 +550,7 @@ html, body {
 .scrapbook-page {
   position: absolute;
   inset: 0;
+  perspective: 1200px;
 }
 
 .scrapbook-page-content {
@@ -559,11 +560,14 @@ html, body {
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 4vw;
-  padding: 6vh 6vw;
+  gap: 1.5vh 4vw;
+  padding: 4vh 6vw;
   box-sizing: border-box;
   opacity: 0;
   transition: opacity 1.2s ease;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transform-origin: left center;
 }
 .scrapbook-page-content.visible {
   opacity: 1;
@@ -641,9 +645,28 @@ html, body {
   text-align: center;
   width: 100%;
   flex-basis: 100%;
-  margin-top: 2vh;
+  margin-top: 0.5vh;
   transform: rotate(-2deg);
   text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+}
+
+/* Page-flip 3D (Pattern E) */
+.scrapbook-page-content.flip-out {
+  animation: scrapbookFlipOut 0.9s ease-in forwards;
+  z-index: 2;
+}
+.scrapbook-page-content.flip-in {
+  animation: scrapbookFlipIn 0.9s ease-out 0.9s both;
+  z-index: 1;
+}
+
+@keyframes scrapbookFlipOut {
+  0%   { transform: rotateY(0deg);    opacity: 1;   box-shadow: 0 0 0 rgba(80,60,30,0); }
+  100% { transform: rotateY(-100deg); opacity: 0.2; box-shadow: 30px 0 50px rgba(80,60,30,0.45); }
+}
+@keyframes scrapbookFlipIn {
+  0%   { transform: rotateY(95deg);  opacity: 0.2; box-shadow: -30px 0 50px rgba(80,60,30,0.45); }
+  100% { transform: rotateY(0deg);   opacity: 1;   box-shadow: 0 0 0 rgba(80,60,30,0); }
 }
 
 /* ============================================
