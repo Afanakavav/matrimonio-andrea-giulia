@@ -1330,7 +1330,7 @@ async function handleTextCommand(message, res) {
   }
 
   // Lista pattern validi (hardcoded server-side, da espandere in Fase 2/3)
-  const VALID_MODES = ["petali", "polaroid", "cinema"];
+  const VALID_MODES = ["petali", "polaroid", "cinema", "scrapbook"];
 
   // Parse argomenti dopo /mode
   const parts = text.split(/\s+/);
@@ -1393,6 +1393,7 @@ async function sendModeInfo(chatId, res) {
       ["petali", "Pattern romantico con petali rosa"],
       ["polaroid", "Polaroid che fluttuano nello spazio"],
       ["cinema", "Cinema letterbox con caption AI"],
+      ["scrapbook", "Album scrapbook con pagine che si sfogliano"],
     ];
     const modeList = VALID_MODES_DESC.map(([n, d]) => `• \`${n}\` — ${escapeMdV2(d)}`).join("\n");
 
