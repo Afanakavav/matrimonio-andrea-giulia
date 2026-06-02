@@ -1023,6 +1023,82 @@ project = matrimonio-andrea-giulia-2026
 
 ---
 
+## AGGIORNAMENTO 2026-06-02 — Settimana 5 Giorno 1 (martedì) — Pattern E COMPLETO ✅ CHIUDE FASE 2
+
+**Sessione:** 08:00 → ~09:30 (~1h30 lavoro tecnico, Fase 1 della sessione)
+**Tag:** `v3.9-cinema-pattern-e` (Fase 2 Step 4 — Pattern E completamento)
+**Deploy:** hosting + functions:telegramWebhook
+**Apertura:** dopo 5 giorni di pausa dal progetto (28 mag → 2 giu)
+
+**LAVORO COMPLETATO (Pattern E completamento):**
+
+### Decisioni page-flip 3D (OK 1-5):
+- 1A: rotateY (sfoglio orizzontale)
+- 2B: durata 1.8s (lento, mood epilogo)
+- 3B: rotazione + ombra dinamica
+- 4A: prima pagina fade, successive flip
+- 5B: transform-origin left (dorso album sinistro)
+
+### Task 5.1 — Page-flip 3D + polish caption (commit bfb2803)
+- transitionToPage sostituita: fade → page-flip 3D (flip-out rotateY 0→-100deg, flip-in rotateY 95→0deg con delay 0.9s)
+- CSS: perspective 1200px, transform-style preserve-3d, backface-visibility hidden, transform-origin left
+- 2 keyframes: scrapbookFlipOut + scrapbookFlipIn con ombra dinamica
+- Polish caption: margin-top 2vh→0.5vh, gap→1.5vh 4vw, padding 6vh→4vh
+- SOLO transitionToPage modificata (composePage/showNextPage/init/cleanup intatti)
+- Test visivo locale (override temporaneo + firebase serve): page-flip confermato al primo colpo, zero tuning
+- Override scartato con git checkout
+
+### Task 5.2 — VALID_MODES + deploy + E2E (commit 04d2612)
+- VALID_MODES += "scrapbook" + VALID_MODES_DESC entry
+- Deploy hosting + functions:telegramWebhook
+- Test E2E 7/7 PASS in produzione:
+  - /mode scrapbook switch OK
+  - **Indicatore mode mostra "scrapbook"** (risolto tech debt: in locale mostrava "petali" per bypass switchMode, in produzione corretto)
+  - Page-flip 3D OK, caption handwriting OK, /mode help OK, cleanup OK, B3 regression OK
+
+**Commit della sessione (2):**
+- `bfb2803` feat(week5): Pattern E page-flip 3D + polish caption
+- `04d2612` feat(week5): VALID_MODES include scrapbook
+
+**🎯 FASE 2 COMPLETA:** 5 pattern visivi (Petali/Polaroid/Cinema/Scrapbook) + AI Storyteller, tutti switchabili real-time via Telegram.
+
+**Note metodologiche:**
+- Patto operativo: Pattern E completamento PRIMA di Pattern D — rispettato
+- Velocità: ~1h30 vs stima 3-4h — sotto stima ~55%
+- Page-flip 3D al primo colpo, zero iterazioni tuning (spec precisa + lezione prompt sintetici)
+- Override temporaneo gestito con disciplina (marcato NON COMMITTARE, scartato, mai committato)
+
+### Tech debt — update
+
+CHIUSI:
+- 🟡 Indicatore mode Pattern E → CHIUSO (verifica E2E: mostra "scrapbook" in produzione) ✅
+- 🟡 Caption distante dalle foto → CHIUSO (polish: avvicinata) ✅
+- 🔴 Pattern E completamento → CHIUSO, Fase 2 completa ✅
+
+RESIDUI MINORI:
+- 🟡 .scrapbook-photo.with-corner satura ::before+::after (no decoratori aggiuntivi futuri stesso elemento)
+- 🟡 Drift cliché aiStoryteller ~6.7% (monitorare durante uso reale)
+- 🟡 captionTimer Pattern C no-op innocuo
+- 🟡 Node 20 deprecation (deadline ott 2026, dopo matrimonio — ignorabile)
+
+MANTENUTI 🔴 ALTO (obiettivo matrimonio):
+- Pattern D Particle Burst Mosaic (Fase 3) — ~6-8h
+- Polish + stress test pipeline produzione
+- archive.html (Fase 4) — ~5-7h
+- Setup Telegram A1 sposi (Fase 4 finale) — ~15-20 min
+
+### Prossimi task
+
+FASE 3:
+1. **Pattern D Particle Burst Mosaic** (~6-8h) — pattern epico per momenti chiave. OGGI: solo foundation.
+2. **Polish + stress test pipeline produzione** (carico 20-30 foto, performance pool grande)
+
+FASE 4:
+3. **archive.html** (~5-7h) — vista permanente sposi post-matrimonio
+4. **Setup Telegram A1 sposi** (~15-20 min, 1 settimana pre-matrimonio)
+
+---
+
 ## AGGIORNAMENTO 2026-05-28 (pomeriggio) — Settimana 4 Giorno 3 sessione Pattern E foundation 🟡 WIP
 
 **Sessione:** 16:00 → ~18:20 (~2h20 lavoro tecnico effettivo)
