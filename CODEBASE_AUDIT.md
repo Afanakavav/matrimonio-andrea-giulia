@@ -1052,8 +1052,14 @@ project = matrimonio-andrea-giulia-2026
 
 **Risultato:** pipeline e pattern validati sotto carico realistico. Sistema pronto per il matrimonio.
 
-**DECISIONE APERTA (da risolvere pre-matrimonio):**
-- 🟡 Limite upload 20MB: ok per foto, ma blocca la maggior parte dei VIDEO da telefono. Decidere se alzare il limite (implicazioni costi/processing) o mantenere progetto foto-centrico.
+**REQUISITO CONFERMATO — VIDEO (priorità Fase 4):**
+- Francesco conferma: al matrimonio servono ricevere + mostrare VIDEO
+- OK ad avere un /mode dedicato SOLO video (i 5 pattern esistenti restano foto)
+- 2 problemi da studiare prossima sessione:
+  1. INGESTIONE: limite 20MB blocca video. Opzioni da confrontare: upload Storage + transcoding CF / servizi video hosting (Mux, Cloudinary Video, api.video) / compressione client ffmpeg.wasm
+  2. VISUALIZZAZIONE: nuovo /mode video (autoplay muto, layout, performance)
+- NOTA PM: task tecnicamente più sostanzioso rimasto (transcoding/costi/streaming + nuovo pattern), probabilmente > archive.html
+- Prossima sessione: studio comparativo soluzioni video + design /mode video
 
 **CLEANUP:**
 - 20 foto di test (usa e getta, caricate 2 giugno) da cancellare via admin batch delete per non comparire al matrimonio
@@ -1064,7 +1070,7 @@ CHIUSI:
 - 🔴 Stress test pipeline → CHIUSO, Fase 3 completa ✅
 
 NUOVI:
-- 🟡 DECISIONE — limite 20MB blocca video da telefono (decidere pre-matrimonio)
+- 🔴 /mode VIDEO + ingestione video (requisito confermato Francesco — 2 giu)
 
 RESIDUI MINORI (invariati):
 - 🟡 .scrapbook-photo.with-corner satura ::before+::after
@@ -1073,6 +1079,7 @@ RESIDUI MINORI (invariati):
 - 🟡 Node 20 deprecation (ott 2026)
 
 MANTENUTI 🔴 ALTO (obiettivo matrimonio):
+- /mode VIDEO + ingestione video (requisito confermato) — da stimare
 - archive.html (Fase 4) — ~5-7h
 - Setup Telegram A1 sposi (Fase 4 finale) — ~15-20 min
 
@@ -1086,11 +1093,9 @@ MANTENUTI 🔴 ALTO (obiettivo matrimonio):
 ### Prossimi task
 
 FASE 4:
+0. **/mode VIDEO + ingestione video** (~studio + implementazione, da stimare) — requisito confermato, priorità da decidere vs archive.html
 1. **archive.html** (~5-7h) — vista permanente sposi post-matrimonio (AI Storyteller long-form + filtri + lightbox + download)
 2. **Setup Telegram A1 sposi** (~15-20 min, 1 settimana pre-matrimonio: gruppo Andrea+Giulia, cambio chat_id, rotazione credenziali finale)
-
-PRE-MATRIMONIO:
-3. **Decisione limite 20MB** (video sì/no)
 
 ---
 
