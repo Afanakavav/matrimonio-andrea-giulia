@@ -676,3 +676,69 @@ html, body {
   .scrapbook-photo { max-width: 70vw; }
   .scrapbook-caption { font-size: clamp(18px, 6vw, 30px); }
 }
+
+/* ============================================
+   Pattern D: PARTICLE BURST (Photo Explosion) — foundation
+   ============================================ */
+
+.cinema-stage.pattern-burst {
+  background: #000;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.burst-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.burst-photo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: clamp(160px, 22vw, 380px);
+  background: #fff;
+  padding: 8px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+  transform: translate(calc(-50% + var(--tx,0)), calc(-50% + var(--ty,0))) scale(1) rotate(var(--rot,0deg));
+  opacity: 1;
+  animation: burstExplode 0.7s cubic-bezier(0.2, 0.85, 0.3, 1.1);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  will-change: transform, opacity;
+}
+
+.burst-photo img,
+.burst-photo video {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 40vh;
+  object-fit: cover;
+}
+
+.burst-photo.featured {
+  width: clamp(220px, 30vw, 520px);
+  box-shadow: 0 0 50px rgba(201,167,106,0.7), 0 8px 30px rgba(0,0,0,0.6);
+}
+
+.burst-photo.new-upload-glow {
+  box-shadow: 0 0 70px rgba(201,167,106,0.9), 0 8px 30px rgba(0,0,0,0.6);
+}
+
+.burst-photo.burst-out {
+  opacity: 0;
+  transform: translate(calc(-50% + var(--tx,0)), calc(-50% + var(--ty,0))) scale(0.7) rotate(var(--rot,0deg));
+}
+
+@keyframes burstExplode {
+  0%   { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }
+  60%  { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--tx,0)), calc(-50% + var(--ty,0))) scale(1) rotate(var(--rot,0deg)); opacity: 1; }
+}
+
+@media (max-width: 767px) {
+  .burst-photo { width: clamp(120px, 40vw, 220px); }
+  .burst-photo.featured { width: clamp(160px, 55vw, 300px); }
+}

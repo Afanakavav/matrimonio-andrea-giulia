@@ -773,6 +773,138 @@
     }
   });
 
+  // ========== PATTERN D: PARTICLE BURST (Photo Explosion) ==========
+  registerPattern("burst", {
+    create(context) {
+      const { stage, pool, pickWeightedRandom, pendingNewUpload } = context;
+
+      const WAVE_SIZE_MIN = 3;
+      const WAVE_SIZE_MAX = 4;
+      const PHOTO_LIFETIME = 3500;
+      const BURST_INTERVAL = 280;
+      const WAVE_PAUSE = 2200;
+      const MAX_ON_SCREEN = 12;
+      const ROTATION_MAX = 25;
+
+      let waveTimer = null;
+      const burstTimers = new Set();
+      const activePhotos = new Set();
+
+      function init() {
+        stage.classList.add("pattern-burst");
+        stage.innerHTML = "";
+        const layer = document.createElement("div");
+        layer.className = "burst-layer";
+        stage.appendChild(layer);
+        scheduleWave();
+      }
+
+      function scheduleWave() {
+        if (pool.size === 0) {
+          waveTimer = setTimeout(scheduleWave, 3000);
+          return;
+        }
+
+        const waveSize = Math.min(
+          WAVE_SIZE_MIN + Math.floor(Math.random() * (WAVE_SIZE_MAX - WAVE_SIZE_MIN + 1)),
+          pool.size
+        );
+
+        let lastId = null;
+        for (let i = 0; i < waveSize; i++) {
+          const isFirst = i === 0;
+          const isLast = i === waveSize - 1;
+          const delay = i * BURST_INTERVAL;
+          const tid = setTimeout(() => {
+            burstTimers.delete(tid);
+            let mediaId;
+            let isNewUpload = false;
+            if (isFirst && pendingNewUpload.id && pool.has(pendingNewUpload.id)) {
+              mediaId = pendingNewUpload.id;
+              pendingNewUpload.id = null;
+              isNewUpload = true;
+            } else {
+              mediaId = pickWeightedRandom(lastId);
+            }
+            if (!mediaId) return;
+            lastId = mediaId;
+            const media = pool.get(mediaId);
+            if (media) spawnPhoto(media, isNewUpload);
+            if (isLast) {
+              waveTimer = setTimeout(scheduleWave, WAVE_PAUSE);
+            }
+          }, delay);
+          burstTimers.add(tid);
+        }
+      }
+
+      function spawnPhoto(media, isNewUpload) {
+        const layer = stage.querySelector(".burst-layer");
+        if (!layer) return;
+
+        if (activePhotos.size >= MAX_ON_SCREEN) {
+          const oldest = activePhotos.values().next().value;
+          if (oldest && oldest.parentNode) oldest.remove();
+          activePhotos.delete(oldest);
+        }
+
+        const el = document.createElement("div");
+        el.className = "burst-photo";
+        if (media.favorite) el.classList.add("featured");
+        if (isNewUpload) el.classList.add("new-upload-glow");
+
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 15 + Math.random() * 30;
+        const tx = (Math.cos(angle) * dist).toFixed(2);
+        const ty = (Math.sin(angle) * dist * 0.6).toFixed(2);
+        const rot = ((Math.random() * 2 - 1) * ROTATION_MAX).toFixed(2);
+
+        el.style.setProperty("--tx", tx + "vw");
+        el.style.setProperty("--ty", ty + "vh");
+        el.style.setProperty("--rot", rot + "deg");
+
+        let mediaEl;
+        if (media.fileType === "video") {
+          mediaEl = document.createElement("video");
+          mediaEl.muted = true;
+          mediaEl.autoplay = true;
+          mediaEl.loop = true;
+          mediaEl.playsInline = true;
+          mediaEl.src = media.url;
+        } else {
+          mediaEl = document.createElement("img");
+          mediaEl.src = media.url;
+        }
+        el.appendChild(mediaEl);
+        layer.appendChild(el);
+        activePhotos.add(el);
+
+        const fadeTimer = setTimeout(() => {
+          burstTimers.delete(fadeTimer);
+          el.classList.add("burst-out");
+          const removeTimer = setTimeout(() => {
+            burstTimers.delete(removeTimer);
+            if (el.parentNode) el.remove();
+            activePhotos.delete(el);
+          }, 700);
+          burstTimers.add(removeTimer);
+        }, PHOTO_LIFETIME);
+        burstTimers.add(fadeTimer);
+      }
+
+      function cleanup() {
+        clearTimeout(waveTimer);
+        burstTimers.forEach(clearTimeout);
+        burstTimers.clear();
+        activePhotos.clear();
+        stage.classList.remove("pattern-burst");
+        stage.innerHTML = "";
+      }
+
+      return { init, cleanup };
+    }
+  });
+
   // ========== BOOTSTRAP ==========
   document.addEventListener("DOMContentLoaded", () => {
     subscribeToMedia();
