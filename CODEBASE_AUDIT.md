@@ -1023,6 +1023,77 @@ project = matrimonio-andrea-giulia-2026
 
 ---
 
+## AGGIORNAMENTO 2026-06-02 (stress test) — Settimana 5 Giorno 1 — Fase 3 CHIUSA ✅
+
+**Sessione:** stessa giornata, 3ª attività (dopo Pattern E completamento + Pattern D completo)
+**Tipo:** QA / stress test pipeline — NESSUN tag, NESSUN commit codice (solo validazione)
+
+**STRESS TEST PIPELINE (Fase 3 completamento):**
+
+### Fase 0 — Feasibility
+- Finestra temporale upload: aperta (9 mag → 19 lug 2026), oggi dentro
+- Rate limit client: 10 file/min (sliding window 60s) → strategia batch
+- Upload multi-file: sì
+- Fix race condition generateThumbnails (backoff 0.5→1→2→4s): presente
+- Server-side rate limit (5 RSVP/IP/24h): non pertinente agli upload media
+
+### Fase 1 — Carico (3 batch da 7, ~70s pausa tra batch)
+- 21 foto usa e getta caricate (1 rifiutata per limite 20MB → guard funziona correttamente)
+- 20 foto caricate con successo
+- Pipeline: thumbnail generati, AI scoring, persistenza Firebase tutti OK
+- Produzione: foto approvate visibili correttamente
+
+### Fase 2 — Performance pattern con pool grande
+- 5 pattern testati con pool sostanzioso: rendering OK, nessun problema riportato
+- Tutti i test superati e validati visivamente
+
+### Fase 3 — Concorrenza/edge
+- Test superati
+
+**Risultato:** pipeline e pattern validati sotto carico realistico. Sistema pronto per il matrimonio.
+
+**DECISIONE APERTA (da risolvere pre-matrimonio):**
+- 🟡 Limite upload 20MB: ok per foto, ma blocca la maggior parte dei VIDEO da telefono. Decidere se alzare il limite (implicazioni costi/processing) o mantenere progetto foto-centrico.
+
+**CLEANUP:**
+- 20 foto di test (usa e getta, caricate 2 giugno) da cancellare via admin batch delete per non comparire al matrimonio
+
+### Tech debt — update
+
+CHIUSI:
+- 🔴 Stress test pipeline → CHIUSO, Fase 3 completa ✅
+
+NUOVI:
+- 🟡 DECISIONE — limite 20MB blocca video da telefono (decidere pre-matrimonio)
+
+RESIDUI MINORI (invariati):
+- 🟡 .scrapbook-photo.with-corner satura ::before+::after
+- 🟡 Drift cliché aiStoryteller ~6.7%
+- 🟡 captionTimer Pattern C no-op
+- 🟡 Node 20 deprecation (ott 2026)
+
+MANTENUTI 🔴 ALTO (obiettivo matrimonio):
+- archive.html (Fase 4) — ~5-7h
+- Setup Telegram A1 sposi (Fase 4 finale) — ~15-20 min
+
+### Stato fasi
+
+- ✅ Fase 1 Foundation: 100%
+- ✅ Fase 2 Pattern + AI: 100%
+- ✅ Fase 3 Pattern D + stress test: 100%
+- ⏳ Fase 4 archive + Telegram A1: 0%
+
+### Prossimi task
+
+FASE 4:
+1. **archive.html** (~5-7h) — vista permanente sposi post-matrimonio (AI Storyteller long-form + filtri + lightbox + download)
+2. **Setup Telegram A1 sposi** (~15-20 min, 1 settimana pre-matrimonio: gruppo Andrea+Giulia, cambio chat_id, rotazione credenziali finale)
+
+PRE-MATRIMONIO:
+3. **Decisione limite 20MB** (video sì/no)
+
+---
+
 ## AGGIORNAMENTO 2026-06-02 (Pattern D) — Settimana 5 Giorno 1 — Pattern D COMPLETO ✅ SET 5 PATTERN COMPLETO
 
 **Sessione:** stessa giornata, Fase 2 della sessione (dopo checkpoint + pausa post-Fase 2)
