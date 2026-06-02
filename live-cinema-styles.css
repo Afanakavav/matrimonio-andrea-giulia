@@ -698,7 +698,7 @@ html, body {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: clamp(160px, 22vw, 380px);
+  width: clamp(220px, 30vw, 500px);
   background: #fff;
   padding: 8px;
   box-shadow: 0 8px 30px rgba(0,0,0,0.6);
@@ -719,7 +719,7 @@ html, body {
 }
 
 .burst-photo.featured {
-  width: clamp(220px, 30vw, 520px);
+  width: clamp(300px, 40vw, 680px);
   box-shadow: 0 0 50px rgba(201,167,106,0.7), 0 8px 30px rgba(0,0,0,0.6);
 }
 

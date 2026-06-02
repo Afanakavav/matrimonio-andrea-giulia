@@ -780,10 +780,10 @@
 
       const WAVE_SIZE_MIN = 3;
       const WAVE_SIZE_MAX = 4;
-      const PHOTO_LIFETIME = 3500;
-      const BURST_INTERVAL = 280;
-      const WAVE_PAUSE = 2200;
-      const MAX_ON_SCREEN = 12;
+      const PHOTO_LIFETIME = 5500;
+      const BURST_INTERVAL = 450;
+      const WAVE_PAUSE = 3200;
+      const MAX_ON_SCREEN = 8;
       const ROTATION_MAX = 25;
 
       let waveTimer = null;
