@@ -1023,6 +1023,74 @@ project = matrimonio-andrea-giulia-2026
 
 ---
 
+## AGGIORNAMENTO 2026-06-02 (Pattern D) — Settimana 5 Giorno 1 — Pattern D COMPLETO ✅ SET 5 PATTERN COMPLETO
+
+**Sessione:** stessa giornata, Fase 2 della sessione (dopo checkpoint + pausa post-Fase 2)
+**Tag:** `v3.10-cinema-pattern-d`
+**Deploy:** hosting + functions:telegramWebhook
+
+**LAVORO COMPLETATO (Pattern D Particle Burst — Photo Explosion):**
+
+### Decisioni (OK 1-5):
+- 1C: Photo Explosion (foto esplodono dal centro a ondate)
+- 2C: ritmo raffica + pausa
+- 3A: scale + scatter + rotazione
+- 4A+4B: niente caption, ma featured grande + glow
+- 5A: sfondo nero
+
+### Task 6.1 — Foundation (commit d39b5ce, +198 righe engine+CSS)
+- registerPattern("burst"): init→scheduleWave→spawnPhoto→cleanup
+- CONFIG iniziale, CSS sfondo nero + burstExplode keyframe + featured glow
+- Test visivo locale OK (override temporaneo)
+
+### Task 6.2 — Tuning visivo (commit 86ac632)
+- Post test: BURST_INTERVAL 280→450, WAVE_PAUSE 2200→3200, PHOTO_LIFETIME 3500→5500, MAX_ON_SCREEN 12→8
+- Foto più grandi: normali clamp 220-500px, featured clamp 300-680px
+- Re-test locale OK
+
+### Task 6.3 — VALID_MODES + deploy + E2E (commit 7e23f2c)
+- VALID_MODES += "burst" (5 mode totali)
+- Deploy hosting + functions:telegramWebhook
+- E2E 7/7 PASS: /mode burst OK, indicatore "burst", esplosione+ritmo, featured glow, /mode help (5 mode), cleanup, B3 regression
+
+**Commit (3):** d39b5ce foundation + 86ac632 tuning + 7e23f2c VALID_MODES
+
+**🎯 SET COMPLETO 5 PATTERN:** Petali, Polaroid, Cinema, Scrapbook, Burst — tutti live e switchabili via Telegram.
+
+**Note metodologiche:**
+- Opzione B (2 task/sessione): Pattern E completamento + Pattern D completo — entrambi chiusi in 1 giornata
+- Pattern D foundation era già quasi-completo (concept tutto implementato) → completamento veloce
+- Tuning visivo post-test: 3 iterazioni parametri (ritmo/dimensioni/durata) prima del deploy
+- Override gestito con disciplina (mai committato)
+- Giornata: 3 milestone (Fase 2 chiusa + Pattern D foundation + Pattern D completo)
+
+### Tech debt — update
+
+CHIUSI:
+- 🔴 Pattern D Particle Burst → CHIUSO ✅ (set 5 pattern completo)
+
+RESIDUI MINORI (invariati):
+- 🟡 .scrapbook-photo.with-corner satura ::before+::after
+- 🟡 Drift cliché aiStoryteller ~6.7%
+- 🟡 captionTimer Pattern C no-op
+- 🟡 Node 20 deprecation (ott 2026, post-matrimonio)
+
+MANTENUTI 🔴 ALTO (obiettivo matrimonio):
+- Polish + stress test pipeline produzione (carico 20-30 foto, performance) — chiude Fase 3
+- archive.html (Fase 4) — ~5-7h
+- Setup Telegram A1 sposi (Fase 4 finale) — ~15-20 min
+
+### Prossimi task
+
+FASE 3 (completamento):
+1. **Stress test pipeline produzione** — carico 20-30 foto reali, performance pool grande con tutti i 5 pattern, identificare bug latenti → chiude Fase 3
+
+FASE 4:
+2. **archive.html** (~5-7h) — vista permanente sposi post-matrimonio
+3. **Setup Telegram A1 sposi** (~15-20 min, 1 settimana pre-matrimonio)
+
+---
+
 ## AGGIORNAMENTO 2026-06-02 — Settimana 5 Giorno 1 (martedì) — Pattern E COMPLETO ✅ CHIUDE FASE 2
 
 **Sessione:** 08:00 → ~09:30 (~1h30 lavoro tecnico, Fase 1 della sessione)
