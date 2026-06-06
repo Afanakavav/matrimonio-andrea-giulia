@@ -33,7 +33,8 @@
       aiTags: Array.isArray(d.ai_tags) ? d.ai_tags : [],
       aiScore: typeof d.ai_score === "number" ? d.ai_score : null,
       uploaderName: d.uploader_name || "Anonimo",
-      aiStory: Array.isArray(d.ai_story) ? d.ai_story : []
+      aiStory: Array.isArray(d.ai_story) ? d.ai_story : [],
+      posterUrl: d.poster_url || null,
     };
   }
 
@@ -902,6 +903,158 @@
       }
 
       return { init, cleanup };
+    }
+  });
+
+  // ========== PATTERN F: VIDEO DEGLI OSPITI ==========
+  registerPattern("video", {
+    create(context) {
+      const { stage, pool, pendingNewUpload } = context;
+
+      // CONFIG
+      const SAFETY_TIMEOUT = 300000;  // 5 min fallback, sostituito da loadedmetadata con durata reale
+
+      // STATE
+      let currentIndex  = 0;
+      let currentVideo  = null;
+      let endedListener = null;
+      let errorListener = null;
+      let safetyTimer   = null;
+      let retryTimer    = null;
+
+      function getVideos() {
+        const vids = [];
+        pool.forEach((media) => { if (media.fileType === "video") vids.push(media); });
+        return vids;
+      }
+
+      function showEmptyState() {
+        stage.innerHTML = "";
+        const card = document.createElement("div");
+        card.className = "video-empty-state";
+        card.innerHTML =
+          '<p class="video-empty-title">In attesa di video…</p>' +
+          '<p class="video-empty-sub">I video degli ospiti appariranno qui</p>';
+        stage.appendChild(card);
+        retryTimer = setTimeout(playNext, 5000);
+      }
+
+      function playNext() {
+        // Cleanup video precedente
+        if (currentVideo) {
+          if (endedListener) currentVideo.removeEventListener("ended", endedListener);
+          if (errorListener) currentVideo.removeEventListener("error", errorListener);
+          currentVideo.pause();
+          currentVideo.src = "";
+          currentVideo = null;
+        }
+        if (safetyTimer) { clearTimeout(safetyTimer); safetyTimer = null; }
+        if (retryTimer)  { clearTimeout(retryTimer);  retryTimer  = null; }
+
+        const videos = getVideos();
+
+        if (videos.length === 0) {
+          showEmptyState();
+          return;
+        }
+
+        // Priorità: pendingNewUpload se è un video
+        let media;
+        if (
+          pendingNewUpload.id &&
+          pool.has(pendingNewUpload.id) &&
+          pool.get(pendingNewUpload.id).fileType === "video"
+        ) {
+          media = pool.get(pendingNewUpload.id);
+          pendingNewUpload.id = null;
+          const idx = videos.findIndex((v) => v.id === media.id);
+          if (idx !== -1) currentIndex = (idx + 1) % videos.length;
+        } else {
+          currentIndex = currentIndex % videos.length;
+          media = videos[currentIndex];
+          currentIndex = (currentIndex + 1) % videos.length;
+        }
+
+        // Costruisci stage
+        stage.innerHTML = "";
+
+        const container = document.createElement("div");
+        container.className = "video-player-container";
+
+        const video = document.createElement("video");
+        video.src         = media.url;
+        video.muted       = true;
+        video.autoplay    = true;
+        video.playsInline = true;
+        video.controls    = false;
+        video.poster      = media.posterUrl || "";
+        video.className   = "video-fullscreen";
+        container.appendChild(video);
+
+        if (media.uploaderName && media.uploaderName.trim() && media.uploaderName !== "Anonimo") {
+          const caption = document.createElement("div");
+          caption.className   = "video-caption";
+          caption.textContent = media.uploaderName;
+          container.appendChild(caption);
+        }
+
+        stage.appendChild(container);
+        currentVideo = video;
+
+        endedListener = () => playNext();
+        errorListener = () => {
+          console.warn("[cinema:video] errore video, skip al prossimo");
+          playNext();
+        };
+        video.addEventListener("ended", endedListener);
+        video.addEventListener("error", errorListener);
+
+        // Fallback anti-freeze: 5 min, sostituito da loadedmetadata con durata reale
+        safetyTimer = setTimeout(() => {
+          console.warn("[cinema:video] safety fallback 5min — avanzo al prossimo");
+          playNext();
+        }, SAFETY_TIMEOUT);
+
+        video.addEventListener("loadedmetadata", () => {
+          clearTimeout(safetyTimer);
+          const dur = video.duration;
+          if (isFinite(dur) && dur > 0) {
+            safetyTimer = setTimeout(() => {
+              console.warn("[cinema:video] safety timeout (dur+15s) — avanzo al prossimo");
+              playNext();
+            }, (dur + 15) * 1000);
+          }
+        });
+
+        const playPromise = video.play();
+        if (playPromise && typeof playPromise.catch === "function") {
+          playPromise.catch((err) => console.warn("[cinema:video] autoplay bloccato:", err));
+        }
+      }
+
+      return {
+        init() {
+          stage.classList.add("pattern-video");
+          stage.innerHTML = "";
+          currentIndex = 0;
+          playNext();
+        },
+        cleanup() {
+          if (currentVideo) {
+            if (endedListener) currentVideo.removeEventListener("ended", endedListener);
+            if (errorListener) currentVideo.removeEventListener("error", errorListener);
+            currentVideo.pause();
+            currentVideo.src = "";
+            currentVideo = null;
+          }
+          if (safetyTimer) { clearTimeout(safetyTimer); safetyTimer = null; }
+          if (retryTimer)  { clearTimeout(retryTimer);  retryTimer  = null; }
+          endedListener = null;
+          errorListener = null;
+          stage.classList.remove("pattern-video");
+          stage.innerHTML = "";
+        }
+      };
     }
   });
 

@@ -742,3 +742,78 @@ html, body {
   .burst-photo { width: clamp(120px, 40vw, 220px); }
   .burst-photo.featured { width: clamp(160px, 55vw, 300px); }
 }
+
+/* ============================================
+   Pattern F: VIDEO DEGLI OSPITI
+   ============================================ */
+
+.cinema-stage.pattern-video {
+  background: #000;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-player-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-fullscreen {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.video-caption {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--cinema-gold);
+  font-family: "Dancing Script", cursive;
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  padding: 8px 24px;
+  border-radius: 24px;
+  white-space: nowrap;
+  max-width: 80vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  letter-spacing: 0.03em;
+}
+
+.video-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: var(--cinema-bg-start);
+  border: 1px solid var(--cinema-gold-soft);
+  border-radius: 16px;
+  padding: 48px 72px;
+  text-align: center;
+  box-shadow: var(--cinema-shadow);
+}
+
+.video-empty-title {
+  font-family: "Dancing Script", cursive;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  color: var(--cinema-text);
+}
+
+.video-empty-sub {
+  font-family: "Playfair Display", serif;
+  font-size: clamp(0.85rem, 1.5vw, 1rem);
+  color: var(--cinema-gold);
+}
