@@ -632,9 +632,82 @@
         page.className = "scrapbook-page";
         stage.appendChild(page);
 
+        buildNavUI();
+
         pages = buildPages();
         currentPageIndex = 0;
         renderPage(0);
+      }
+
+      // Overlay navigazione A2: 3 zone tap (sx=prev, dx=next, centro=inerte) + frecce + indicatore.
+      function buildNavUI() {
+        const nav = document.createElement("div");
+        nav.className = "scrapbook-nav";
+
+        const left = document.createElement("div");
+        left.className = "scrapbook-nav-zone left";
+        left.addEventListener("click", goPrev);
+
+        const center = document.createElement("div");
+        center.className = "scrapbook-nav-zone center";
+        // centro INERTE in A2 — in Fase C aprirà il media in fullscreen
+
+        const right = document.createElement("div");
+        right.className = "scrapbook-nav-zone right";
+        right.addEventListener("click", goNext);
+
+        nav.appendChild(left);
+        nav.appendChild(center);
+        nav.appendChild(right);
+        stage.appendChild(nav);
+
+        // Frecce discrete: puramente VISIVE (pointer-events:none nel CSS) — il tap lo gestiscono le zone sotto.
+        const arrowLeft = document.createElement("div");
+        arrowLeft.className = "scrapbook-arrow left";
+        arrowLeft.textContent = "‹";
+        arrowLeft.setAttribute("aria-hidden", "true");
+
+        const arrowRight = document.createElement("div");
+        arrowRight.className = "scrapbook-arrow right";
+        arrowRight.textContent = "›";
+        arrowRight.setAttribute("aria-hidden", "true");
+
+        stage.appendChild(arrowLeft);
+        stage.appendChild(arrowRight);
+
+        // Indicatore "pagina X di Y"
+        const indicator = document.createElement("div");
+        indicator.className = "scrapbook-page-indicator";
+        indicator.textContent = "—";
+        stage.appendChild(indicator);
+      }
+
+      function goNext() {
+        if (!pages.length) return;
+        // SET STABILE (D2-A): ricostruzione SOLO qui, sul loop ultima→prima → entrano media nuovi.
+        if (currentPageIndex >= pages.length - 1) {
+          pages = buildPages();
+          currentPageIndex = 0;
+        } else {
+          currentPageIndex += 1;
+        }
+        renderPage(currentPageIndex);
+      }
+
+      function goPrev() {
+        if (!pages.length) return;
+        if (currentPageIndex <= 0) {
+          currentPageIndex = pages.length - 1;   // loop all'ultima
+        } else {
+          currentPageIndex -= 1;
+        }
+        renderPage(currentPageIndex);
+      }
+
+      function updateIndicator() {
+        const ind = stage.querySelector(".scrapbook-page-indicator");
+        if (!ind) return;
+        ind.textContent = pages.length ? (currentPageIndex + 1) + " / " + pages.length : "—";
       }
 
       // Costruisce il set di pagine DETERMINISTICO dal pool:
@@ -667,6 +740,7 @@
 
         // Pool ancora vuoto / nessuna pagina → attesa media (retry), poi ricostruisci.
         if (!pages.length) {
+          updateIndicator();
           pageTimer = setTimeout(() => {
             pages = buildPages();
             renderPage(0);
@@ -681,11 +755,9 @@
         const pageMedia = pages[currentPageIndex];
         const featured = pageMedia.find(m => m.favorite && Array.isArray(m.aiStory) && m.aiStory.length > 0) || null;
         composePage(pageMedia, featured);
+        updateIndicator();
 
-        // TEMPORANEO A1 — rimuovere in A2 (sostituito da tap)
-        pageTimer = setTimeout(() => {
-          renderPage(currentPageIndex + 1);   // loop garantito dalla normalizzazione sopra
-        }, 6000);
+        // A2: navigazione SOLO manuale (tap zone / frecce). Nessun avanzamento automatico.
       }
 
       function composePage(photos, featuredMedia) {

@@ -670,6 +670,56 @@ html, body {
 }
 
 /* ============================================
+   Pattern E (Scrapbook) — Navigazione A2 (tap zone + frecce + indicatore)
+   ============================================ */
+.cinema-stage.pattern-scrapbook .scrapbook-nav {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  z-index: 10;                /* sopra polaroid e page-flip (flip usa z-index 1-2) */
+}
+.cinema-stage.pattern-scrapbook .scrapbook-nav-zone { height: 100%; }
+.cinema-stage.pattern-scrapbook .scrapbook-nav-zone.left   { width: 30%; cursor: w-resize; }
+.cinema-stage.pattern-scrapbook .scrapbook-nav-zone.center { width: 40%; cursor: default; }   /* inerte in A2 */
+.cinema-stage.pattern-scrapbook .scrapbook-nav-zone.right  { width: 30%; cursor: e-resize; }
+
+/* Frecce discrete — solo visive: il tap è gestito dalle zone sottostanti */
+.cinema-stage.pattern-scrapbook .scrapbook-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 11;
+  pointer-events: none;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(40px, 7vw, 72px);
+  line-height: 1;
+  color: rgba(184, 153, 90, 0.55);          /* oro semi-trasparente */
+  text-shadow: 0 1px 4px rgba(255, 253, 248, 0.6);
+  user-select: none;
+}
+.cinema-stage.pattern-scrapbook .scrapbook-arrow.left  { left: 2.5vw; }
+.cinema-stage.pattern-scrapbook .scrapbook-arrow.right { right: 2.5vw; }
+
+/* Indicatore "pagina X di Y" — pillola discreta in basso */
+.cinema-stage.pattern-scrapbook .scrapbook-page-indicator {
+  position: absolute;
+  bottom: 2.5vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 11;
+  pointer-events: none;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgba(60, 45, 25, 0.55);        /* fondo scuro semi-trasparente */
+  color: #e8d4a0;                            /* oro chiaro */
+  font-family: "Open Sans", sans-serif;
+  font-size: clamp(13px, 2vw, 16px);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(2px);
+}
+
+/* ============================================
    Pattern E — Responsive
    ============================================ */
 @media (max-width: 767px) {
