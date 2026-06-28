@@ -8,7 +8,7 @@
   // ========== STATE ==========
   const pool = new Map();              // id → normalizedMedia
   const variationsHistory = new Map(); // mediaId → array<varConfig> (max VARIATIONS_HISTORY)
-  let currentMode = "petali";
+  let currentMode = "scrapbook";   // default produzione: Galleria = scrapbook mobile (switch Telegram resta attivo)
   let currentPattern = null;           // istanza pattern attivo
   let isFirstSnapshot = true;
   const pendingNewUpload = { id: null };
