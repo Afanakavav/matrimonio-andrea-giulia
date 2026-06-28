@@ -612,18 +612,17 @@
   // ========== PATTERN E: SCRAPBOOK VIVENTE ==========
   registerPattern("scrapbook", {
     create(context) {
-      const { stage, pool, pickWeightedRandom, generateVariation, pendingNewUpload } = context;
+      const { stage, pool } = context;
 
       // CONFIG
-      const PAGE_DURATION = 35000;
-      const MIN_PHOTOS_PER_PAGE = 2;
-      const MAX_PHOTOS_PER_PAGE = 4;
+      const MEDIA_PER_PAGE = 2;   // target mobile finale
       const ROTATION_MAX = 10;
       const TAPE_STYLES = ["tape", "pin", "corner"];
 
       // STATE
       let pageTimer = null;
-      let currentPageMediaIds = [];
+      let pages = [];             // array di pagine (ognuna = array di max MEDIA_PER_PAGE media)
+      let currentPageIndex = 0;
 
       function init() {
         stage.classList.add("pattern-scrapbook");
@@ -633,62 +632,60 @@
         page.className = "scrapbook-page";
         stage.appendChild(page);
 
-        showNextPage();
+        pages = buildPages();
+        currentPageIndex = 0;
+        renderPage(0);
       }
 
-      function showNextPage() {
-        if (pool.size === 0) {
-          pageTimer = setTimeout(showNextPage, 3000);
+      // Costruisce il set di pagine DETERMINISTICO dal pool:
+      // media ordinati per uploadDate DESC (più recenti prima), poi spezzati in chunk da MEDIA_PER_PAGE.
+      // Es: 7 media → [[m1,m2],[m3,m4],[m5,m6],[m7]] (ultima pagina può avere 1 media).
+      function buildPages() {
+        const all = Array.from(pool.values());
+        all.sort((a, b) => uploadMillis(b) - uploadMillis(a));   // DESC: più recenti prima
+        const result = [];
+        for (let i = 0; i < all.length; i += MEDIA_PER_PAGE) {
+          result.push(all.slice(i, i + MEDIA_PER_PAGE));
+        }
+        return result;
+      }
+
+      // uploadDate è un Firestore Timestamp (o variante): normalizza a millisecondi per l'ordinamento.
+      function uploadMillis(media) {
+        const v = media && media.uploadDate;
+        if (!v) return 0;
+        if (typeof v.toMillis === "function") return v.toMillis();
+        if (typeof v.seconds === "number") return v.seconds * 1000;
+        if (v instanceof Date) return v.getTime();
+        const n = Date.parse(v);
+        return isNaN(n) ? 0 : n;
+      }
+
+      // Mostra la pagina all'indice dato — pagine FISSE, niente più sorteggio.
+      function renderPage(index) {
+        if (pageTimer) { clearTimeout(pageTimer); pageTimer = null; }
+
+        // Pool ancora vuoto / nessuna pagina → attesa media (retry), poi ricostruisci.
+        if (!pages.length) {
+          pageTimer = setTimeout(() => {
+            pages = buildPages();
+            renderPage(0);
+          }, 3000);
           return;
         }
 
-        const count = Math.min(
-          MIN_PHOTOS_PER_PAGE + Math.floor(Math.random() * (MAX_PHOTOS_PER_PAGE - MIN_PHOTOS_PER_PAGE + 1)),
-          pool.size
-        );
+        // Normalizza l'indice nel range valido (loop sicuro su entrambi i versi).
+        const total = pages.length;
+        currentPageIndex = ((index % total) + total) % total;
 
-        const picked = new Set();
-        const photos = [];
-        let lastId = null;
+        const pageMedia = pages[currentPageIndex];
+        const featured = pageMedia.find(m => m.favorite && Array.isArray(m.aiStory) && m.aiStory.length > 0) || null;
+        composePage(pageMedia, featured);
 
-        for (let i = 0; i < count; i++) {
-          let id = null;
-
-          // pickWeightedRandom in loop: evita id già pescati questa pagina
-          for (let attempt = 0; attempt < 8; attempt++) {
-            const candidate = pickWeightedRandom(lastId);
-            if (candidate && !picked.has(candidate)) {
-              id = candidate;
-              break;
-            }
-          }
-
-          // Fallback: scan diretto preferendo foto non viste nella pagina precedente
-          if (!id) {
-            for (const [k] of pool) {
-              if (!picked.has(k) && !currentPageMediaIds.includes(k)) { id = k; break; }
-            }
-          }
-          // Fallback finale: qualsiasi foto non ancora pescata
-          if (!id) {
-            for (const [k] of pool) {
-              if (!picked.has(k)) { id = k; break; }
-            }
-          }
-
-          if (id) {
-            picked.add(id);
-            const media = pool.get(id);
-            if (media) { photos.push(media); lastId = id; }
-          }
-        }
-
-        currentPageMediaIds = [...picked];
-
-        const featured = photos.find(m => m.favorite && Array.isArray(m.aiStory) && m.aiStory.length > 0) || null;
-        composePage(photos, featured);
-
-        pageTimer = setTimeout(showNextPage, PAGE_DURATION);
+        // TEMPORANEO A1 — rimuovere in A2 (sostituito da tap)
+        pageTimer = setTimeout(() => {
+          renderPage(currentPageIndex + 1);   // loop garantito dalla normalizzazione sopra
+        }, 6000);
       }
 
       function composePage(photos, featuredMedia) {
@@ -766,6 +763,9 @@
 
       function cleanup() {
         if (pageTimer) clearTimeout(pageTimer);
+        pageTimer = null;
+        pages = [];
+        currentPageIndex = 0;
         stage.classList.remove("pattern-scrapbook");
         stage.innerHTML = "";
       }
