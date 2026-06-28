@@ -715,11 +715,12 @@ html, body {
   inset: 0;
   display: flex;
   z-index: 10;                /* sopra polaroid e page-flip (flip usa z-index 1-2) */
+  pointer-events: none;       /* C1-fix: il contenitore NON intercetta i tap (passano alle polaroid) */
 }
 .cinema-stage.pattern-scrapbook .scrapbook-nav-zone { height: 100%; }
-.cinema-stage.pattern-scrapbook .scrapbook-nav-zone.left   { width: 30%; cursor: w-resize; }
+.cinema-stage.pattern-scrapbook .scrapbook-nav-zone.left   { width: 30%; cursor: w-resize; pointer-events: auto; }   /* C1-fix: solo i lati navigano */
 .cinema-stage.pattern-scrapbook .scrapbook-nav-zone.center { width: 40%; cursor: default; pointer-events: none; }   /* C1: lascia passare il tap alle polaroid (apertura fullscreen) */
-.cinema-stage.pattern-scrapbook .scrapbook-nav-zone.right  { width: 30%; cursor: e-resize; }
+.cinema-stage.pattern-scrapbook .scrapbook-nav-zone.right  { width: 30%; cursor: e-resize; pointer-events: auto; }   /* C1-fix: solo i lati navigano */
 
 /* Frecce discrete — solo visive: il tap è gestito dalle zone sottostanti */
 .cinema-stage.pattern-scrapbook .scrapbook-arrow {
