@@ -753,14 +753,13 @@
         currentPageIndex = ((index % total) + total) % total;
 
         const pageMedia = pages[currentPageIndex];
-        const featured = pageMedia.find(m => m.favorite && Array.isArray(m.aiStory) && m.aiStory.length > 0) || null;
-        composePage(pageMedia, featured);
+        composePage(pageMedia);
         updateIndicator();
 
         // A2: navigazione SOLO manuale (tap zone / frecce). Nessun avanzamento automatico.
       }
 
-      function composePage(photos, featuredMedia) {
+      function composePage(photos) {
         const pageEl = stage.querySelector(".scrapbook-page");
         if (!pageEl) return;
 
@@ -795,13 +794,7 @@
           content.appendChild(photoEl);
         });
 
-        if (featuredMedia && featuredMedia.aiStory.length > 0) {
-          const story = featuredMedia.aiStory[Math.floor(Math.random() * featuredMedia.aiStory.length)];
-          const caption = document.createElement("div");
-          caption.className = "scrapbook-caption";
-          caption.textContent = story;
-          content.appendChild(caption);
-        }
+        // A3: nessuna frase AI nello scrapbook (decisione sposi). CSS .scrapbook-caption lasciato inerte.
 
         transitionToPage(content);
       }
