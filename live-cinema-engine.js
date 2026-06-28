@@ -777,13 +777,32 @@
           photoEl.style.transform = `rotate(${rotation.toFixed(1)}deg) translate(${offsetX}vw, ${offsetY}vh)`;
 
           if (media.fileType === "video") {
+            // A4: primo frame FERMO + badge ▶ (placeholder; poster vero via ffmpeg = Fase E).
+            // NIENTE autoplay/loop → risparmia dati/batteria ed evita problemi autoplay iOS.
+            const videoWrap = document.createElement("div");
+            videoWrap.className = "scrapbook-video-wrap";
+
             const video = document.createElement("video");
             video.src = media.url;
             video.muted = true;
-            video.autoplay = true;
-            video.loop = true;
             video.playsInline = true;
-            photoEl.appendChild(video);
+            video.preload = "metadata";   // mostra il primo frame senza scaricare tutto il video
+            video.className = "scrapbook-video";
+            if (media.posterUrl) { video.poster = media.posterUrl; }   // Fase E (se presente)
+
+            // Robustezza primo frame: scrubba a 0.1s su browser che mostrano nero (NON avvia il play)
+            video.addEventListener("loadedmetadata", () => {
+              try { video.currentTime = 0.1; } catch (e) {}
+            });
+
+            // Overlay icona play (CSS puro) — in A4 SOLO visivo (apertura fullscreen = Fase C)
+            const playBadge = document.createElement("div");
+            playBadge.className = "scrapbook-play-badge";
+            playBadge.setAttribute("aria-label", "Video");
+
+            videoWrap.appendChild(video);
+            videoWrap.appendChild(playBadge);
+            photoEl.appendChild(videoWrap);
           } else {
             const img = document.createElement("img");
             img.src = media.url;

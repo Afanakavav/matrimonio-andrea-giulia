@@ -591,6 +591,44 @@ html, body {
   object-fit: cover;
 }
 
+/* A4: video nel collage = primo frame fermo + badge ▶ (placeholder; poster vero via ffmpeg = Fase E) */
+.cinema-stage.pattern-scrapbook .scrapbook-video-wrap {
+  position: relative;   /* per posizionare il badge ▶ */
+  display: block;
+  line-height: 0;       /* niente gap sotto il video */
+}
+.cinema-stage.pattern-scrapbook .scrapbook-video {
+  /* dimensioni ereditate da .scrapbook-photo video (max-width/height, object-fit) */
+  background: #2b2b2b;  /* sfondo neutro finché il primo frame non è pronto */
+}
+.cinema-stage.pattern-scrapbook .scrapbook-play-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(44px, 8vw, 68px);
+  height: clamp(44px, 8vw, 68px);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  border: 2px solid rgba(212, 185, 120, 0.85);   /* oro soft */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  pointer-events: none;   /* A4: solo visivo; il tap lo gestirà la Fase C */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Triangolo ▶ in CSS puro (border-trick), colore avorio */
+.cinema-stage.pattern-scrapbook .scrapbook-play-badge::before {
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  margin-left: 15%;       /* compensa l'asimmetria ottica del triangolo */
+  border-style: solid;
+  border-width: clamp(8px, 1.6vw, 12px) 0 clamp(8px, 1.6vw, 12px) clamp(13px, 2.6vw, 20px);
+  border-color: transparent transparent transparent #f4ecd8;   /* avorio */
+}
+
 /* Fissaggio: SCOTCH washi */
 .scrapbook-photo.with-tape::before {
   content: "";
