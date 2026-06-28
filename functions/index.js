@@ -8,7 +8,7 @@
 
 const functions = require("firebase-functions");
 const { onObjectFinalized } = require("firebase-functions/v2/storage");
-const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { onDocumentUpdated, onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const axios = require("axios");
@@ -1145,6 +1145,95 @@ exports.notifyNewMedia = onDocumentUpdated({
     }
     return null;
   }
+});
+
+// =====================================
+// CF notifyNewVideo — notifica Telegram per i VIDEO (additivo, isolato)
+// I video non ricevono ai_scored_at → notifyNewMedia non scatta mai per loro.
+// Trigger: onDocumentCreated (il doc video nasce già con original_url e non viene più aggiornato).
+// Riusa: formato bottoni a:/r: (telegramWebhook type-agnostic), escapeMdV2, sendMessage via axios.
+// =====================================
+exports.notifyNewVideo = onDocumentCreated({
+  region: "us-central1",
+  memory: "256MiB",
+  timeoutSeconds: 30,
+  document: "wedding-media/{mediaId}",
+}, async (event) => {
+  const snap = event.data;
+  if (!snap) return null;
+  const data = snap.data();
+  const mediaId = event.params.mediaId;
+
+  // Guard 1: solo video (le immagini seguono il percorso esistente ai_scored_at → notifyNewMedia)
+  if (!data || data.file_type !== "video") return null;
+
+  // Guard 2: deve avere original_url (sicurezza; il doc nasce già con esso)
+  if (!data.original_url) {
+    console.warn(`[notifyNewVideo] ${mediaId}: original_url mancante, skip`);
+    return null;
+  }
+
+  // Guard 3: idempotenza — se già notificato, skip
+  if (data.telegram_notified_at) {
+    console.log(`[notifyNewVideo] ${mediaId}: skip (già notificato)`);
+    return null;
+  }
+
+  // Guard 4: config Telegram presente (NON loggare i valori)
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!botToken || !chatId) {
+    console.warn(`[notifyNewVideo] ${mediaId}: config Telegram mancante, skip`);
+    return null;
+  }
+
+  // Caption minimale MarkdownV2 (niente AI score/tag per i video). Campo schema: uploader_name (snake_case).
+  const uploader = (data.uploader_name && data.uploader_name.trim()) ? data.uploader_name : "Anonimo";
+  const caption = `🎥 *Nuovo video* da ${escapeMdV2(uploader)}`;
+
+  // Bottoni inline — STESSO formato di notifyNewMedia (a:/r: + Apri admin)
+  const adminUrl = "https://andreagiulia5luglio26.it/admin.html";
+  const replyMarkup = {
+    inline_keyboard: [
+      [
+        { text: "✅ Approva", callback_data: `a:${mediaId}` },
+        { text: "❌ Rifiuta", callback_data: `r:${mediaId}` },
+      ],
+      [{ text: "📲 Apri admin", url: adminUrl }],
+    ],
+  };
+
+  // Invio sendMessage testo (stesso pattern axios di notifyNewMedia)
+  try {
+    const telegramResponse = await axios.post(
+      `https://api.telegram.org/bot${botToken}/sendMessage`,
+      {
+        chat_id: chatId,
+        text: caption,
+        parse_mode: "MarkdownV2",
+        reply_markup: replyMarkup,
+      },
+      { timeout: 15000 }
+    );
+
+    if (telegramResponse.data?.ok) {
+      // Idempotenza: marca come notificato SOLO se l'invio è andato a buon fine
+      await snap.ref.update({
+        telegram_notified_at: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      console.log(`[notifyNewVideo] ${mediaId}: notificato (id ${telegramResponse.data.result.message_id})`);
+    } else {
+      console.error(`[notifyNewVideo] ${mediaId}: Telegram API risposta inattesa`, telegramResponse.data);
+    }
+  } catch (err) {
+    // NON marcare telegram_notified_at se l'invio fallisce (così un retry può riprovare)
+    console.error(`[notifyNewVideo] ${mediaId}: errore invio`, err?.message || err);
+    if (err.response) {
+      console.error(`[notifyNewVideo] ${mediaId}: API status ${err.response.status}`, JSON.stringify(err.response.data));
+    }
+  }
+
+  return null;
 });
 
 // =====================================
