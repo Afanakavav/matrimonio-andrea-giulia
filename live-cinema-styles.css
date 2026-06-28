@@ -761,8 +761,53 @@ html, body {
    Pattern E — Responsive
    ============================================ */
 @media (max-width: 767px) {
-  .scrapbook-photo { max-width: 70vw; }
-  .scrapbook-caption { font-size: clamp(18px, 6vw, 30px); }
+  /* ===== Pattern E (Scrapbook) — mobile portrait (Fase B) ===== */
+  /* Stage: usa l'altezza VISIBILE (dvh) per evitare il bug 100vh con le barre browser mobile */
+  .cinema-stage.pattern-scrapbook {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* Pagina: 2 media IMPILATI verticalmente, centrati, dentro lo schermo (niente scroll) */
+  .cinema-stage.pattern-scrapbook .scrapbook-page-content {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: 3vh;
+    height: 100vh;
+    height: 100dvh;
+    padding: 4vh 6vw 9vh 6vw;   /* extra in basso per l'indicatore "X / Y" */
+    box-sizing: border-box;
+  }
+
+  /* Ogni polaroid: ~metà altezza disponibile, larghezza generosa ma dentro lo schermo */
+  .cinema-stage.pattern-scrapbook .scrapbook-photo {
+    max-width: 80vw;        /* sovrascrive il 70vw precedente */
+    max-height: 42vh;       /* ~metà schermo meno gap/indicatore — TARARE nel test */
+    width: auto;
+  }
+  /* Media interi nel box polaroid (niente crop). max-height < 42vh per il bordo polaroid (padding 12/40px) */
+  .cinema-stage.pattern-scrapbook .scrapbook-photo img,
+  .cinema-stage.pattern-scrapbook .scrapbook-photo video,
+  .cinema-stage.pattern-scrapbook .scrapbook-video,
+  .cinema-stage.pattern-scrapbook .scrapbook-video-wrap {
+    max-width: 100%;
+    max-height: 36vh;
+    object-fit: contain;
+  }
+
+  /* Frecce: touch-friendly su schermo piccolo */
+  .cinema-stage.pattern-scrapbook .scrapbook-arrow {
+    font-size: clamp(32px, 9vw, 56px);
+  }
+
+  /* Indicatore "X / Y": un po' più in alto dal bordo, non sotto le barre del browser */
+  .cinema-stage.pattern-scrapbook .scrapbook-page-indicator {
+    bottom: 18px;
+    font-size: clamp(13px, 4vw, 18px);
+  }
 }
 
 /* ============================================
