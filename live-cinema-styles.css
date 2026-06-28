@@ -777,6 +777,11 @@ html, body {
   max-height: 100%;
   object-fit: contain;                 /* foto intera, niente crop (niente zoom in C1) */
 }
+.scrapbook-fullscreen-video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;                 /* C2: video intero, niente crop; <video controls> = controlli nativi */
+}
 .scrapbook-fullscreen-close {
   position: absolute;
   top: env(safe-area-inset-top, 16px);

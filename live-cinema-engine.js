@@ -624,6 +624,7 @@
       let pages = [];             // array di pagine (ognuna = array di max MEDIA_PER_PAGE media)
       let currentPageIndex = 0;
       let fullscreenOverlay = null;   // C1: overlay visualizzatore fullscreen (creato on demand)
+      let fullscreenVideoEl = null;   // C2: riferimento al video del fullscreen (per pausa alla chiusura)
 
       function init() {
         stage.classList.add("pattern-scrapbook");
@@ -826,10 +827,9 @@
         transitionToPage(content);
       }
 
-      // ===== C1: visualizzatore fullscreen (SOLO foto; video = C2; zoom = Fase D) =====
+      // ===== C1/C2: visualizzatore fullscreen (foto=img, video=player audio; zoom = Fase D) =====
       function openFullscreen(media) {
-        // C1: solo immagini. I video verranno gestiti in C2.
-        if (!media || media.fileType !== "image") return;
+        if (!media) return;
 
         closeFullscreen();   // sicurezza: chiudi eventuale overlay già aperto
 
@@ -841,16 +841,36 @@
         closeBtn.setAttribute("aria-label", "Chiudi");
         closeBtn.textContent = "✕";
         closeBtn.addEventListener("click", (e) => { e.stopPropagation(); closeFullscreen(); });
-
-        const img = document.createElement("img");
-        img.className = "scrapbook-fullscreen-img";
-        img.src = media.url;   // foto = display_url (≤2560px)
-        img.alt = "";
-
         fullscreenOverlay.appendChild(closeBtn);
-        fullscreenOverlay.appendChild(img);
 
-        // tap-fuori (sul backdrop, non sull'immagine) → chiudi
+        if (media.fileType === "video") {
+          // C2: elemento video NUOVO con audio + controlli + autoplay (NON quello del collage A4)
+          const video = document.createElement("video");
+          video.className = "scrapbook-fullscreen-video";
+          video.src = media.url;        // video = original_url (file reale con audio)
+          video.controls = true;        // controlli nativi (play/pausa/barra)
+          video.playsInline = true;     // niente takeover fullscreen forzato iOS
+          video.autoplay = true;        // user-initiated dal tap
+          // NIENTE muted → audio attivo (l'utente l'ha aperto apposta)
+          if (media.posterUrl) { video.poster = media.posterUrl; }
+          fullscreenOverlay.appendChild(video);
+
+          fullscreenVideoEl = video;    // riferimento per la pausa alla chiusura
+
+          const p = video.play();
+          if (p && typeof p.catch === "function") {
+            p.catch((err) => console.warn("[fullscreen] autoplay video bloccato:", err));
+          }
+        } else {
+          // C1: foto
+          const img = document.createElement("img");
+          img.className = "scrapbook-fullscreen-img";
+          img.src = media.url;   // foto = display_url (≤2560px)
+          img.alt = "";
+          fullscreenOverlay.appendChild(img);
+        }
+
+        // tap-fuori (sul backdrop, non sul media) → chiudi
         fullscreenOverlay.addEventListener("click", (e) => {
           if (e.target === fullscreenOverlay) closeFullscreen();
         });
@@ -865,6 +885,11 @@
       }
 
       function closeFullscreen() {
+        // C2: pausa il video se presente (SOLO pausa, NO reset currentTime — decisione B)
+        if (fullscreenVideoEl) {
+          try { fullscreenVideoEl.pause(); } catch (e) {}
+          fullscreenVideoEl = null;
+        }
         if (fullscreenOverlay) {
           fullscreenOverlay.remove();
           fullscreenOverlay = null;
