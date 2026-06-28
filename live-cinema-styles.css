@@ -718,7 +718,7 @@ html, body {
 }
 .cinema-stage.pattern-scrapbook .scrapbook-nav-zone { height: 100%; }
 .cinema-stage.pattern-scrapbook .scrapbook-nav-zone.left   { width: 30%; cursor: w-resize; }
-.cinema-stage.pattern-scrapbook .scrapbook-nav-zone.center { width: 40%; cursor: default; }   /* inerte in A2 */
+.cinema-stage.pattern-scrapbook .scrapbook-nav-zone.center { width: 40%; cursor: default; pointer-events: none; }   /* C1: lascia passare il tap alle polaroid (apertura fullscreen) */
 .cinema-stage.pattern-scrapbook .scrapbook-nav-zone.right  { width: 30%; cursor: e-resize; }
 
 /* Frecce discrete — solo visive: il tap è gestito dalle zone sottostanti */
@@ -755,6 +755,44 @@ html, body {
   font-weight: 600;
   letter-spacing: 0.05em;
   backdrop-filter: blur(2px);
+}
+
+/* ============================================
+   Pattern E (Scrapbook) — Fullscreen C1 (foto; video=C2, zoom=Fase D)
+   ============================================ */
+.scrapbook-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;                       /* sopra le nav-zone (z10/11) */
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4vh 4vw;
+  box-sizing: border-box;
+}
+.scrapbook-fullscreen-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;                 /* foto intera, niente crop (niente zoom in C1) */
+}
+.scrapbook-fullscreen-close {
+  position: absolute;
+  top: env(safe-area-inset-top, 16px);
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(212, 185, 120, 0.6);   /* oro soft */
+  color: #f4ecd8;                                /* avorio */
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
 }
 
 /* ============================================

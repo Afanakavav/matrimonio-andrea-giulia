@@ -623,6 +623,7 @@
       let pageTimer = null;
       let pages = [];             // array di pagine (ognuna = array di max MEDIA_PER_PAGE media)
       let currentPageIndex = 0;
+      let fullscreenOverlay = null;   // C1: overlay visualizzatore fullscreen (creato on demand)
 
       function init() {
         stage.classList.add("pattern-scrapbook");
@@ -810,12 +811,66 @@
             photoEl.appendChild(img);
           }
 
+          // C1: tap diretto sulla polaroid → apre il SUO media in fullscreen
+          photoEl.style.cursor = "pointer";
+          photoEl.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openFullscreen(media);   // 'media' = il singolo media di QUESTA polaroid (forEach)
+          });
+
           content.appendChild(photoEl);
         });
 
         // A3: nessuna frase AI nello scrapbook (decisione sposi). CSS .scrapbook-caption lasciato inerte.
 
         transitionToPage(content);
+      }
+
+      // ===== C1: visualizzatore fullscreen (SOLO foto; video = C2; zoom = Fase D) =====
+      function openFullscreen(media) {
+        // C1: solo immagini. I video verranno gestiti in C2.
+        if (!media || media.fileType !== "image") return;
+
+        closeFullscreen();   // sicurezza: chiudi eventuale overlay già aperto
+
+        fullscreenOverlay = document.createElement("div");
+        fullscreenOverlay.className = "scrapbook-fullscreen";
+
+        const closeBtn = document.createElement("button");
+        closeBtn.className = "scrapbook-fullscreen-close";
+        closeBtn.setAttribute("aria-label", "Chiudi");
+        closeBtn.textContent = "✕";
+        closeBtn.addEventListener("click", (e) => { e.stopPropagation(); closeFullscreen(); });
+
+        const img = document.createElement("img");
+        img.className = "scrapbook-fullscreen-img";
+        img.src = media.url;   // foto = display_url (≤2560px)
+        img.alt = "";
+
+        fullscreenOverlay.appendChild(closeBtn);
+        fullscreenOverlay.appendChild(img);
+
+        // tap-fuori (sul backdrop, non sull'immagine) → chiudi
+        fullscreenOverlay.addEventListener("click", (e) => {
+          if (e.target === fullscreenOverlay) closeFullscreen();
+        });
+
+        document.body.appendChild(fullscreenOverlay);
+        document.body.style.overflow = "hidden";   // blocca scroll dietro
+        document.addEventListener("keydown", onFullscreenKeydown);
+      }
+
+      function onFullscreenKeydown(e) {
+        if (e.key === "Escape") closeFullscreen();
+      }
+
+      function closeFullscreen() {
+        if (fullscreenOverlay) {
+          fullscreenOverlay.remove();
+          fullscreenOverlay = null;
+        }
+        document.body.style.overflow = "";   // ripristina scroll
+        document.removeEventListener("keydown", onFullscreenKeydown);
       }
 
       function transitionToPage(newContent) {
@@ -846,6 +901,7 @@
       }
 
       function cleanup() {
+        closeFullscreen();   // C1: rimuove overlay + listener keydown + ripristina overflow
         if (pageTimer) clearTimeout(pageTimer);
         pageTimer = null;
         pages = [];
