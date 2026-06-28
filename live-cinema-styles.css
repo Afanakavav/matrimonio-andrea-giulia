@@ -801,6 +801,27 @@ html, body {
   z-index: 1001;
 }
 
+/* Pulsante Home (alto-sinistra) — torna alla home dallo scrapbook immersivo */
+.cinema-home-btn {
+  position: fixed;
+  top: env(safe-area-inset-top, 16px);
+  left: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(212, 185, 120, 0.6);   /* oro soft */
+  color: #f4ecd8;                                /* avorio */
+  font-size: 20px;
+  text-decoration: none;
+  z-index: 12;            /* sopra nav-zone(10)/frecce-indicatore(11), SOTTO fullscreen(1000) */
+  pointer-events: auto;
+}
+/* In fullscreen l'overlay opaco (z-1000) copre il pulsante → sparisce da solo, nessuna collisione con la X */
+
 /* ============================================
    Pattern E — Responsive
    ============================================ */
